@@ -1,73 +1,71 @@
-.background {
-  background-color: black;
-  min-height: 100vh;
-  color: white;
-  justify-content: center;
-  align-items: center;
-  display: flex;
-  background: linear-gradient(45deg, blue, rgb(0, 0, 0));
-}
-
-.container {
-  display: flex;
-  justify-content: flex-end;
-}
-
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: black;
-  color: white;
-}
-
-.query {
-  border: 1px solid white;
-  border-radius: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 50vw;
-  height: 5vh;
-  color: white;
-  background-color: rgb(0, 0, 0);
-}
-
-
-.button-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px; 
-}
-
-button {
-  padding: 10px 20px;
-  border-radius: 5px;
-  background-color: white;
-  color: black;
-  border: none;
-  cursor: pointer;
-  /* Removed margin-top since positioning is handled by .button-container */
-}
-
-.backbutton {
-  padding: 10px 20px;
-  border-radius: 5px;
-  background-color: white;
-  color: red;
-  border: none;
-  cursor: pointer;
-}
-
-.ForwardButton{
-  padding: 10px 20px;
-  border-radius: 5px;
-  background-color: white;
-  color: red;
-  border: none;
-  cursor: pointer;
-  justify-content: flex;
-}
+.home {
+    background: linear-gradient(15deg, rgb(0, 0, 0), rgb(1, 1, 107));
+    min-height: 100vh;
+    color: white;
+    position: relative;
+    display: block;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', sans-serif;
+    
+  }
+  
+  .section {
+    width: 100%;
+    max-width: 1000px;
+    text-align: center;
+    margin: 40px auto;
+    position: relative;
+  }
+  
+  .title {
+    margin-top: 0;
+  }
+  
+  .hook {
+    margin-top: 190px; 
+  }
+  
+  .summary {
+    margin-top: 100px;
+  }
+  
+  .title h1 {
+    font-size: 2rem;
+  }
+  
+  .hook h2 {
+    font-size: 4rem;
+  }
+  
+  .summary p {
+    font-size: 2rem;
+    line-height: 1.6;
+  }
+  
+  .start-now-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 200px; 
+  }
+  
+  #start-button {
+    padding: 7px 20px;
+    font-size: 1.4rem;
+    font-weight:bolder;
+    border: none;
+    border-radius: 5px;
+    color: rgb(75, 34, 172);
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    height: 40px;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    
+  }
+  
+  #start-button:hover {
+    background-color: rgb(75, 34, 172);
+    color: white;
+  }
+  

@@ -14,7 +14,7 @@ const Second: React.FC = () => {
     </div>
   </div>
   <div className="button-container">
-    <button className="backbutton" onClick={() => navigate("/")}>
+    <button className="backbutton" onClick={() => navigate("/first-page")}>
       Go back
     </button>
     <button className="ForwardButton" onClick={() => navigate("/third-page")}>
