@@ -8,7 +8,7 @@
   }
   
   .main-container {
-    display: flex;
+    display:flexbox;
     align-items: center;
     justify-content: center;
     gap: 2vw;
@@ -22,25 +22,28 @@
     justify-content: center;
     align-items: center;
     width: 50vw;
-    height: 50vh;
+    min-height: 50vh;
+    height:auto;
     color: white;
     background-color: rgb(0, 0, 0);
   }
   
   .Formulas {
+    position: relative; /* Needed to position internal elements absolutely */
     border: 1px solid white;
     border-radius: 40px;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     width: 20vw;
-    height: 47vh;
-    color: white;
-    background-color: rgb(23, 4, 134);
+    min-height: 47vh;
+    background-color: rgb(13, 20, 58);
     padding: 1rem;
-  }
-
-  #formula{
-    justify-content: center;
+    text-align: center;
   }
   
+  .formula-bottom-button {
+    position: absolute;
+    bottom: 20px;
+    justify-content: center;
+  }

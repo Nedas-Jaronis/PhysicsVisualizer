@@ -1,14 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import "./SecondPage.css"
+import "./Second.css"
 
 const Second: React.FC = () => {
     const navigate = useNavigate();
     return (
 <div className="background">
   <div className="main-container">
-    <div className="Formulas">
-      <h2>Formulas Here:</h2>
-    </div>
+  <div className="Formulas">
+  <h2 id="Ftitle">Formulas:</h2>
+
+  <div className="formula-bottom-button">
+    <button className="formula-context-button" onClick={() => navigate("/formula-page")}>
+      Go to All Formulas
+    </button>
+  </div>
+</div>
+
     <div className="Solution-Box">
       <h1>Solution Goes Here</h1>
     </div>

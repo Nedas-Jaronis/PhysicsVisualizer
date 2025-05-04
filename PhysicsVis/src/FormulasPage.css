@@ -1,0 +1,46 @@
+  .main-container {
+    display:flexbox;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+  }
+  
+  .Formulas {
+    border: 1px solid white;
+    border-radius: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 20vw;
+    width: auto;
+    min-height: 47vh;
+    height: auto;
+    color: white;
+    background-color: rgb(13, 20, 58);
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .formula-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+
+  #formula{
+    justify-content: center;
+  }
+  .formula-buttons p{
+    color: black;
+    width: auto;
+  }
+  .formula-buttons a{
+    color: black;
+    width: auto;
+  }
+  #Ftitle{
+    cursor: default;
+  }
