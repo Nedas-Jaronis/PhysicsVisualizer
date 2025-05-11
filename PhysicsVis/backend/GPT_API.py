@@ -82,6 +82,7 @@ def process_physics_response(problem):
         ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', and 'Step-by-step:'. Never merge sections. Never restate the problem. Format for readability.
         """
             },
+            {"role": "system", "content": "In terms of formatting keep this in mind everytime. Formulas will be formatted by bullet points in the the start. Solution will be formnatted without bulletpoints or any numbers this will be in a paragraph. The step by step is different then the solution, this will be formated in a bulleted list and these numbers should be separate paragraphs all bulleted and easily readable and udnerstood."},
             {"role": "user", "content": problem}
         ],
         stream=False
@@ -304,5 +305,5 @@ def alternative_parsing(message):
 
 
 if __name__ == '__main__':
-    test_problem = "A circular loop of radius R = 0.1m and resistance Rloop = 2.0 ohm is placed in a time-varying magnetic field B(t) = 0.01t^2 T where t is in seconds. 1. Derive an expression for the induced EMF in the loop. 2. Find the current induced in the loop at t = 5s"
+    test_problem = "A ball is dropped from a height of 2 meters. Each time it hits the ground, it bounces back up to 60% \of its previous height. Question:How high does the ball bounce after the 1st, 2nd, and 3rd bounces?"
     process_physics_response(test_problem)

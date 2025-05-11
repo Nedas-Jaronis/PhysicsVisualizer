@@ -1,53 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import "./Second.css";
+import { usePhysics } from "./PhysicsContent";
+
+
+
 
 const Second: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { solution, formulas } = usePhysics();
   
-  const [solution, setSolution] = useState<string>("");
-  const [formulas, setFormulas] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchSolution = async () => {
-      try {
-        const problem = location.state?.problem || "A circular loop of radius R = 0.1m and resistance Rloop = 2.o ohm is placed in a time-varying magnetic field B(t) = 0.01t^2 T where t is in seconds. 1. Derive an expression for the induced EMF in the loop. 2. Find the current induced in the loop at t = 5s";
-        
-        console.log("Fetching solution for problem:", problem.substring(0, 50) + "...");
-        
-        const response = await fetch('http://localhost:5000/api/solve', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ problem }),
-        });
+useEffect(() => {
+  if (!solution || !formulas) {
+    setError("No solution data available. Submit a question first.");
+  }
+  setIsLoading(false);
+}, [solution, formulas]);
 
-        console.log("Response status:", response.status);
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch solution');
-        }
 
-        const data = await response.json();
-        console.log("Data received:", Object.keys(data));
-        
-        setSolution(data.solution || "No solution provided");
-        setFormulas(data.formulas || "No formulas provided");
-      } catch (err) {
-        console.error('Error fetching solution:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSolution();
-  }, [location.state]);
 
   return (
     <div className="background">
