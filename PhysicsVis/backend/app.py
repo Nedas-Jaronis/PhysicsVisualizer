@@ -4,7 +4,7 @@ import GPT_API  # Make sure this matches your file name
 import traceback
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
 
 @app.route('/api/solve', methods=['POST'])
