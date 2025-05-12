@@ -16,7 +16,7 @@ MANIM_SCRIPT_PATH = os.path.abspath(
 
 # Manim generates to its default output
 MANIM_OUTPUT_PATH = os.path.abspath(os.path.join(
-    BASE_DIR, "../media/videos/manimtest/480p15/MyScene.mp4"))
+    BASE_DIR, "media/videos/manimtest/480p15/MyScene.mp4"))
 
 # Final public-facing location for React (in public folder)
 FRONTEND_VIDEO_PATH = os.path.abspath(os.path.join(
@@ -46,20 +46,21 @@ def solve_problem():
             check=True
         )
         print("✔ Manim video rendered")
+        print("Source Path: ", MANIM_OUTPUT_PATH)
+        print("Destination Path: ", FRONTEND_VIDEO_PATH)
 
         # 3. Move the video to React public folder
         if os.path.exists(MANIM_OUTPUT_PATH):
-            shutil.move(MANIM_OUTPUT_PATH, FRONTEND_VIDEO_PATH)
-            print("✔ Video moved to frontend/public")
+            shutil.copy(MANIM_OUTPUT_PATH, FRONTEND_VIDEO_PATH)
+            print("✔ Video copied to frontend/public")
         else:
             print("⚠ Video not found at expected location:", MANIM_OUTPUT_PATH)
-
         # 4. Return response
         return jsonify({
             'solution': solution,
             'step_by_step': step_by_step,
             'formulas': formulas,
-            'video_path': '/media/videos/manimtest/MyScene.mp4'
+            'video_path': '/public/media/videos/manimtest/MyScene.mp4'
         })
 
     except Exception as e:

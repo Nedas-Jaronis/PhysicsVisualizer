@@ -74,7 +74,7 @@ const Third: React.FC = () => {
         <div className="Second-Box">
           {/* Render the video directly from the src folder */}
           <video width="100%" autoPlay loop muted>
-            <source src={"/media/videos/manimtest/MyScene.mp4"} type="video/mp4" />
+            <source src="/media/videos/manimtest/MyScene.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
