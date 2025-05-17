@@ -1,6 +1,10 @@
 import re
 from openai import OpenAI
+import json
+import json_templates
 
+
+problem = """Your physics problem text here"""
 # Map to convert ^# to its subscript equivalent
 subscript_map = {
     "-30": "₋³⁰", "-29": "₋²⁹", "-28": "₋²⁸", "-27": "₋²⁷", "-26": "₋²⁶", "-25": "₋²⁵",
@@ -48,7 +52,32 @@ def replace_with_subscripts(text):
     return re.sub(r'\^(-?\d+)', subscript_replacement, text)
 
 
+def detect_problem_type(problem):
+    client = OpenAI(api_key="sk-b654dd017af24441a99b9708346c98a3",
+                    base_url="https://api.deepseek.com")
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a physics problem classifier. Given a problem, classify it as one of the following: 1D Kinematics, 2D Kinematics, Forces and Newton's Laws, Work, Energy, Power, Momentum and Collisions, Rotational Motion, Simple Harmonic Motion, Gravitation and Orbits. Only respond with the exact problem type."
+            },
+            {
+                "role": "user",
+                "content": problem
+            }
+        ],
+        stream=False
+    )
+
+    return response.choices[0].message.content.strip()
+
+
 def process_physics_response(problem):
+
+    problem_type = detect_problem_type(problem)
+    dynamic_content = API_Content(problem_type)
+    print(f"Detected Problem Type: {problem_type}")
     # Print the problem to debug
     print(f"Processing problem in GPT_API: {problem[:100]}")
 
@@ -79,10 +108,19 @@ def process_physics_response(problem):
         - Break it down so a high school student can follow.
         - Do not restate the original problem.
 
-        ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', and 'Step-by-step:'. Never merge sections. Never restate the problem. Format for readability.
+        4. Animation Data (JSON):
+        - Start this section with: 'Animation Data (JSON):'
+        - Provide structured JSON data for animating the problem.
+        - Include all objects, motions, forces, and environment details.
+
+        ⚠️⚠️⚠️{dynamic_content}
+
+        ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', 'Step-by-step:' and 'Animation Data (JSON):'. Never merge sections. Never restate the problem. Format for readability.
         """
             },
-            {"role": "system", "content": "In terms of formatting keep this in mind everytime. Formulas will be formatted by bullet points in the the start. Solution will be formnatted without bulletpoints or any numbers this will be in a paragraph. The step by step is different then the solution, this will be formated in a bulleted list and these numbers should be separate paragraphs all bulleted and easily readable and udnerstood."},
+            {"role": "system", "content": "In terms of formatting keep this in mind everytime. Formulas will be formatted by bullet points in the the start. Solution will be formatted without bulletpoints or any numbers this will be in a paragraph. The step by step is different then the solution, this will be formated in a bulleted list and these numbers should be separate paragraphs all bulleted and easily readable and udnerstood."
+             ""
+             },
             {"role": "user", "content": problem}
         ],
         stream=False
@@ -99,19 +137,20 @@ def process_physics_response(problem):
     solution = ""
     step_by_step = ""
     formulas = ""
+    animation_data = {}
 
     # Process each message from the API
     for message in messages:
         # Apply text replacements and formatting
-        message = apply_text_formatting(message)
+        # message = apply_text_formatting(message)
 
         # Split the message by the section headers
         # This is a more robust way to parse the sections
+        # Use a more robust section splitting approach
         sections = re.split(
-            r'(Formulas:|Solution:|Step-by-step:)', message, flags=re.IGNORECASE)
+            r'(Formulas:\s*|Solution:\s*|Step-by-step:\s*|Animation Data \(JSON\):\s*)', message, flags=re.IGNORECASE)
 
-        # Debug the sections
-        print(f"Found {len(sections)} sections")
+        formulas, solution, step_by_step, animation_data = "", "", "", ""
 
         # Process each section
         current_section = None
@@ -130,6 +169,9 @@ def process_physics_response(problem):
             elif section.lower() == "step-by-step:":
                 current_section = "step_by_step"
                 continue
+            elif section.lower() == "animation data (json):":
+                current_section = "animation_data"
+                continue
 
             # Add content to the appropriate section
             if current_section == "formulas":
@@ -138,11 +180,46 @@ def process_physics_response(problem):
                 solution += section + "\n"
             elif current_section == "step_by_step":
                 step_by_step += section + "\n"
+            elif current_section == "animation_data":
+                try:
+                    # Clean the section to remove unexpected characters
+                    cleaned_json = section.strip()
+                    # Replace single quotes with double quotes
+                    cleaned_json = cleaned_json.replace("'", "\"")
+                    cleaned_json = cleaned_json.replace(
+                        "…", "")    # Remove ellipses
+                    cleaned_json = cleaned_json.replace("\n", "")
+                    cleaned_json = cleaned_json.replace("\t", "")
+
+                    # Fix the position formatting if it's not wrapped in brackets
+                    cleaned_json = re.sub(
+                        r"\"start_pos\":\s*(\d+),\s*(\d+)", r"\"start_pos\": [\1, \2]", cleaned_json)
+                    cleaned_json = re.sub(
+                        r"\"end_pos\":\s*(\d+),\s*(\d+)", r"\"end_pos\": [\1, \2]", cleaned_json)
+
+                    # Fix single object to list if needed
+                    if "\"objects\":" in cleaned_json and "{" in cleaned_json and not cleaned_json.strip().startswith("["):
+                        # Wrap the single object in a list
+                        cleaned_json = cleaned_json.replace(
+                            "\"objects\":", "\"objects\": [") + "]"
+
+                    # Add square brackets if missing
+                    if not cleaned_json.strip().startswith("{"):
+                        cleaned_json = "{" + cleaned_json + "}"
+
+                    # Attempt to parse the cleaned JSON
+                    animation_data = json.loads(cleaned_json)
+                except json.JSONDecodeError as e:
+                    print(f"Failed to parse animation data: {e}")
+                    print("Raw data:", section.strip())
+                    animation_data = {
+                        "error": "Invalid animation data provided by the AI."}
 
     # If the section splitting didn't work, try a different approach
+    full_text = "\n".join(messages)
     if not formulas and not solution and not step_by_step:
         print("Section splitting failed, trying alternative parsing")
-        formulas, solution, step_by_step = alternative_parsing(message)
+        formulas, solution, step_by_step = alternative_parsing(full_text)
 
     # Trim whitespace
     solution = solution.strip()
@@ -150,12 +227,10 @@ def process_physics_response(problem):
     formulas = formulas.strip()
 
     # Debug output
-    print("Step by Step:", step_by_step[:100] +
-          "..." if len(step_by_step) > 100 else step_by_step)
-    print("Solution:", solution[:100] +
-          "..." if len(solution) > 100 else solution)
-    print("Formulas:", formulas[:100] +
-          "..." if len(formulas) > 100 else formulas)
+    print("Formulas:", formulas)
+    print("Solution:", solution)
+    print("Step-by-Step:", step_by_step)
+    print("Animation Data:", animation_data)
 
     # If any section is empty, provide a default
     if not formulas:
@@ -164,8 +239,10 @@ def process_physics_response(problem):
         solution = "No solution provided by the AI."
     if not step_by_step:
         step_by_step = "No step-by-step explanation provided by the AI."
+    if not animation_data:
+        animation_data = {"error": "No animation data provided by the AI."}
 
-    return solution, step_by_step, formulas
+    return solution, step_by_step, formulas, animation_data
 
 
 def apply_text_formatting(message):
@@ -205,6 +282,10 @@ def apply_text_formatting(message):
                      r'(\1.\2/\3.\4)', message)
     message = re.sub(
         r'(\d+(?:\.\d+)?)\s*/\s*(\d+(?:\.\d+)?)', r'(\1/\2)', message)
+    # Only remove brackets around LaTeX-like commands, not JSON arrays
+
+    message = re.sub(r'\\text\{([^}]+)\}', r'\1', message)
+    message = re.sub(r'\[([^\[\]]+)\]', r'\1', message)
 
     message = standardize_physics_variables(message)
 
@@ -216,17 +297,13 @@ def apply_text_formatting(message):
                .replace("\\", "")
                .replace("times", "×")
                .replace("××", "×")
-               .replace("[", "")
-               .replace("]", "")
                .replace("((", "(")
                .replace("))", ")")
                .replace("sqrt", "√")
                .replace("cdot", "×")
-               .replace(" , ", "")
                .replace("/", " / ")
                .replace("^2", "²")
                .replace(" lambda", " λ")
-               .replace("  ", " ")
                .replace("pi", "π")
                .replace(".(", ".")
                .replace(").", ".")
@@ -257,6 +334,7 @@ def alternative_parsing(message):
     formulas = ""
     solution = ""
     step_by_step = ""
+    animation_data = ""
 
     # Try to extract each section using regex
     formulas_match = re.search(
@@ -301,9 +379,4 @@ def alternative_parsing(message):
             elif current_section == "step_by_step":
                 step_by_step += line + "\n"
 
-    return formulas, solution, step_by_step
-
-
-if __name__ == '__main__':
-    test_problem = "A ball is dropped from a height of 2 meters. Each time it hits the ground, it bounces back up to 60% \of its previous height. Question:How high does the ball bounce after the 1st, 2nd, and 3rd bounces?"
-    process_physics_response(test_problem)
+    return formulas, solution, step_by_step, animation_data
