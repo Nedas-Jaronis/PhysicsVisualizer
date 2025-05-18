@@ -33,14 +33,14 @@ def get_json_template(problem_type):
 def API_Content(problem_type):
     templates = {
         "1D Kinematics": """
-            color: null
-            initial_position: null
-            final_position: null
-            initial_velocity: null
-            final_velocity: null
-            acceleration: null
-            bounce_height: null
-            time: null
+            color: "null"
+            initial_position: 0.0
+            final_position: 0.0
+            initial_velocity: 0.0
+            final_velocity 0.0
+            acceleration: 0.0
+            bounce_height: 0.0
+            time: 0.0
             """,
         "2D Kinematics": """
             initial_position: {"x": null, "y": null}

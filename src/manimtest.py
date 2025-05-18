@@ -23,6 +23,13 @@ class MyScene(Scene):
         color = animation_data.get("color", WHITE)
         time = animation_data.get("time", 3)
 
+        frame_margin = 1
+
+        max_height = max(initial_position, final_position) + frame_margin
+        min_height = min(initial_position, final_position) - frame_margin
+
+        self.camera.frame.set(height=max_height - min_height)
+        self.camera.frame.move_to([(0), (max_height + min_height) / 2, 0])
         print("Animation Data:", animation_data)  # For debugging purposes
 
         # Make sure the positions are valid before using them
@@ -36,4 +43,5 @@ class MyScene(Scene):
         self.add(ball)
 
         # Animate the ball based on the final position
-        self.play(ball.animate.move_to([0, final_position, 0]), run_time=3)
+        self.play(ball.animate.move_to(
+            [0, final_position, 0]), run_time=time, rate_func=linear)
