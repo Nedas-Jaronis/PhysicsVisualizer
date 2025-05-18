@@ -1,7 +1,7 @@
 import re
 from openai import OpenAI
 import json
-import json_templates
+from json_templates import *
 
 
 problem = """Your physics problem text here"""
@@ -109,11 +109,8 @@ def process_physics_response(problem):
         - Do not restate the original problem.
 
         4. Animation Data (JSON):
-        - Start this section with: 'Animation Data (JSON):'
-        - Provide structured JSON data for animating the problem.
-        - Include all objects, motions, forces, and environment details.
-
-        ⚠️⚠️⚠️{dynamic_content}
+        - Use this to give me all the key details, write them in order after 'Animation Data (JSON):'{dynamic_content}
+        I need it to be in the format of the dynamic_content, this is the key details all have to be under the right names, initial_position, final_position, initial_velocity, final_velocity, acceleration, and time.
 
         ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', 'Step-by-step:' and 'Animation Data (JSON):'. Never merge sections. Never restate the problem. Format for readability.
         """
@@ -231,6 +228,10 @@ def process_physics_response(problem):
     print("Solution:", solution)
     print("Step-by-Step:", step_by_step)
     print("Animation Data:", animation_data)
+
+    animation_data = fill_template_from_raw(problem_type, animation_data)
+
+    print("Newnewnew", animation_data)
 
     # If any section is empty, provide a default
     if not formulas:
