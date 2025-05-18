@@ -53,7 +53,7 @@ def replace_with_subscripts(text):
 
 
 def detect_problem_type(problem):
-    client = OpenAI(api_key="sk-b654dd017af24441a99b9708346c98a3",
+    client = OpenAI(api_key="sk-40bc61c061c14be1a62008a4405f2207",
                     base_url="https://api.deepseek.com")
     response = client.chat.completions.create(
         model="deepseek-chat",
@@ -77,11 +77,12 @@ def process_physics_response(problem):
 
     problem_type = detect_problem_type(problem)
     dynamic_content = API_Content(problem_type)
-    print(f"Detected Problem Type: {problem_type}")
-    # Print the problem to debug
-    print(f"Processing problem in GPT_API: {problem[:100]}")
 
-    client = OpenAI(api_key="sk-b654dd017af24441a99b9708346c98a3",
+    print(f"Detected Problem Type: {problem_type}")
+    # # Print the problem to debug
+    # print(f"Processing problem in GPT_API: {problem[:100]}")
+
+    client = OpenAI(api_key="sk-40bc61c061c14be1a62008a4405f2207",
                     base_url="https://api.deepseek.com")
 
     response = client.chat.completions.create(
@@ -89,7 +90,7 @@ def process_physics_response(problem):
         messages=[
             {
                 "role": "system",
-                "content": """
+                "content": f"""
         You are a physics expert. Every time a user submits a problem, respond using **exactly three sections**, and label each section using the following headers exactly as written:
 
         1. Formulas:
@@ -109,8 +110,8 @@ def process_physics_response(problem):
         - Do not restate the original problem.
 
         4. Animation Data (JSON):
-        - Use this to give me all the key details, write them in order after 'Animation Data (JSON):'{dynamic_content}
-        I need it to be in the format of the dynamic_content, this is the key details all have to be under the right names, initial_position, final_position, initial_velocity, final_velocity, acceleration, and time.
+        - Use this to give me all the key details, write them **only** using the exact names provided below. **Do not add, change, or remove any names.** The values should be **null** if not present in the problem.
+        {dynamic_content}⚠️⚠️⚠️Do exactly what the dynamic content says to to nothing more and nothing less. Fill each variable in exactly as it says to. Only use the variables within the dynamic_content and nothing more and nothing less, if there is no value for the variable, fill it with null. *Any strings as values,surround them with quotes!!!*
 
         ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', 'Step-by-step:' and 'Animation Data (JSON):'. Never merge sections. Never restate the problem. Format for readability.
         """
@@ -169,7 +170,6 @@ def process_physics_response(problem):
             elif section.lower() == "animation data (json):":
                 current_section = "animation_data"
                 continue
-
             # Add content to the appropriate section
             if current_section == "formulas":
                 formulas += section + "\n"
@@ -178,39 +178,9 @@ def process_physics_response(problem):
             elif current_section == "step_by_step":
                 step_by_step += section + "\n"
             elif current_section == "animation_data":
-                try:
-                    # Clean the section to remove unexpected characters
-                    cleaned_json = section.strip()
-                    # Replace single quotes with double quotes
-                    cleaned_json = cleaned_json.replace("'", "\"")
-                    cleaned_json = cleaned_json.replace(
-                        "…", "")    # Remove ellipses
-                    cleaned_json = cleaned_json.replace("\n", "")
-                    cleaned_json = cleaned_json.replace("\t", "")
-
-                    # Fix the position formatting if it's not wrapped in brackets
-                    cleaned_json = re.sub(
-                        r"\"start_pos\":\s*(\d+),\s*(\d+)", r"\"start_pos\": [\1, \2]", cleaned_json)
-                    cleaned_json = re.sub(
-                        r"\"end_pos\":\s*(\d+),\s*(\d+)", r"\"end_pos\": [\1, \2]", cleaned_json)
-
-                    # Fix single object to list if needed
-                    if "\"objects\":" in cleaned_json and "{" in cleaned_json and not cleaned_json.strip().startswith("["):
-                        # Wrap the single object in a list
-                        cleaned_json = cleaned_json.replace(
-                            "\"objects\":", "\"objects\": [") + "]"
-
-                    # Add square brackets if missing
-                    if not cleaned_json.strip().startswith("{"):
-                        cleaned_json = "{" + cleaned_json + "}"
-
-                    # Attempt to parse the cleaned JSON
-                    animation_data = json.loads(cleaned_json)
-                except json.JSONDecodeError as e:
-                    print(f"Failed to parse animation data: {e}")
-                    print("Raw data:", section.strip())
-                    animation_data = {
-                        "error": "Invalid animation data provided by the AI."}
+                animation_data = section.strip()
+                animation_data = fill_template_from_raw(
+                    animation_data, problem_type)
 
     # If the section splitting didn't work, try a different approach
     full_text = "\n".join(messages)
@@ -223,15 +193,11 @@ def process_physics_response(problem):
     step_by_step = step_by_step.strip()
     formulas = formulas.strip()
 
-    # Debug output
-    print("Formulas:", formulas)
-    print("Solution:", solution)
-    print("Step-by-Step:", step_by_step)
+    # # Debug output
+    # print("Formulas:", formulas)
+    # print("Solution:", solution)
+    # print("Step-by-Step:", step_by_step)
     print("Animation Data:", animation_data)
-
-    animation_data = fill_template_from_raw(problem_type, animation_data)
-
-    print("Newnewnew", animation_data)
 
     # If any section is empty, provide a default
     if not formulas:

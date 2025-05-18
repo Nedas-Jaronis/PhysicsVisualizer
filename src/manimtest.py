@@ -1,6 +1,10 @@
 import os
 import json
 from manim import *
+from manim import config
+
+config.pixel_height = 1080
+config.pixel_width = 1920
 
 
 class MyScene(Scene):
@@ -16,6 +20,8 @@ class MyScene(Scene):
             "final_position", 0)      # Default to 0 if not provided
         # Default to 9.8 if not provided
         acceleration = animation_data.get("acceleration", 9.8)
+        color = animation_data.get("color", WHITE)
+        time = animation_data.get("time", 3)
 
         print("Animation Data:", animation_data)  # For debugging purposes
 
@@ -25,7 +31,7 @@ class MyScene(Scene):
 
         # Create a ball at the initial position (in the Y direction)
         # X is 0, Y is the initial position
-        ball = Dot(point=[0, initial_position, 0]).scale(5)
+        ball = Dot(point=[0, initial_position, 0], color=color).scale(5)
 
         self.add(ball)
 

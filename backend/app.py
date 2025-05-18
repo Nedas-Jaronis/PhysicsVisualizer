@@ -17,7 +17,7 @@ MANIM_SCRIPT_PATH = os.path.abspath(
 
 # Manim generates to its default output
 MANIM_OUTPUT_PATH = os.path.abspath(os.path.join(
-    BASE_DIR, "media/videos/manimtest/480p15/MyScene.mp4"))
+    BASE_DIR, "media/videos/manimtest/1080p15/MyScene.mp4"))
 
 # Final public-facing location for React (in public folder)
 FRONTEND_VIDEO_PATH = os.path.abspath(os.path.join(
@@ -46,7 +46,8 @@ def solve_problem():
         env['ANIMATION_DATA'] = animation_json_str
         # 3. Run Manim to generate animation
         subprocess.run(
-            ["python", "-m", "manim", MANIM_SCRIPT_PATH, "MyScene", "-ql"],
+            ["python", "-m", "manim", MANIM_SCRIPT_PATH,
+                "MyScene", "-ql"],
             check=True,
             env=env
         )
