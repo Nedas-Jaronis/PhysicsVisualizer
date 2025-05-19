@@ -4,14 +4,23 @@ import json
 def get_json_template(problem_type):
     templates = {
         "1D Kinematics": {
-            "initial_position": None,
-            "final_position": None,
-            "initial_velocity": None,
-            "final_velocity": None,
-            "acceleration": None,
-            "bounce_height": None,
-            "elasticity": None,
-            "time": None
+            "1_color": "null",
+            "1_initial_position": 0.0,
+            "1_final_position": 0.0,
+            "1_initial_velocity": 0.0,
+            "1_final_velocity": 0.0,
+            "1_acceleration": 0.0,
+            "1_bounce_height": 0.0,
+            "1_time": 0.0,
+
+            "2_color": "null",
+            "2_initial_position": 0.0,
+            "2_final_position": 0.0,
+            "2_initial_velocity": 0.0,
+            "2_final_velocity": 0.0,
+            "2_acceleration": 0.0,
+            "2_bounce_height": 0.0,
+            "2_time": 0.0,
         },
         "2D Kinematics": {
             "initial_position": {"x": None, "y": None},
@@ -33,14 +42,26 @@ def get_json_template(problem_type):
 def API_Content(problem_type):
     templates = {
         "1D Kinematics": """
-            color: "null"
-            initial_position: 0.0
-            final_position: 0.0
-            initial_velocity: 0.0
-            final_velocity 0.0
-            acceleration: 0.0
-            bounce_height: 0.0
-            time: 0.0
+            Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.
+
+            1_color: "null"
+            1_initial_position: 0.0
+            1_final_position: 0.0
+            1_initial_velocity: 0.0
+            1_final_velocity: 0.0
+            1_acceleration: 0.0
+            1_bounce_height: 0.0
+            1_time: 0.0
+
+            2_color: "null"
+            2_initial_position: 0.0
+            2_final_position: 0.0
+            2_initial_velocity: 0.0
+            2_final_velocity: 0.0
+            2_acceleration: 0.0
+            2_bounce_height: 0.0
+            2_time: 0.0
+
             """,
         "2D Kinematics": """
             initial_position: {"x": null, "y": null}

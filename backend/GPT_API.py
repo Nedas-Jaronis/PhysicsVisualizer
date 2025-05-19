@@ -111,7 +111,7 @@ def process_physics_response(problem):
 
         4. Animation Data (JSON):
         - Use this to give me all the key details, write them **only** using the exact names provided below. **Do not add, change, or remove any names.** The values should be **null** if not present in the problem.
-        {dynamic_content}⚠️⚠️⚠️Do exactly what the dynamic content says to to nothing more and nothing less. Fill each variable in exactly as it says to. Only use the variables within the dynamic_content and nothing more and nothing less, if there is no value for the variable, fill it with null. *Any strings as values,surround them with quotes!!!*
+        {dynamic_content}⚠️⚠️⚠️Do exactly what the dynamic content says to to nothing more and nothing less. Fill each variable in exactly as it says to. Only use the variables within the dynamic_content and nothing more and nothing less, if there is no value for the variable, fill it with null, also the times are in motion phases as well as all variables prefixed with a #_ starting with 1 to show which phase its on. Make sure to define the time for all of these. *Any strings as values,surround them with quotes!!!* 
 
         ⚠️ Always start each section with its label: 'Formulas:', 'Solution:', 'Step-by-step:' and 'Animation Data (JSON):'. Never merge sections. Never restate the problem. Format for readability.
         """

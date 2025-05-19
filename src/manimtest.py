@@ -3,45 +3,68 @@ import json
 from manim import *
 from manim import config
 
+# Configure render resolution
 config.pixel_height = 1080
 config.pixel_width = 1920
 
 
 class MyScene(Scene):
     def construct(self):
-        # Retrieve and parse the animation data from the environment variable
+        # Load animation data from environment
         animation_data_str = os.getenv("ANIMATION_DATA", "{}")
         animation_data = json.loads(animation_data_str)
 
-        # Extract values with defaults to avoid errors if any data is missing
-        initial_position = animation_data.get(
-            "initial_position", 0)  # Default to 0 if not provided
-        final_position = animation_data.get(
-            "final_position", 0)      # Default to 0 if not provided
-        # Default to 9.8 if not provided
-        acceleration = animation_data.get("acceleration", 9.8)
-        color = animation_data.get("color", WHITE)
-        time = animation_data.get("time", 3)
+        print("Animation Data:", animation_data)  # Debugging
 
-        frame_margin = 1
+        phases = []
+        for i in range(1, 10):  # Support up to 9 motion phases
+            prefix = f"{i}_"
+            if f"{prefix}initial_position" in animation_data and f"{prefix}final_position" in animation_data:
+                initial_position = animation_data.get(
+                    f"{prefix}initial_position", 0)
+                final_position = animation_data.get(
+                    f"{prefix}final_position", 0)
+                acceleration = animation_data.get(
+                    f"{prefix}acceleration", -9.8)
+                raw_time = animation_data.get(f"{prefix}time")
+                color = animation_data.get(f"{prefix}color") or WHITE
 
-        max_height = max(initial_position, final_position) + frame_margin
-        min_height = min(initial_position, final_position) - frame_margin
+                # Estimate time if missing or None
+                if raw_time is None:
+                    try:
+                        displacement = abs(final_position - initial_position)
+                        raw_time = (2 * displacement /
+                                    abs(acceleration)) ** 0.5
+                    except Exception as e:
+                        print(f"Phase {i} time estimation error: {e}")
+                        raw_time = 1.0
 
-        self.camera.frame.set(height=max_height - min_height)
-        self.camera.frame.move_to([(0), (max_height + min_height) / 2, 0])
-        print("Animation Data:", animation_data)  # For debugging purposes
+                time = raw_time + 3.0  # Add 3 seconds to each phase
 
-        # Make sure the positions are valid before using them
-        if initial_position is None or final_position is None:
-            raise ValueError("Initial and final positions must be provided!")
+                phase = {
+                    "initial_position": initial_position,
+                    "final_position": final_position,
+                    "acceleration": acceleration,
+                    "time": time,
+                    "color": color
+                }
 
-        # Create a ball at the initial position (in the Y direction)
-        # X is 0, Y is the initial position
-        ball = Dot(point=[0, initial_position, 0], color=color).scale(5)
+                phases.append(phase)
 
+        if not phases:
+            raise ValueError("No valid motion phases found in animation data!")
+
+        # Create the ball
+        ball = Dot(point=[0, phases[0]["initial_position"], 0],
+                   color=phases[0]["color"]).scale(5)
         self.add(ball)
 
-        # Animate the ball based on the final position
-        self.play(ball.animate.move_to(
-            [0, final_position, 0]), run_time=time, rate_func=linear)
+        # Animate each phase
+        for i, phase in enumerate(phases, start=1):
+            print(
+                f"Animating phase {i}: {phase['initial_position']} → {phase['final_position']} in {phase['time']}s")
+            self.play(
+                ball.animate.move_to([0, phase["final_position"], 0]),
+                run_time=phase["time"],
+                rate_func=linear
+            )
