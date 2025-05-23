@@ -73,10 +73,31 @@ def detect_problem_type(problem):
     return response.choices[0].message.content.strip()
 
 
+def detect_num_motions(problem):
+    client = OpenAI(api_key="sk-40bc61c061c14be1a62008a4405f2207",
+                    base_url="https://api.deepseek.com")
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {
+                "role": "system", "content": "You are a physics motion detector. Given a problem, classify how many motions is undergoes. For example a ball falling then bouncing to a height, is two motions. Detect only the amount of motions that would be present in an animation to animate the problem. Only respond with the number of motions like this '#' so if there are 2 motions respond with '2'."
+            },
+            {
+                "role": "user", "content": problem
+            }
+        ],
+        stream=False
+
+    )
+    return response.choices[0].message.content.strip()
+
+
 def process_physics_response(problem):
 
     problem_type = detect_problem_type(problem)
-    dynamic_content = API_Content(problem_type)
+    num_motions = detect_num_motions(problem)
+    print("Here are the number of motions:", num_motions)
+    dynamic_content = API_Content(problem_type, num_motions)
 
     print(f"Detected Problem Type: {problem_type}")
     # # Print the problem to debug

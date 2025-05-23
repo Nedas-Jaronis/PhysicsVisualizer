@@ -39,37 +39,31 @@ def get_json_template(problem_type):
     return templates.get(problem_type, {})
 
 
-def API_Content(problem_type):
+def API_Content(problem_type, num_motions):
+    if problem_type == "1D Kinematics":
+        motion_template = """
+        {prefix}color: "null"
+        {prefix}initial_position: 0.0
+        {prefix}final_position: 0.0
+        {prefix}initial_velocity: 0.0
+        {prefix}final_velocity: 0.0
+        {prefix}acceleration: 0.0
+        {prefix}bounce_height: 0.0
+        {prefix}time: 0.0
+        """
+        content = "Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.\n\n"
+        for i in range(1, int(num_motions) + 1):
+            content += motion_template.format(prefix=f"{i}_") + "\n"
+        return content
+
     templates = {
-        "1D Kinematics": """
-            Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.
-
-            1_color: "null"
-            1_initial_position: 0.0
-            1_final_position: 0.0
-            1_initial_velocity: 0.0
-            1_final_velocity: 0.0
-            1_acceleration: 0.0
-            1_bounce_height: 0.0
-            1_time: 0.0
-
-            2_color: "null"
-            2_initial_position: 0.0
-            2_final_position: 0.0
-            2_initial_velocity: 0.0
-            2_final_velocity: 0.0
-            2_acceleration: 0.0
-            2_bounce_height: 0.0
-            2_time: 0.0
-
-            """,
         "2D Kinematics": """
             initial_position: {"x": null, "y": null}
             final_position: {"x": null, "y": null}
             initial_velocity: {"x": null, "y": null}
             acceleration: {"x": null, "y": null}
             time: null
-            """,
+        """,
         "Forces and Newton's Laws": """
             mass: null
             force: null

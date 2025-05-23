@@ -37,4 +37,11 @@
     color: white;
     background-color: rgb(0, 0, 0);
   }
+
+  .Second-Box video {
+    width: 100%;
+    height: auto;
+    max-height: 100vh;
+    object-fit: contain;
+  }
   
