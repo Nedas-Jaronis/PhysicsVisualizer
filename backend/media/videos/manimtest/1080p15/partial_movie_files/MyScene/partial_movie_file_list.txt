@@ -1,4 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:C:/Users/jaron/OneDrive/Documents/GitHub/PhysicsVis/backend/media/videos/manimtest/1080p15/partial_movie_files/MyScene/3704429324_2644621965_2965735400.mp4'
-file 'file:C:/Users/jaron/OneDrive/Documents/GitHub/PhysicsVis/backend/media/videos/manimtest/1080p15/partial_movie_files/MyScene/852288222_1980241507_2965735400.mp4'
-file 'file:C:/Users/jaron/OneDrive/Documents/GitHub/PhysicsVis/backend/media/videos/manimtest/1080p15/partial_movie_files/MyScene/852288222_2612335458_2965735400.mp4'
