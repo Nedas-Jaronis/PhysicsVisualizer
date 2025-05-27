@@ -37,13 +37,14 @@ def solve_problem():
 
     try:
         # 1. Generate physics solution
-        solution, step_by_step, formulas, animation_data = GPT_API.process_physics_response(
+        solution, step_by_step, formulas, animation_data, num_motions = GPT_API.process_physics_response(
             problem)
         print("✔ GPT solution generated")
         # 2. Pass animation_data to Manim via environment variable
         animation_json_str = json.dumps(animation_data)
         env = os.environ.copy()
         env['ANIMATION_DATA'] = animation_json_str
+        env['NUM_MOTIONS'] = str(num_motions)
         # 3. Run Manim to generate animation
         subprocess.run(
             ["python", "-m", "manim", MANIM_SCRIPT_PATH,

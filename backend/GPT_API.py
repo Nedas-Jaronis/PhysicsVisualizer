@@ -230,7 +230,7 @@ def process_physics_response(problem):
     if not animation_data:
         animation_data = {"error": "No animation data provided by the AI."}
 
-    return solution, step_by_step, formulas, animation_data
+    return solution, step_by_step, formulas, animation_data, num_motions
 
 
 def apply_text_formatting(message):
