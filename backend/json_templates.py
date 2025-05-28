@@ -49,7 +49,7 @@ def API_Content(problem_type, num_motions):
         {prefix}final_velocity: 0.0
         {prefix}acceleration: 0.0
         {prefix}bounce_height: 0.0
-        {prefix}time: 0.0
+        {prefix}time: 1.0
         """
         content = "Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.\n\n"
         for i in range(1, int(num_motions) + 1):
