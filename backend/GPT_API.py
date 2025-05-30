@@ -80,7 +80,7 @@ def detect_num_motions(problem):
         model="deepseek-chat",
         messages=[
             {
-                "role": "system", "content": "You are a physics motion detector. Given a problem, classify how many motions is undergoes. For example a ball falling then bouncing to a height, is two motions. Detect only the amount of motions that would be present in an animation to animate the problem. Only respond with the number of motions like this '#' so if there are 2 motions respond with '2'."
+                "role": "system", "content": "You are a physics motion detector. Given a problem, classify how many motions is undergoes. For example a ball falling then bouncing to a height, is two motions. Detect only the amount of motions that would be present in an animation to animate the problem. Only respond with the number of motions like this '#' so if there are 2 motions respond with '2' always make the number surrounded by no quotes, just the number."
             },
             {
                 "role": "user", "content": problem

@@ -52,7 +52,7 @@ def API_Content(problem_type, num_motions):
         {prefix}time: 1.0
         """
         content = "Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.\n\n"
-        for i in range(1, int(num_motions) + 1):
+        for i in range(1, int(str(num_motions).strip("'\"")) + 1):
             content += motion_template.format(prefix=f"{i}_") + "\n"
         return content
 
