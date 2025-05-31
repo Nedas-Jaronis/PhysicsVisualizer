@@ -1,41 +1,52 @@
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
-import React, { createContext, useContext, useState } from "react";
-
-type PhysicsData = {
-  problem: string;
+interface PhysicsContextType {
   solution: string;
-  formulas: string;
   step_by_step: string;
-  setPhysicsData: (data: Partial<PhysicsData>) => void;
-};
+  formulas: string;
+  animation_data: any;
+  num_motions: number;
+  setSolution: (solution: string) => void;
+  setStepByStep: (step_by_step: string) => void;
+  setFormulas: (formulas: string) => void;
+  setAnimationData: (animation_data: any) => void;
+  setNumMotions: (num_motions: number) => void;
+}
 
-const defaultData: PhysicsData = {
-  problem: "",
-  solution: "",
-  formulas: "",
-  step_by_step: "",
-  setPhysicsData: () => {},
-};
+// Fix: Properly type the context with the interface
+const PhysicsContext = createContext<PhysicsContextType | undefined>(undefined);
 
-const PhysicsContext = createContext<PhysicsData>(defaultData);
-
-export const PhysicsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<Omit<PhysicsData, "setPhysicsData">>({
-    problem: "",
-    solution: "",
-    formulas: "",
-    step_by_step: "",
-  });
-
-  const setPhysicsData = (newData: Partial<PhysicsData>) => {
-    setData(prev => ({ ...prev, ...newData }));
-  };
+export const PhysicsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [solution, setSolution] = useState<string>("");
+  const [step_by_step, setStepByStep] = useState<string>("");
+  const [formulas, setFormulas] = useState<string>("");
+  const [animation_data, setAnimationData] = useState<any>({});
+  const [num_motions, setNumMotions] = useState<number>(0);
 
   return (
-    <PhysicsContext.Provider value={{ ...data, setPhysicsData }}>
+    <PhysicsContext.Provider
+      value={{
+        solution,
+        step_by_step,
+        formulas,
+        animation_data,
+        num_motions,
+        setSolution,
+        setStepByStep,
+        setFormulas,
+        setAnimationData,
+        setNumMotions,
+      }}
+    >
       {children}
     </PhysicsContext.Provider>
   );
 };
 
-export const usePhysics = () => useContext(PhysicsContext);
+export const usePhysics = (): PhysicsContextType => {
+  const context = useContext(PhysicsContext);
+  if (context === undefined) {
+    throw new Error("usePhysics must be used within a PhysicsProvider");
+  }
+  return context;
+};

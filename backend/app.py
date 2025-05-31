@@ -41,10 +41,10 @@ def solve_problem():
             problem)
         print("✔ GPT solution generated")
         # 2. Pass animation_data to Manim via environment variable
-        # animation_json_str = json.dumps(animation_data)
-        # env = os.environ.copy()
-        # env['ANIMATION_DATA'] = animation_json_str
-        # env['NUM_MOTIONS'] = str(num_motions)
+        animation_json_str = json.dumps(animation_data)
+        env = os.environ.copy()
+        env['ANIMATION_DATA'] = animation_json_str
+        env['NUM_MOTIONS'] = str(num_motions)
         # # 3. Run Manim to generate animation
         # subprocess.run(
         #     ["python", "-m", "manim", MANIM_SCRIPT_PATH,
