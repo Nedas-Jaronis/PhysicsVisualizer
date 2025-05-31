@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePhysics } from "./PhysicsContent";
+import Matter from "matter-js"
 import "./Third.css";
 
 const Third: React.FC = () => {

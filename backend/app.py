@@ -10,21 +10,21 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-# Paths
-BASE_DIR = os.path.dirname(__file__)
-MANIM_SCRIPT_PATH = os.path.abspath(
-    os.path.join(BASE_DIR, "../src/manimtest.py"))
+# # Paths
+# BASE_DIR = os.path.dirname(__file__)
+# MANIM_SCRIPT_PATH = os.path.abspath(
+#     os.path.join(BASE_DIR, "../src/manimtest.py"))
 
-# Manim generates to its default output
-MANIM_OUTPUT_PATH = os.path.abspath(os.path.join(
-    BASE_DIR, "media/videos/manimtest/1080p15/MyScene.mp4"))
+# # Manim generates to its default output
+# MANIM_OUTPUT_PATH = os.path.abspath(os.path.join(
+#     BASE_DIR, "media/videos/manimtest/1080p15/MyScene.mp4"))
 
-# Final public-facing location for React (in public folder)
-FRONTEND_VIDEO_PATH = os.path.abspath(os.path.join(
-    BASE_DIR, "../public/media/videos/manimtest/MyScene.mp4"))
+# # Final public-facing location for React (in public folder)
+# FRONTEND_VIDEO_PATH = os.path.abspath(os.path.join(
+#     BASE_DIR, "../public/media/videos/manimtest/MyScene.mp4"))
 
-# Make sure the public/video path exists
-os.makedirs(os.path.dirname(FRONTEND_VIDEO_PATH), exist_ok=True)
+# # Make sure the public/video path exists
+# os.makedirs(os.path.dirname(FRONTEND_VIDEO_PATH), exist_ok=True)
 
 
 @app.route('/api/solve', methods=['POST'])
@@ -41,33 +41,34 @@ def solve_problem():
             problem)
         print("✔ GPT solution generated")
         # 2. Pass animation_data to Manim via environment variable
-        animation_json_str = json.dumps(animation_data)
-        env = os.environ.copy()
-        env['ANIMATION_DATA'] = animation_json_str
-        env['NUM_MOTIONS'] = str(num_motions)
-        # 3. Run Manim to generate animation
-        subprocess.run(
-            ["python", "-m", "manim", MANIM_SCRIPT_PATH,
-                "MyScene", "-ql"],
-            check=True,
-            env=env
-        )
-        print("✔ Manim video rendered")
-        print("Source Path: ", MANIM_OUTPUT_PATH)
-        print("Destination Path: ", FRONTEND_VIDEO_PATH)
+        # animation_json_str = json.dumps(animation_data)
+        # env = os.environ.copy()
+        # env['ANIMATION_DATA'] = animation_json_str
+        # env['NUM_MOTIONS'] = str(num_motions)
+        # # 3. Run Manim to generate animation
+        # subprocess.run(
+        #     ["python", "-m", "manim", MANIM_SCRIPT_PATH,
+        #         "MyScene", "-ql"],
+        #     check=True,
+        #     env=env
+        # )
+        # print("✔ Manim video rendered")
+        # print("Source Path: ", MANIM_OUTPUT_PATH)
+        # print("Destination Path: ", FRONTEND_VIDEO_PATH)
 
-        # 3. Move the video to React public folder
-        if os.path.exists(MANIM_OUTPUT_PATH):
-            shutil.copy(MANIM_OUTPUT_PATH, FRONTEND_VIDEO_PATH)
-            print("✔ Video copied to frontend/public")
-        else:
-            print("⚠ Video not found at expected location:", MANIM_OUTPUT_PATH)
-        # 4. Return response
+        # # 3. Move the video to React public folder
+        # if os.path.exists(MANIM_OUTPUT_PATH):
+        #     shutil.copy(MANIM_OUTPUT_PATH, FRONTEND_VIDEO_PATH)
+        #     print("✔ Video copied to frontend/public")
+        # else:
+        #     print("⚠ Video not found at expected location:", MANIM_OUTPUT_PATH)
+        # # 4. Return response
         return jsonify({
             'solution': solution,
             'step_by_step': step_by_step,
             'formulas': formulas,
-            'video_path': '/public/media/videos/manimtest/MyScene.mp4'
+            'animation_data': animation_data,
+            'num_motions': num_motions
         })
 
     except Exception as e:
