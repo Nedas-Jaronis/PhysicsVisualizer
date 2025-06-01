@@ -36,7 +36,7 @@ interface PhysicsUpdate {
 declare global {
   interface Window {
     ANIMATION_DATA?: string;
-    NUM_MOTIONS?: string;
+    NUM_MOTIONS?: string;  
   }
 }
 

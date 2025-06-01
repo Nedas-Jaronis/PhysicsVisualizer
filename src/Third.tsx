@@ -4,6 +4,32 @@ import { usePhysics } from "./PhysicsContent";
 import MatterManager from "./matterManager";
 import "./Third.css";
 
+// API configuration
+const API_BASE_URL = 'http://localhost:5000';
+
+// API call function
+const fetchPhysicsData = async (problem: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/solve`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ problem }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching physics data:', error);
+    throw error;
+  }
+};
+
 // Mock data for testing when backend is not available
 const MOCK_DATA = {
   step_by_step: `
@@ -71,7 +97,14 @@ const MOCK_DATA = {
 
 const Third: React.FC = () => {
   const navigate = useNavigate();
-  const { step_by_step, animation_data, num_motions } = usePhysics();
+  const { 
+    step_by_step, 
+    animation_data, 
+    num_motions,
+    setStepByStep,
+    setAnimationData,
+    setNumMotions 
+  } = usePhysics();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [physicsData, setPhysicsData] = useState({
@@ -97,6 +130,52 @@ const Third: React.FC = () => {
     formatted = formatted.replace(/(\w+)\s*=\s*([^<]+)/g, '<code>$1 = $2</code>');
     return formatted;
   };
+
+  // Load physics data from API
+  useEffect(() => {
+    const loadPhysicsData = async () => {
+      // Check if we already have data from context
+      const hasRealData = step_by_step && animation_data && num_motions > 0;
+      
+      if (hasRealData) {
+        console.log("Using existing context data");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // You might want to get the problem from URL params, localStorage, or props
+        // For now, using a default problem for testing
+        const problem = localStorage.getItem('physics_problem') || "A ball is dropped from 5m height";
+        
+        console.log("Fetching physics data for problem:", problem);
+        const data = await fetchPhysicsData(problem);
+        
+        // Set the context with the received data
+        setStepByStep(data.step_by_step || "");
+        setAnimationData(data.animation_data || {});
+        setNumMotions(data.num_motions || 0);
+        
+        console.log("API data received and set in context:", data);
+        
+      } catch (error) {
+        console.error("Failed to load physics data:", error);
+        setError("Failed to connect to backend. Using demo mode.");
+        
+        // Use mock data as fallback
+        setStepByStep(MOCK_DATA.step_by_step);
+        setAnimationData(MOCK_DATA.animation_data);
+        setNumMotions(MOCK_DATA.num_motions);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPhysicsData();
+  }, []); // Only run once when component mounts
 
   useEffect(() => {
     console.log("Third.tsx - Received data:", {

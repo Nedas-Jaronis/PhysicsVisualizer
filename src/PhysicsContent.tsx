@@ -13,7 +13,7 @@ interface PhysicsContextType {
   setNumMotions: (num_motions: number) => void;
 }
 
-// Fix: Properly type the context with the interface
+// Fix: Properly create the context with undefined as default
 const PhysicsContext = createContext<PhysicsContextType | undefined>(undefined);
 
 export const PhysicsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -23,21 +23,21 @@ export const PhysicsProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [animation_data, setAnimationData] = useState<any>({});
   const [num_motions, setNumMotions] = useState<number>(0);
 
+  const value: PhysicsContextType = {
+    solution,
+    step_by_step,
+    formulas,
+    animation_data,
+    num_motions,
+    setSolution,
+    setStepByStep,
+    setFormulas,
+    setAnimationData,
+    setNumMotions,
+  };
+
   return (
-    <PhysicsContext.Provider
-      value={{
-        solution,
-        step_by_step,
-        formulas,
-        animation_data,
-        num_motions,
-        setSolution,
-        setStepByStep,
-        setFormulas,
-        setAnimationData,
-        setNumMotions,
-      }}
-    >
+    <PhysicsContext.Provider value={value}>
       {children}
     </PhysicsContext.Provider>
   );
