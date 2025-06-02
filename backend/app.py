@@ -1,10 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
-import subprocess
-import os
-import shutil
-import json
 import math
 from datetime import datetime
 
@@ -22,12 +18,12 @@ except ImportError as e:
 app = Flask(__name__)
 CORS(app)
 
-# Add startup logging
-print("="*50)
-print("🚀 FLASK SERVER STARTING...")
-print(f"📅 Timestamp: {datetime.now()}")
-print(f"🤖 GPT_API Available: {GPT_API_AVAILABLE}")
-print("="*50)
+# # Add startup logging
+# print("="*50)
+# print("🚀 FLASK SERVER STARTING...")
+# print(f"📅 Timestamp: {datetime.now()}")
+# print(f"🤖 GPT_API Available: {GPT_API_AVAILABLE}")
+# print("="*50)
 
 
 def fix_animation_data(animation_data, num_motions):
