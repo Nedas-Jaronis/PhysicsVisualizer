@@ -23,6 +23,9 @@ interface PhysicsPhase {
   initialVelocity: number;
   acceleration: number;
   color: string;
+  restitutionCoeff: number;
+  phaseType: 'fall' | 'rise'; // Track if ball is falling or rising
+  bounceNumber?: number; // Track which bounce this is
 }
 
 interface PhysicsUpdate {
@@ -30,6 +33,11 @@ interface PhysicsUpdate {
   velocity: number;
   time: number;
   phase: number;
+  velocityBeforeImpact?: number;
+  velocityAfterImpact?: number;
+  bounceHeight?: number;
+  timeScale: number; // Add time scale to physics update
+  isPaused: boolean; // Add pause state to physics update
 }
 
 // Extend the Window interface to include our custom properties
@@ -49,12 +57,15 @@ class MatterManager {
   private phases: PhysicsPhase[];
   private currentPhase: number;
   private startTime: number;
+  private totalPausedDuration: number; // Track total time spent paused
+  private lastPauseTime: number; // Track when pause started
   private isAnimating: boolean;
-  private animationId: number | null;
+  private isPaused: boolean; // Add pause state
   private readonly PIXELS_PER_METER: number;
   private readonly DEFAULT_GRAVITY: number;
   private groundHeight: number;
   private ctx: CanvasRenderingContext2D;
+  private timeScale: number; // Time scale factor (1.0 = normal, 0.5 = half speed, 2.0 = double speed)
 
   constructor(canvas: HTMLCanvasElement) {
     console.log("Initializing MatterManager...");
@@ -84,9 +95,12 @@ class MatterManager {
     this.phases = [];
     this.currentPhase = 0;
     this.startTime = 0;
+    this.totalPausedDuration = 0;
+    this.lastPauseTime = 0;
     this.isAnimating = false;
-    this.animationId = null;
+    this.isPaused = false;
     this.groundHeight = 60;
+    this.timeScale = 1.0; // Normal speed by default
     
     // Physics constants
     this.PIXELS_PER_METER = 50; // Conversion factor
@@ -181,7 +195,7 @@ class MatterManager {
     ctx.font = "12px Arial";
     ctx.fillStyle = "#A0ADB8";
     
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 12; i++) {
       const y = height - this.groundHeight - (i * this.PIXELS_PER_METER);
       if (y > 0) {
         ctx.setLineDash([5, 5]);
@@ -221,6 +235,15 @@ class MatterManager {
       ctx.beginPath();
       ctx.arc(ballX - 6, ballY - 6, 6, 0, 2 * Math.PI);
       ctx.fill();
+
+      // Draw pause indicator if paused
+      if (this.isPaused) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.font = "48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("⏸", ballX, ballY + 15);
+        ctx.textAlign = "left"; // Reset text align
+      }
     }
   }
 
@@ -234,6 +257,96 @@ class MatterManager {
       const defaultY = this.canvas.height - this.groundHeight - (5 * this.PIXELS_PER_METER);
       this.drawScene(defaultY, 0);
     }
+  }
+
+  /**
+   * Generate bouncing phases based on initial drop and restitution coefficient
+   */
+  generateBouncingPhases(initialHeight: number, restitutionCoeff: number, gravity: number = 9.8, maxBounces: number = 5): PhysicsPhase[] {
+    const phases: PhysicsPhase[] = [];
+    let currentTime = 0;
+    let currentHeight = initialHeight;
+    let currentVelocity = 0;
+    const colors = [COLOR_MAP.RED, COLOR_MAP.BLUE, COLOR_MAP.GREEN, COLOR_MAP.YELLOW, COLOR_MAP.PURPLE, COLOR_MAP.ORANGE];
+    
+    console.log(`Generating bouncing phases: height=${initialHeight}m, e=${restitutionCoeff}, g=${gravity}`);
+
+    for (let bounce = 0; bounce <= maxBounces; bounce++) {
+      if (bounce === 0) {
+        // Initial fall from rest
+        const fallTime = Math.sqrt(2 * currentHeight / gravity);
+        const velocityBeforeImpact = Math.sqrt(2 * gravity * currentHeight);
+        
+        phases.push({
+          startTime: currentTime,
+          duration: fallTime,
+          endTime: currentTime + fallTime,
+          initialPosition: currentHeight,
+          initialVelocity: 0,
+          acceleration: gravity,
+          color: colors[bounce % colors.length],
+          restitutionCoeff: restitutionCoeff,
+          phaseType: 'fall',
+          bounceNumber: bounce + 1
+        });
+        
+        currentTime += fallTime;
+        currentVelocity = velocityBeforeImpact * restitutionCoeff; // Velocity after bounce
+        currentHeight = (currentVelocity * currentVelocity) / (2 * gravity); // New bounce height
+        
+        console.log(`Bounce ${bounce + 1}: Fall time=${fallTime.toFixed(3)}s, v_before=${velocityBeforeImpact.toFixed(2)}m/s, v_after=${currentVelocity.toFixed(2)}m/s, next_height=${currentHeight.toFixed(2)}m`);
+        
+        // Stop if bounce height is too small
+        if (currentHeight < 0.1) break;
+        
+      } else {
+        // Rise phase
+        const riseTime = currentVelocity / gravity;
+        
+        phases.push({
+          startTime: currentTime,
+          duration: riseTime,
+          endTime: currentTime + riseTime,
+          initialPosition: 0,
+          initialVelocity: currentVelocity,
+          acceleration: gravity,
+          color: colors[bounce % colors.length],
+          restitutionCoeff: restitutionCoeff,
+          phaseType: 'rise',
+          bounceNumber: bounce + 1
+        });
+        
+        currentTime += riseTime;
+        
+        // Fall phase
+        const fallTime = riseTime; // Same time to fall as to rise
+        const velocityBeforeImpact = currentVelocity; // Same magnitude as initial rise velocity
+        
+        phases.push({
+          startTime: currentTime,
+          duration: fallTime,
+          endTime: currentTime + fallTime,
+          initialPosition: currentHeight,
+          initialVelocity: 0,
+          acceleration: gravity,
+          color: colors[bounce % colors.length],
+          restitutionCoeff: restitutionCoeff,
+          phaseType: 'fall',
+          bounceNumber: bounce + 1
+        });
+        
+        currentTime += fallTime;
+        currentVelocity = velocityBeforeImpact * restitutionCoeff; // Velocity after bounce
+        currentHeight = (currentVelocity * currentVelocity) / (2 * gravity); // New bounce height
+        
+        console.log(`Bounce ${bounce + 1}: Rise time=${riseTime.toFixed(3)}s, Fall time=${fallTime.toFixed(3)}s, v_before=${velocityBeforeImpact.toFixed(2)}m/s, v_after=${currentVelocity.toFixed(2)}m/s, next_height=${currentHeight.toFixed(2)}m`);
+        
+        // Stop if bounce height is too small
+        if (currentHeight < 0.1) break;
+      }
+    }
+    
+    return phases;
   }
 
   parseAnimationData(): boolean {
@@ -281,12 +394,16 @@ class MatterManager {
         }
       }
 
-      // Convert to physics phases
-      this.phases = [];
-      let totalTime = 0;
+      // Check if this is a bouncing problem (has restitution coefficient)
+      const hasRestitution = motions.some(motion => 
+        motion.restitution_coeff !== undefined && 
+        motion.restitution_coeff !== null && 
+        parseFloat(String(motion.restitution_coeff)) > 0
+      );
 
-      for (const motion of motions) {
-        // Parse values with better error handling
+      if (hasRestitution && motions.length > 0) {
+        // Generate bouncing phases automatically
+        const firstMotion = motions[0];
         const parseFloat_safe = (value: any, defaultValue: number = 0): number => {
           if (value === null || value === undefined || value === "null") {
             return defaultValue;
@@ -295,23 +412,50 @@ class MatterManager {
           return isNaN(parsed) ? defaultValue : parsed;
         };
 
-        const z0 = parseFloat_safe(motion.initial_position, 0);
-        const v0 = parseFloat_safe(motion.initial_velocity, 0);
-        const a = parseFloat_safe(motion.acceleration, this.DEFAULT_GRAVITY);
-        const duration = parseFloat_safe(motion.time, 1.0);
-        const color = motion.color || "RED";
+        const initialHeight = parseFloat_safe(firstMotion.initial_position, 10);
+        const restitutionCoeff = parseFloat_safe(firstMotion.restitution_coeff, 0.7);
+        const gravity = parseFloat_safe(firstMotion.acceleration, this.DEFAULT_GRAVITY);
+        
+        console.log(`Detected bouncing problem: h=${initialHeight}m, e=${restitutionCoeff}, g=${gravity}m/s²`);
+        
+        this.phases = this.generateBouncingPhases(initialHeight, restitutionCoeff, gravity);
+        
+      } else {
+        // Convert to physics phases (original behavior)
+        this.phases = [];
+        let totalTime = 0;
 
-        this.phases.push({
-          startTime: totalTime,
-          duration: Math.max(duration, 0.1), // Minimum duration
-          endTime: totalTime + duration,
-          initialPosition: Math.abs(z0), // Ensure positive height
-          initialVelocity: v0,
-          acceleration: Math.abs(a), // Ensure positive acceleration for falling
-          color: COLOR_MAP[String(color).toUpperCase()] || COLOR_MAP.RED
-        });
+        for (const motion of motions) {
+          // Parse values with better error handling
+          const parseFloat_safe = (value: any, defaultValue: number = 0): number => {
+            if (value === null || value === undefined || value === "null") {
+              return defaultValue;
+            }
+            const parsed = parseFloat(String(value));
+            return isNaN(parsed) ? defaultValue : parsed;
+          };
 
-        totalTime += duration;
+          const z0 = parseFloat_safe(motion.initial_position, 0);
+          const v0 = parseFloat_safe(motion.initial_velocity, 0);
+          const a = parseFloat_safe(motion.acceleration, this.DEFAULT_GRAVITY);
+          const duration = parseFloat_safe(motion.time, 1.0);
+          const color = motion.color || "RED";
+          const restitutionCoeff = parseFloat_safe(motion.restitution_coeff, 0);
+
+          this.phases.push({
+            startTime: totalTime,
+            duration: Math.max(duration, 0.1), // Minimum duration
+            endTime: totalTime + duration,
+            initialPosition: Math.abs(z0), // Ensure positive height
+            initialVelocity: v0,
+            acceleration: Math.abs(a), // Ensure positive acceleration for falling
+            color: COLOR_MAP[String(color).toUpperCase()] || COLOR_MAP.RED,
+            restitutionCoeff: restitutionCoeff,
+            phaseType: v0 >= 0 ? 'rise' : 'fall'
+          });
+
+          totalTime += duration;
+        }
       }
 
       console.log("Parsed phases:", this.phases);
@@ -325,52 +469,112 @@ class MatterManager {
   }
 
   createDefaultAnimation(): void {
-    console.log("Creating default animation");
-    // Default bouncing ball animation
-    this.phases = [
-      {
-        startTime: 0,
-        duration: 1.01,
-        endTime: 1.01,
-        initialPosition: 5, // meters
-        initialVelocity: 0,
-        acceleration: 9.8,
-        color: COLOR_MAP.RED
-      },
-      {
-        startTime: 1.01,
-        duration: 0.78,
-        endTime: 1.79,
-        initialPosition: 0,
-        initialVelocity: 7.67,
-        acceleration: 9.8,
-        color: COLOR_MAP.BLUE
-      },
-      {
-        startTime: 1.79,
-        duration: 0.78,
-        endTime: 2.57,
-        initialPosition: 3,
-        initialVelocity: 0,
-        acceleration: 9.8,
-        color: COLOR_MAP.GREEN
-      },
-      {
-        startTime: 2.57,
-        duration: 0.61,
-        endTime: 3.18,
-        initialPosition: 0,
-        initialVelocity: 5.94,
-        acceleration: 9.8,
-        color: COLOR_MAP.YELLOW
+    console.log("Creating default bouncing animation");
+    // Default bouncing ball animation with restitution
+    this.phases = this.generateBouncingPhases(10, 0.7, 9.8, 4);
+  }
+
+  // New methods for time scale control
+  setTimeScale(scale: number): void {
+    console.log(`Setting time scale to: ${scale}x`);
+    this.timeScale = Math.max(0.1, Math.min(scale, 5.0)); // Clamp between 0.1x and 5.0x
+  }
+
+  getTimeScale(): number {
+    return this.timeScale;
+  }
+
+  toggleSlowMotion(): void {
+    if (this.timeScale === 1.0) {
+      this.setTimeScale(0.25); // Quarter speed
+    } else {
+      this.setTimeScale(1.0); // Normal speed
+    }
+  }
+
+  // New pause/resume functionality
+  pauseAnimation(): void {
+    if (this.isAnimating && !this.isPaused) {
+      console.log("Pausing animation");
+      this.isPaused = true;
+      this.lastPauseTime = Date.now();
+      
+      // Emit physics update with pause state
+      this.emitCurrentPhysicsUpdate();
+    }
+  }
+
+  resumeAnimation(): void {
+    if (this.isAnimating && this.isPaused) {
+      console.log("Resuming animation");
+      this.isPaused = false;
+      
+      // Add the paused duration to total paused time
+      const pauseDuration = (Date.now() - this.lastPauseTime) / 1000;
+      this.totalPausedDuration += pauseDuration;
+      
+      // Emit physics update with resume state
+      this.emitCurrentPhysicsUpdate();
+    }
+  }
+
+  togglePause(): void {
+    if (this.isPaused) {
+      this.resumeAnimation();
+    } else {
+      this.pauseAnimation();
+    }
+  }
+
+  isPausedState(): boolean {
+    return this.isPaused;
+  }
+
+  private emitCurrentPhysicsUpdate(): void {
+    if (this.currentPhase < this.phases.length) {
+      const phase = this.phases[this.currentPhase];
+      const realElapsedTime = (Date.now() - this.startTime) / 1000;
+      const adjustedElapsedTime = (realElapsedTime - this.totalPausedDuration) * this.timeScale;
+      const phaseTime = adjustedElapsedTime - phase.startTime;
+      
+      // Calculate current physics state
+      let z: number;
+      let velocity: number;
+
+      if (phase.phaseType === 'rise') {
+        z = phase.initialPosition + 
+            phase.initialVelocity * phaseTime - 
+            0.5 * phase.acceleration * phaseTime * phaseTime;
+        velocity = phase.initialVelocity - phase.acceleration * phaseTime;
+      } else {
+        if (phase.initialVelocity === 0) {
+          z = phase.initialPosition - 0.5 * phase.acceleration * phaseTime * phaseTime;
+          velocity = -phase.acceleration * phaseTime;
+        } else {
+          z = phase.initialPosition + 
+              phase.initialVelocity * phaseTime + 
+              0.5 * phase.acceleration * phaseTime * phaseTime;
+          velocity = phase.initialVelocity + phase.acceleration * phaseTime;
+        }
       }
-    ];
+
+      const physicsHeight = Math.max(z, 0);
+      
+      this.emitPhysicsUpdate({
+        height: physicsHeight,
+        velocity: velocity,
+        time: adjustedElapsedTime,
+        phase: this.currentPhase + 1,
+        timeScale: this.timeScale,
+        isPaused: this.isPaused
+      });
+    }
   }
 
   startAnimation(): void {
     console.log("Starting animation...");
     if (this.isAnimating) {
-      this.stopAnimation();
+      this.pauseAnimation();
     }
 
     if (!this.parseAnimationData()) {
@@ -379,8 +583,12 @@ class MatterManager {
     }
 
     this.isAnimating = true;
+    this.isPaused = false;
     this.currentPhase = 0;
     this.startTime = Date.now();
+    this.pausedTime = 0;
+    this.totalPausedDuration = 0;
+    this.lastPauseTime = 0;
     
     // Initial render
     this.drawInitialScene();
@@ -391,11 +599,21 @@ class MatterManager {
   animatePhases(): void {
     if (!this.isAnimating || this.currentPhase >= this.phases.length) {
       console.log("Animation completed or stopped");
-      this.stopAnimation();
+      this.pauseAnimation();
       return;
     }
 
-    const currentTime = (Date.now() - this.startTime) / 1000; // Convert to seconds
+    // If paused, just re-render current frame and schedule next frame
+    if (this.isPaused) {
+      this.animationId = requestAnimationFrame(() => this.animatePhases());
+      return;
+    }
+
+    // Apply time scale to the elapsed time, accounting for paused time
+    const realElapsedTime = (Date.now() - this.startTime) / 1000;
+    const adjustedElapsedTime = (realElapsedTime - this.totalPausedDuration) * this.timeScale;
+    const currentTime = adjustedElapsedTime;
+    
     const phase = this.phases[this.currentPhase];
     
     // Check if we should move to next phase
@@ -413,22 +631,28 @@ class MatterManager {
     
     if (phaseTime >= 0 && phaseTime <= phase.duration) {
       // Physics calculations (kinematic equations)
-      // z = z0 + v0*t - 0.5*a*t^2 (for falling motion)
       let z: number;
       let velocity: number;
 
-      if (phase.initialVelocity >= 0) {
-        // Upward motion or starting from rest
+      if (phase.phaseType === 'rise') {
+        // Rising motion: z = z0 + v0*t - 0.5*g*t^2
         z = phase.initialPosition + 
             phase.initialVelocity * phaseTime - 
             0.5 * phase.acceleration * phaseTime * phaseTime;
         velocity = phase.initialVelocity - phase.acceleration * phaseTime;
       } else {
-        // Downward motion
-        z = phase.initialPosition + 
-            phase.initialVelocity * phaseTime - 
-            0.5 * phase.acceleration * phaseTime * phaseTime;
-        velocity = phase.initialVelocity - phase.acceleration * phaseTime;
+        // Falling motion: z = z0 + v0*t + 0.5*g*t^2 (if v0 is negative) or z = z0 - 0.5*g*t^2 (from rest)
+        if (phase.initialVelocity === 0) {
+          // Falling from rest
+          z = phase.initialPosition - 0.5 * phase.acceleration * phaseTime * phaseTime;
+          velocity = -phase.acceleration * phaseTime; // Negative because falling
+        } else {
+          // Falling with initial velocity
+          z = phase.initialPosition + 
+              phase.initialVelocity * phaseTime + 
+              0.5 * phase.acceleration * phaseTime * phaseTime;
+          velocity = phase.initialVelocity + phase.acceleration * phaseTime;
+        }
       }
       
       // Convert from physics units to screen coordinates
@@ -439,12 +663,29 @@ class MatterManager {
       // Custom rendering
       this.drawScene(screenY, this.currentPhase);
       
+      // Calculate impact velocities for bouncing phases
+      let velocityBeforeImpact: number | undefined;
+      let velocityAfterImpact: number | undefined;
+      let bounceHeight: number | undefined;
+      
+      if (phase.phaseType === 'fall' && Math.abs(phaseTime - phase.duration) < 0.01) {
+        // Just before impact
+        velocityBeforeImpact = Math.abs(velocity);
+        velocityAfterImpact = velocityBeforeImpact * phase.restitutionCoeff;
+        bounceHeight = (velocityAfterImpact * velocityAfterImpact) / (2 * phase.acceleration);
+      }
+      
       // Emit events for UI updates
       this.emitPhysicsUpdate({
         height: physicsHeight,
         velocity: velocity,
         time: currentTime,
-        phase: this.currentPhase + 1
+        phase: this.currentPhase + 1,
+        velocityBeforeImpact,
+        velocityAfterImpact,
+        bounceHeight,
+        timeScale: this.timeScale,
+        isPaused: this.isPaused
       });
     }
 
@@ -461,19 +702,11 @@ class MatterManager {
     }
   }
 
-  stopAnimation(): void {
-    console.log("Stopping animation");
-    this.isAnimating = false;
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-    }
-  }
-
   resetAnimation(): void {
     console.log("Resetting animation");
-    this.stopAnimation();
     this.currentPhase = 0;
+    this.totalPausedDuration = 0;
+    this.lastPauseTime = 0;
     
     // Parse data to ensure phases are available
     this.parseAnimationData();
@@ -486,12 +719,16 @@ class MatterManager {
       height: this.phases[0].initialPosition,
       velocity: this.phases[0].initialVelocity,
       time: 0,
-      phase: 1
+      phase: 1,
+      timeScale: this.timeScale,
+      isPaused: false
     } : {
-      height: 5,
+      height: 10,
       velocity: 0,
       time: 0,
-      phase: 1
+      phase: 1,
+      timeScale: this.timeScale,
+      isPaused: false
     };
     
     this.emitPhysicsUpdate(initialData);
@@ -525,7 +762,6 @@ class MatterManager {
   cleanup(): void {
     console.log("Cleaning up MatterManager");
     try {
-      this.stopAnimation();
       Matter.Render.stop(this.render);
       Matter.Engine.clear(this.engine);
       if (this.render.canvas) {

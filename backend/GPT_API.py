@@ -52,7 +52,7 @@ def replace_with_subscripts(text):
     return re.sub(r'\^(-?\d+)', subscript_replacement, text)
 
 
-def detect_problem_type(problem):
+def detect_problem_category(problem):
     client = OpenAI(api_key="sk-40bc61c061c14be1a62008a4405f2207",
                     base_url="https://api.deepseek.com")
     response = client.chat.completions.create(
@@ -60,7 +60,7 @@ def detect_problem_type(problem):
         messages=[
             {
                 "role": "system",
-                "content": "You are a physics problem classifier. Given a problem, classify it as one of the following: 1D Kinematics, 2D Kinematics, Forces and Newton's Laws, Work, Energy, Power, Momentum and Collisions, Rotational Motion, Simple Harmonic Motion, Gravitation and Orbits. Only respond with the exact problem type."
+                "content": "You are a physics problem classifier. Given a problem, classify it as one of the following categories: 1D Kinematics, 2D Kinematics, Forces and Newton's Laws, Work, Energy, Power, Momentum and Collisions, Rotational Motion, Simple Harmonic Motion, Gravitation and Orbits. Only respond with the exact problem category."
             },
             {
                 "role": "user",
@@ -70,6 +70,29 @@ def detect_problem_type(problem):
         stream=False
     )
 
+    return response.choices[0].message.content.strip()
+
+
+def detect_problem_type(problem):
+    category = detect_problem_category(problem)
+    problemTypeContent = getProblemType(category)
+    client = OpenAI(api_key="sk-40bc61c061c14be1a62008a4405f2207",
+                    base_url="https://api.deepseek.com")
+    response = client.chat.completions.create(
+        model="deepseek-chat",
+        messages=[
+            {
+                "role": "system", "content": f"""You are a physics problem type detector, given a category you will determine the type of problem it is, this will be regarding the animation specifically. Use these topics to determine what type of animation it is.{problemTypeContent}
+
+                ⚠️⚠️⚠️You will only respond with the type of problem, do not add anything extra to the response!!!"""
+            },
+            {
+                "role": "user", "content": problem
+            }
+        ],
+        stream=False
+
+    )
     return response.choices[0].message.content.strip()
 
 
@@ -94,12 +117,15 @@ def detect_num_motions(problem):
 
 def process_physics_response(problem):
 
-    problem_type = detect_problem_type(problem)
+    problem_category = detect_problem_category(problem)
     num_motions = detect_num_motions(problem)
+    num_motions = int(num_motions)
+    problem_type = detect_problem_type(problem)
     print("Here are the number of motions:", num_motions)
-    dynamic_content = API_Content(problem_type, num_motions)
+    print("Here is the problem Type: ", problem_type)
+    dynamic_content = API_Content(problem_category, num_motions)
 
-    print(f"Detected Problem Type: {problem_type}")
+    print(f"Detected Problem Type: {problem_category}")
     # # Print the problem to debug
     # print(f"Processing problem in GPT_API: {problem[:100]}")
 
@@ -201,7 +227,7 @@ def process_physics_response(problem):
             elif current_section == "animation_data":
                 animation_data = section.strip()
                 animation_data = fill_template_from_raw(
-                    animation_data, problem_type)
+                    animation_data, problem_category, num_motions)
 
     # If the section splitting didn't work, try a different approach
     full_text = "\n".join(messages)

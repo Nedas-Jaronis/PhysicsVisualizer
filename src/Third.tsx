@@ -111,7 +111,9 @@ const Third: React.FC = () => {
     height: 0,
     velocity: 0,
     time: 0,
-    phase: 1
+    phase: 1,
+    timeScale: 1.0,
+    isPaused: false
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -319,12 +321,23 @@ const Third: React.FC = () => {
     }
   };
 
-  const handleStopAnimation = () => {
+  // New handlers for pause and slow motion
+  const handleTogglePause = () => {
     if (matterManagerRef.current) {
       try {
-        matterManagerRef.current.stopAnimation();
+        matterManagerRef.current.togglePause();
       } catch (error) {
-        console.error("Failed to stop animation:", error);
+        console.error("Failed to toggle pause:", error);
+      }
+    }
+  };
+
+  const handleToggleSlowMotion = () => {
+    if (matterManagerRef.current) {
+      try {
+        matterManagerRef.current.toggleSlowMotion();
+      } catch (error) {
+        console.error("Failed to toggle slow motion:", error);
       }
     }
   };
@@ -352,26 +365,17 @@ const Third: React.FC = () => {
             <div className="step-by-step-content">
               <h2>Step-By-Step Explanation</h2>
               {!hasRealData && (
-                <div style={{ 
-                  padding: '10px', 
-                  backgroundColor: '#f0f8ff', 
-                  border: '1px solid #007acc',
-                  borderRadius: '4px',
-                  marginBottom: '15px',
-                  fontSize: '14px',
-                  color: '#004d79'
-                }}>
+                <div className="demo-alert">
                   <strong>Demo Mode:</strong> Using sample physics problem since backend is unavailable
                 </div>
               )}
               {stepByStepContent ? (
-                <div
-                  dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStepContent) }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStepContent) }} />
               ) : (
                 <p>No step-by-step explanation available.</p>
               )}
             </div>
+
           )}
         </div>
         
@@ -381,121 +385,74 @@ const Third: React.FC = () => {
             style={{ width: "100%", height: "100%", display: "block" }}
           />
           
-          {/* Physics Data Display */}
-          <div className="physics-display" style={{
-            position: 'absolute',
-            top: '10px',
-            right: '10px',
-            padding: '15px',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            borderRadius: '8px',
-            fontFamily: 'Consolas, monospace',
-            fontSize: '14px',
-            minWidth: '200px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'white' }}>Height:</span>
-              <span style={{ color: '#4CAF50' }}>{physicsData.height.toFixed(2)} m</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'white' }}>Velocity:</span>
-              <span style={{ color: '#2196F3' }}>{physicsData.velocity.toFixed(2)} m/s</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ color: 'white' }}>Time:</span>
-              <span style={{ color: '#FF9800' }}>{physicsData.time.toFixed(2)} s</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'white' }}>Phase:</span>
-              <span style={{ color: '#E91E63' }}>{physicsData.phase}</span>
-            </div>
+        <div className="physics-display">
+          <div className="physics-row">
+            <span className="label">Height:</span>
+            <span className="value green">{physicsData.height.toFixed(2)} m</span>
           </div>
+          <div className="physics-row">
+            <span className="label">Velocity:</span>
+            <span className="value blue">{physicsData.velocity.toFixed(2)} m/s</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Time:</span>
+            <span className="value orange">{physicsData.time.toFixed(2)} s</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Phase:</span>
+            <span className="value pink">{physicsData.phase}</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Speed:</span>
+            <span className="value purple">{physicsData.timeScale?.toFixed(1)}x</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Status:</span>
+            <span className={`value ${physicsData.isPaused ? 'orange-dark' : 'lime'}`}>
+              {physicsData.isPaused ? 'PAUSED' : 'RUNNING'}
+            </span>
+          </div>
+        </div>
 
-          {/* Animation Controls */}
-          <div className="animation-controls" style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '10px',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: '10px',
-            borderRadius: '8px',
-            backdropFilter: 'blur(5px)'
-          }}>
-            <button 
-              onClick={handleStartAnimation}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                fontSize: '14px'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#45a049'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4CAF50'}
-            >
-              ▶ Start
-            </button>
-            <button 
-              onClick={handleStopAnimation}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                fontSize: '14px'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#da190b'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f44336'}
-            >
-              ⏸ Stop
-            </button>
-            <button 
-              onClick={handleResetAnimation}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#2196F3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.2s',
-                fontSize: '14px'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#0b7dda'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2196F3'}
-            >
-              🔄 Reset
-            </button>
+
+          <div className="animation-controls">
+              <button
+                onClick={handleStartAnimation}
+                className="animation-button start-button"
+              >
+                ▶ Start
+              </button>
+
+              <button
+                onClick={handleTogglePause}
+                className={`animation-button pause-button ${physicsData.isPaused ? 'paused' : ''}`}
+              >
+                {physicsData.isPaused ? '▶ Resume' : '⏸ Pause'}
+              </button>
+
+              <button
+                onClick={handleResetAnimation}
+                className="animation-button reset-button"
+              >
+                🔄 Reset
+              </button>
+
+              <button
+                id="slownormalbutton"
+                onClick={handleToggleSlowMotion}
+                className={`animation-button slownormal-button ${physicsData.timeScale === 1.0 ? 'normal' : 'slow'}`}
+              >
+                {physicsData.timeScale === 1.0 ? '🐌 Slow' : '⚡ Normal'}
+              </button>
           </div>
 
           {/* Demo Mode Indicator */}
           {!hasRealData && (
-            <div style={{
-              position: 'absolute',
-              top: '10px',
-              left: '10px',
-              padding: '8px 12px',
-              backgroundColor: 'rgba(255, 165, 0, 0.8)',
-              color: 'white',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 'bold'
-            }}>
+            <div id="Demo" className="demo-indicator">
               DEMO MODE
             </div>
           )}
+
         </div>
       </div>
       

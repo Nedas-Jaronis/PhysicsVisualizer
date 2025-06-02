@@ -1,27 +1,24 @@
 import json
 
 
-def get_json_template(problem_type):
+def get_json_template(problem_category, numMotions):
+    if problem_category == "1D Kinematics":
+        template = {}
+        for i in range(1, numMotions + 1):
+            prefix = f"{i}_"
+            template.update({
+                f"{prefix}color": "null",
+                f"{prefix}initial_position": 0.0,
+                f"{prefix}final_position": 0.0,
+                f"{prefix}initial_velocity": 0.0,
+                f"{prefix}final_velocity": 0.0,
+                f"{prefix}acceleration": 0.0,
+                f"{prefix}bounce_height": 0.0,
+                f"{prefix}time": 0.0,
+                f"{prefix}restitutionCoeff": 0.0,
+            })
+        return template
     templates = {
-        "1D Kinematics": {
-            "1_color": "null",
-            "1_initial_position": 0.0,
-            "1_final_position": 0.0,
-            "1_initial_velocity": 0.0,
-            "1_final_velocity": 0.0,
-            "1_acceleration": 0.0,
-            "1_bounce_height": 0.0,
-            "1_time": 0.0,
-
-            "2_color": "null",
-            "2_initial_position": 0.0,
-            "2_final_position": 0.0,
-            "2_initial_velocity": 0.0,
-            "2_final_velocity": 0.0,
-            "2_acceleration": 0.0,
-            "2_bounce_height": 0.0,
-            "2_time": 0.0,
-        },
         "2D Kinematics": {
             "initial_position": {"x": None, "y": None},
             "final_position": {"x": None, "y": None},
@@ -36,11 +33,11 @@ def get_json_template(problem_type):
         },
         # Add other types similarly
     }
-    return templates.get(problem_type, {})
+    return templates.get(problem_category, {})
 
 
-def API_Content(problem_type, num_motions):
-    if problem_type == "1D Kinematics":
+def API_Content(problem_category, num_motions):
+    if problem_category == "1D Kinematics":
         motion_template = """
         {prefix}color: "null"
         {prefix}initial_position: 0.0
@@ -50,9 +47,10 @@ def API_Content(problem_type, num_motions):
         {prefix}acceleration: 0.0
         {prefix}bounce_height: 0.0
         {prefix}time: 1.0
+        {prefix}restitutionCoeff: 0.0
         """
-        content = "Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.\n\n"
-        for i in range(1, int(str(num_motions).strip("'\"")) + 1):
+        content = "Use the variables exactly as shown below. Each set of variables is a motion phase, prefixed with '1_', '2_', etc. Fill out each variable exactly. If not given in the problem, set it to null. Use quotes for string values. Do not add or change variable names.\n\n Also if the restitutionCoeff is a percent change it to a decimal!!!"
+        for i in range(1, int(num_motions) + 1):
             content += motion_template.format(prefix=f"{i}_") + "\n"
         return content
 
@@ -70,7 +68,7 @@ def API_Content(problem_type, num_motions):
             acceleration: null
         """
     }
-    return templates.get(problem_type, "")
+    return templates.get(problem_category, "")
 
 
 def clean_key(key):
@@ -100,8 +98,8 @@ def clean_value(value):
         return value
 
 
-def fill_template_from_raw(raw_data, problem_type):
-    template = get_json_template(problem_type)
+def fill_template_from_raw(raw_data, problem_category, numMotions):
+    template = get_json_template(problem_category, numMotions)
     filled_data = template.copy()
 
     lines = raw_data.strip().split("\n")
@@ -127,3 +125,22 @@ def fill_template_from_raw(raw_data, problem_type):
         filled_data[key] = value
 
     return filled_data
+
+
+def getProblemType(problem_category):
+    if problem_category == "1D Kinematics":
+        content = (
+            "Constant Acceleration Motion\n"
+            "Free Fall and Vertical Projectile Motion\n"
+            "Velocity-Time Graph Interpretation\n"
+            "Position-Time Graph Interpretation\n"
+            "Stopping and Starting Motion\n"
+            "Relative Motion in 1D\n"
+            "Motion with Piecewise Acceleration\n"
+            "Instantaneous Velocity and Acceleration\n"
+            "Displacement from Graphs"
+        )
+    else:
+        content = "Problem category not recognized."
+
+    return content

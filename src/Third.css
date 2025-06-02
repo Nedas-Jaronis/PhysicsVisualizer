@@ -45,4 +45,151 @@
   display: block;
 }
 
-  
+
+.animation-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.animation-button {
+  padding: 10px 16px;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Specific button colors */
+.start-button {
+  background-color: #4CAF50;
+}
+.start-button:hover {
+  background-color: #45a049;
+}
+
+.pause-button {
+  background-color: #f44336;
+}
+.pause-button.paused {
+  background-color: #FF9800;
+}
+.pause-button:hover:not(.paused) {
+  background-color: #da190b;
+}
+.pause-button:hover.paused {
+  background-color: #e68900;
+}
+
+.reset-button {
+  background-color: #2196F3;
+}
+.reset-button:hover {
+  background-color: #0b7dda;
+}
+
+.slownormal-button.normal {
+  background-color: #9C27B0;
+}
+.slownormal-button.normal:hover {
+  background-color: #7B1FA2;
+}
+.slownormal-button.slow {
+  background-color: #673AB7;
+}
+.slownormal-button.slow:hover {
+  background-color: #512DA8;
+}
+
+/*Physics Display CSS*/
+.physics-display {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  font-family: Consolas, monospace;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.physics-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.label {
+  color: white;
+}
+
+.value {
+  font-weight: bold;
+}
+
+.green {
+  color: #4CAF50;
+}
+
+.blue {
+  color: #2196F3;
+}
+
+.orange {
+  color: #FF9800;
+}
+
+.pink {
+  color: #E91E63;
+}
+
+.purple {
+  color: #9C27B0;
+}
+
+.lime {
+  color: #8BC34A;
+}
+
+.orange-dark {
+  color: #FF5722;
+}
+
+/*DEMO*/
+.demo-indicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 8px 12px;
+  background-color: rgba(255, 165, 0, 0.8); /* orange with transparency */
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/*Step-By-Step*/
+.demo-alert {
+  padding: 10px;
+  background-color: #f0f8ff; /* light blue */
+  border: 1px solid #007acc; /* blue border */
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #004d79; /* darker blue text */
+}

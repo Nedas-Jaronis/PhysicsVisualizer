@@ -29,7 +29,6 @@ CORS(app)
 def fix_animation_data(animation_data, num_motions):
     """Fix and validate animation data before sending to frontend"""
     print(f"🔧 Fixing animation data for {num_motions} motions")
-
     if not animation_data:
         print("⚠️ No animation data provided, creating empty structure")
         animation_data = {}
