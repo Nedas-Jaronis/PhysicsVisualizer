@@ -3,6 +3,7 @@ from flask_cors import CORS
 import traceback
 import math
 from datetime import datetime
+import baml_py
 
 # Try to import GPT_API, but handle gracefully if it fails
 try:
