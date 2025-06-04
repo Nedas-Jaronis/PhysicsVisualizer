@@ -3,7 +3,7 @@ from openai import OpenAI
 import json
 from json_templates import *
 
-
+os.environ["DEEPSEEK_API_KEY"] = "sk-40bc61c061c14be1a62008a4405f2207"
 problem = """Your physics problem text here"""
 # Map to convert ^# to its subscript equivalent
 subscript_map = {
