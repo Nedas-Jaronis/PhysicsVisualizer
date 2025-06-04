@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Combined Translational and Rotational Motion Schema",
+  "type": "object",
+  "properties": {
+    "motionType": {
+      "type": "string",
+      "enum": ["combined_trans_rot_motion"]
+    },
+    "objectId": {
+      "type": "string",
+      "description": "ID of the object undergoing combined motion"
+    },
+    "translation": {
+      "type": "object",
+      "properties": {
+        "initialPosition": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        },
+        "initialVelocity": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        },
+        "acceleration": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"]
+        }
+      },
+      "required": ["initialPosition", "initialVelocity"]
+    },
+    "rotation": {
+      "type": "object",
+      "properties": {
+        "initialAngle": {
+          "type": "number",
+          "description": "Initial angular position (radians)"
+        },
+        "initialAngularVelocity": {
+          "type": "number",
+          "description": "Initial angular velocity (radians/sec)"
+        },
+        "angularAcceleration": {
+          "type": "number",
+          "description": "Angular acceleration (radians/sec²)"
+        },
+        "axis": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "z": { "type": "number" }
+          },
+          "required": ["x", "y", "z"],
+          "description": "Axis of rotation (unit vector)"
+        }
+      },
+      "required": ["initialAngle", "initialAngularVelocity"]
+    },
+    "startTime": {
+      "type": "number",
+      "description": "Time at which motion starts (seconds)"
+    },
+    "referenceFrameId": {
+      "type": "string",
+      "description": "ID of the reference frame"
+    }
+  },
+  "required": ["motionType", "objectId", "translation", "rotation"],
+  "additionalProperties": false
+}

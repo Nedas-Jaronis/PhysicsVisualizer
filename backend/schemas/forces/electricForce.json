@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Electric Force",
+  "type": "object",
+  "properties": {
+    "charge1": { "type": "number" },
+    "charge2": { "type": "number" },
+    "distance": { "type": "number" },
+    "k_e": { "type": "number", "default": 8.99e9 }
+  },
+  "required": ["charge1", "charge2", "distance"]
+}

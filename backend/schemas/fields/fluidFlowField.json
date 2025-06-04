@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fluid Flow Field",
+  "type": "object",
+  "properties": {
+    "fluid_type": {
+      "type": "string",
+      "enum": ["water", "air", "oil", "other"]
+    },
+    "velocity_vectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "velocity": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "required": ["location", "velocity"]
+      }
+    },
+    "density": {
+      "type": "number",
+      "description": "Density of the fluid in kg/m^3"
+    },
+    "viscosity": {
+      "type": "number",
+      "description": "Dynamic viscosity in Pa·s"
+    }
+  },
+  "required": ["fluid_type", "velocity_vectors"]
+}

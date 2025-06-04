@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GravitationalForce",
+  "type": "object",
+  "properties": {
+    "type": { "const": "gravitational" },
+    "mass1": {
+      "type": "number",
+      "description": "Mass of the first object (kg)"
+    },
+    "mass2": {
+      "type": "number",
+      "description": "Mass of the second object (kg)"
+    },
+    "distance": {
+      "type": "number",
+      "description": "Distance between the centers of the two objects (m)"
+    },
+    "gravitationalConstant": {
+      "type": "number",
+      "default": 6.67430e-11,
+      "description": "Universal gravitational constant G"
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["attractive"],
+      "description": "Direction of the gravitational force"
+    }
+  },
+  "required": ["type", "mass1", "mass2", "distance"]
+}

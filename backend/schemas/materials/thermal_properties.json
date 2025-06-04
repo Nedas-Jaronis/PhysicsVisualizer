@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Thermal Properties",
+  "type": "object",
+  "properties": {
+    "thermal_conductivity": {
+      "type": "number",
+      "description": "Thermal conductivity (W/m·K)",
+      "minimum": 0
+    },
+    "specific_heat_capacity": {
+      "type": "number",
+      "description": "Specific heat capacity (J/kg·K)",
+      "minimum": 0
+    },
+    "thermal_expansion_coefficient": {
+      "type": "number",
+      "description": "Thermal expansion coefficient (1/K)",
+      "minimum": 0
+    }
+  },
+  "required": ["thermal_conductivity", "specific_heat_capacity"]
+}

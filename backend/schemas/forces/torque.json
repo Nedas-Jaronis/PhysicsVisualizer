@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Torque",
+  "type": "object",
+  "properties": {
+    "force": { "type": "number" },
+    "lever_arm": { "type": "number" },
+    "angle": { "type": "number", "description": "Angle between force and lever arm (degrees)" }
+  },
+  "required": ["force", "lever_arm", "angle"]
+}

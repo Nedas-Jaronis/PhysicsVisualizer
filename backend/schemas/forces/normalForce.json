@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Normal Force",
+  "type": "object",
+  "properties": {
+    "mass": { "type": "number", "description": "Mass of the object (kg)" },
+    "acceleration_due_to_gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s^2)" },
+    "angle_of_incline": { "type": "number", "description": "Angle of incline in degrees", "minimum": 0, "maximum": 90 }
+  },
+  "required": ["mass"]
+}

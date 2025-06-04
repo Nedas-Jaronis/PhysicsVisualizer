@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Relative Motion",
+  "description": "Schema describing the relative motion of an object from the perspective of a reference frame.",
+  "type": "object",
+  "properties": {
+    "objectId": {
+      "type": "string",
+      "description": "Unique identifier of the object in motion."
+    },
+    "referenceFrameId": {
+      "type": "string",
+      "description": "Unique identifier of the reference frame."
+    },
+    "objectVelocity": {
+      "type": "object",
+      "description": "Velocity vector of the object in a global frame (m/s).",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "referenceFrameVelocity": {
+      "type": "object",
+      "description": "Velocity vector of the reference frame (m/s).",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "relativeVelocity": {
+      "type": "object",
+      "description": "Velocity of the object relative to the reference frame (calculated as objectVelocity - referenceFrameVelocity).",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"]
+    },
+    "time": {
+      "type": "number",
+      "description": "Time instant for the relative motion measurement (seconds).",
+      "minimum": 0
+    }
+  },
+  "required": ["objectId", "referenceFrameId", "objectVelocity", "referenceFrameVelocity", "relativeVelocity", "time"],
+  "additionalProperties": false
+}

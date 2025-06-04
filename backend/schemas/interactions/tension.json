@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tension Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "tension" },
+    "objectA": { "type": "string" },
+    "objectB": { "type": "string" },
+    "tensionMagnitude": {
+      "type": "number",
+      "minimum": 0
+    },
+    "direction": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  },
+  "required": ["type", "objectA", "objectB", "tensionMagnitude", "direction"],
+  "additionalProperties": false
+}

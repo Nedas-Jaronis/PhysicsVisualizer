@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Buoyant Force",
+  "type": "object",
+  "properties": {
+    "fluid_density": { "type": "number" },
+    "volume_displaced": { "type": "number" },
+    "gravity": { "type": "number", "default": 9.8 }
+  },
+  "required": ["fluid_density", "volume_displaced"]
+}

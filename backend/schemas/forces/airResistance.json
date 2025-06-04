@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Air Resistance",
+  "type": "object",
+  "properties": {
+    "drag_coefficient": { "type": "number" },
+    "cross_sectional_area": { "type": "number" },
+    "velocity": { "type": "number" },
+    "air_density": { "type": "number", "default": 1.225 }
+  },
+  "required": ["drag_coefficient", "cross_sectional_area", "velocity"]
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pressure Field",
+  "type": "object",
+  "properties": {
+    "fluid_density": { "type": "number" },
+    "gravity": { "type": "number", "default": 9.8 },
+    "depth": { "type": "number" }
+  },
+  "required": ["fluid_density", "depth"]
+}

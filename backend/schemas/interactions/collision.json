@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collision Interaction",
+  "type": "object",
+  "properties": {
+    "type": {
+      "const": "collision"
+    },
+    "objectA": { "type": "string" },
+    "objectB": { "type": "string" },
+    "coefficientOfRestitution": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Elasticity of collision (0 = perfectly inelastic, 1 = perfectly elastic)"
+    },
+    "contactPoint": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "Coordinates of collision contact point"
+    }
+  },
+  "required": ["type", "objectA", "objectB"],
+  "additionalProperties": false
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Spring Force",
+  "type": "object",
+  "properties": {
+    "spring_constant": { "type": "number" },
+    "displacement": { "type": "number" }
+  },
+  "required": ["spring_constant", "displacement"]
+}

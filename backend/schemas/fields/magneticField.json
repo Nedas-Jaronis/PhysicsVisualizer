@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Magnetic Field",
+  "type": "object",
+  "properties": {
+    "current": { "type": "number" },
+    "position_wire": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "observation_point": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "mu_0": { "type": "number", "default": 4e-7 }
+  },
+  "required": ["current", "position_wire", "observation_point"]
+}

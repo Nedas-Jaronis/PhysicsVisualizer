@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Gravity Interaction",
+  "type": "object",
+  "properties": {
+    "type": {
+      "const": "gravity"
+    },
+    "objects": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "List of object IDs affected by gravity"
+    },
+    "gravityConstant": {
+      "type": "number",
+      "description": "Gravitational constant (G) or local gravity acceleration",
+      "default": 9.81
+    },
+    "direction": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "Vector indicating gravity direction, default is downward"
+    }
+  },
+  "required": ["type", "objects"],
+  "additionalProperties": false
+}

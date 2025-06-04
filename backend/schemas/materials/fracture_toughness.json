@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fracture Toughness",
+  "type": "object",
+  "properties": {
+    "fracture_toughness": {
+      "type": "number",
+      "description": "Material's ability to resist crack propagation (MPa·m^0.5)",
+      "minimum": 0
+    },
+    "critical_stress_intensity_factor": {
+      "type": "number",
+      "description": "Critical stress intensity factor (MPa·m^0.5)",
+      "minimum": 0
+    }
+  },
+  "required": ["fracture_toughness"]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Electrostatic Force Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "electrostatic_force" },
+    "chargeA": { "type": "string" },
+    "chargeB": { "type": "string" },
+    "chargeValueA": { "type": "number" },
+    "chargeValueB": { "type": "number" },
+    "permittivity": {
+      "type": "number",
+      "default": 8.854e-12,
+      "description": "Permittivity of free space"
+    }
+  },
+  "required": ["type", "chargeA", "chargeB", "chargeValueA", "chargeValueB"],
+  "additionalProperties": false
+}

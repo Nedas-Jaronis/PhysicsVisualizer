@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Viscosity",
+  "type": "object",
+  "properties": {
+    "dynamic_viscosity": {
+      "type": "number",
+      "description": "Dynamic viscosity (Pa·s)",
+      "minimum": 0
+    },
+    "kinematic_viscosity": {
+      "type": "number",
+      "description": "Kinematic viscosity (m²/s)",
+      "minimum": 0
+    }
+  },
+  "required": ["dynamic_viscosity"]
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Normal Force Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "normal_force" },
+    "objectA": { "type": "string" },
+    "objectB": { "type": "string" },
+    "forceMagnitude": {
+      "type": "number",
+      "minimum": 0
+    },
+    "direction": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "Direction perpendicular to contact surface"
+    }
+  },
+  "required": ["type", "objectA", "objectB", "forceMagnitude", "direction"],
+  "additionalProperties": false
+}

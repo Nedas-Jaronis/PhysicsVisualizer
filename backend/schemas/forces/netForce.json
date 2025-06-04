@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Net Force",
+  "type": "object",
+  "properties": {
+    "forces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "magnitude": { "type": "number" },
+          "angle": { "type": "number" }
+        },
+        "required": ["magnitude", "angle"]
+      }
+    }
+  },
+  "required": ["forces"]
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Damped Oscillation Motion Schema",
+  "type": "object",
+  "properties": {
+    "motionType": {
+      "type": "string",
+      "enum": ["damped_oscillation"]
+    },
+    "objectId": {
+      "type": "string",
+      "description": "ID of the object undergoing damped oscillation"
+    },
+    "mass": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Mass of the oscillating object (kg)"
+    },
+    "springConstant": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Spring constant (N/m)"
+    },
+    "dampingCoefficient": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Damping coefficient (kg/s)"
+    },
+    "initialDisplacement": {
+      "type": "number",
+      "description": "Initial displacement from equilibrium position (meters)"
+    },
+    "initialVelocity": {
+      "type": "number",
+      "description": "Initial velocity at t=0 (m/s)"
+    },
+    "startTime": {
+      "type": "number",
+      "description": "Start time of motion (seconds)"
+    },
+    "referenceFrameId": {
+      "type": "string",
+      "description": "ID of the reference frame"
+    }
+  },
+  "required": [
+    "motionType",
+    "objectId",
+    "mass",
+    "springConstant",
+    "dampingCoefficient",
+    "initialDisplacement",
+    "initialVelocity"
+  ],
+  "additionalProperties": false
+}

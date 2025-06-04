@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Magnetic Force Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "magnetic_force" },
+    "magnetA": { "type": "string" },
+    "magnetB": { "type": "string" },
+    "magneticMomentA": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "magneticMomentB": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "fieldStrength": { "type": "number" }
+  },
+  "required": ["type", "magnetA", "magnetB", "magneticMomentA", "magneticMomentB"],
+  "additionalProperties": false
+}

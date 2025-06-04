@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Resistive Motion",
+  "description": "Schema describing motion with resistive forces such as friction or drag.",
+  "type": "object",
+  "properties": {
+    "objectId": {
+      "type": "string",
+      "description": "Unique identifier of the moving object."
+    },
+    "initialVelocity": {
+      "type": "number",
+      "description": "Initial velocity of the object (m/s)."
+    },
+    "mass": {
+      "type": "number",
+      "description": "Mass of the object (kg).",
+      "minimum": 0
+    },
+    "resistanceCoefficient": {
+      "type": "number",
+      "description": "Coefficient of resistive force (N·s/m). Represents strength of drag or friction.",
+      "minimum": 0
+    },
+    "externalForce": {
+      "type": "number",
+      "description": "Constant external force applied to the object in the direction of motion (N).",
+      "default": 0
+    },
+    "direction": {
+      "type": "string",
+      "description": "Direction of motion (1D).",
+      "enum": ["positive", "negative"]
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration of motion to simulate (seconds).",
+      "minimum": 0
+    }
+  },
+  "required": ["objectId", "initialVelocity", "mass", "resistanceCoefficient", "direction", "duration"],
+  "additionalProperties": false
+}

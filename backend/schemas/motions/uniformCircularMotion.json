@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Uniform Circular Motion",
+  "description": "Schema describing uniform circular motion for physics animation.",
+  "type": "object",
+  "properties": {
+    "objectId": {
+      "type": "string",
+      "description": "Unique identifier of the object undergoing circular motion."
+    },
+    "radius": {
+      "type": "number",
+      "description": "Radius of the circular path (meters).",
+      "minimum": 0
+    },
+    "angularVelocity": {
+      "type": "number",
+      "description": "Angular velocity (radians per second). Positive for counterclockwise rotation."
+    },
+    "initialAngle": {
+      "type": "number",
+      "description": "Initial angle at time zero (radians).",
+      "default": 0
+    },
+    "plane": {
+      "type": "string",
+      "description": "Plane of the motion (e.g., XY, XZ, YZ).",
+      "enum": ["XY", "XZ", "YZ"],
+      "default": "XY"
+    },
+    "center": {
+      "type": "object",
+      "description": "Coordinates of the center of the circular path.",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"],
+      "additionalProperties": false
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration of the motion animation (seconds).",
+      "minimum": 0
+    },
+    "repeat": {
+      "type": "boolean",
+      "description": "If true, motion repeats after duration ends.",
+      "default": false
+    }
+  },
+  "required": ["objectId", "radius", "angularVelocity", "center", "duration"],
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Buoyancy Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "buoyancy" },
+    "object": { "type": "string" },
+    "fluidDensity": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Density of the fluid"
+    },
+    "submergedVolume": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Volume of the object submerged"
+    },
+    "gravityAcceleration": {
+      "type": "number",
+      "default": 9.81,
+      "description": "Acceleration due to gravity"
+    }
+  },
+  "required": ["type", "object", "fluidDensity", "submergedVolume"],
+  "additionalProperties": false
+}

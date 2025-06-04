@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Electric Field",
+  "type": "object",
+  "properties": {
+    "charge_source": { "type": "number" },
+    "position_source": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "observation_point": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "k_e": { "type": "number", "default": 8.99e9 }
+  },
+  "required": ["charge_source", "position_source", "observation_point"]
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Applied Force",
+  "type": "object",
+  "properties": {
+    "magnitude": { "type": "number" },
+    "direction": { "type": "string", "enum": ["x", "y", "angle"] },
+    "angle": { "type": "number", "description": "Only required if direction is 'angle'" }
+  },
+  "required": ["magnitude", "direction"]
+}

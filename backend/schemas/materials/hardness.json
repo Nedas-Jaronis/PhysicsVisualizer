@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Material Hardness",
+  "type": "object",
+  "properties": {
+    "mohs_hardness": {
+      "type": "number",
+      "description": "Mohs hardness scale value (1-10)",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "vickers_hardness": {
+      "type": "number",
+      "description": "Vickers hardness number (HV)",
+      "minimum": 0
+    }
+  }
+}

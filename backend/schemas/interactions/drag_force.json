@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Drag Force Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "drag_force" },
+    "object": { "type": "string" },
+    "dragCoefficient": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Coefficient of drag"
+    },
+    "fluidDensity": {
+      "type": "number",
+      "minimum": 0
+    },
+    "referenceArea": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Cross-sectional area"
+    },
+    "velocity": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  },
+  "required": ["type", "object", "dragCoefficient", "fluidDensity", "referenceArea", "velocity"],
+  "additionalProperties": false
+}

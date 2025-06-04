@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Spring Force Interaction",
+  "type": "object",
+  "properties": {
+    "type": { "const": "spring_force" },
+    "objectA": { "type": "string" },
+    "objectB": { "type": "string" },
+    "springConstant": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Spring constant k"
+    },
+    "restLength": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Rest length of the spring"
+    },
+    "dampingCoefficient": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Optional damping constant"
+    }
+  },
+  "required": ["type", "objectA", "objectB", "springConstant", "restLength"],
+  "additionalProperties": false
+}

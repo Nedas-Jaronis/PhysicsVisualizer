@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Centripetal Force",
+  "type": "object",
+  "properties": {
+    "mass": { "type": "number" },
+    "velocity": { "type": "number" },
+    "radius": { "type": "number" }
+  },
+  "required": ["mass", "velocity", "radius"]
+}

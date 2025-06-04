@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Magnetic Force",
+  "type": "object",
+  "properties": {
+    "charge": { "type": "number" },
+    "velocity": { "type": "number" },
+    "magnetic_field": { "type": "number" },
+    "angle": { "type": "number", "description": "Angle between velocity and magnetic field (degrees)" }
+  },
+  "required": ["charge", "velocity", "magnetic_field", "angle"]
+}
