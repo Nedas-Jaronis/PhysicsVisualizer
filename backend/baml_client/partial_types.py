@@ -37,6 +37,14 @@ class StreamState(BaseModel, Generic[T]):
     state: Literal["Pending", "Incomplete", "Complete"]
 
 
+class AnimationData(BaseModel):
+    forces: List[types.Forces]
+    fields: List[types.Fields]
+    interactions: List[types.Interactions]
+    materials: List[types.Materials]
+    motions: List[types.Motions]
+    objects: List[types.Objects]
+
 class Resume(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None

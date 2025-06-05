@@ -1,5 +1,24 @@
 // Learn more about clients at https://docs.boundaryml.com/docs/snippets/clients/overview
 
+client<llm> DeepseekChatClient {
+  provider openai-generic
+  options {
+    model "deepseek-chat"
+    base_url "https://api.deepseek.com/v1"
+    api_key_env "sk-40bc61c061c14be1a62008a4405f2207"
+  }
+}
+
+client DeepseekR1Client {
+  provider openai-generic
+  options {
+    model "deepseek-reasoner"
+    base_url "https://api.deepseek.com/v1"
+    api_key "sk-40bc61c061c14be1a62008a4405f2207"
+  }
+}
+
+
 client<llm> CustomGPT4o {
   provider openai
   options {

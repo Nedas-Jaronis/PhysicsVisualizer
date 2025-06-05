@@ -2,6 +2,7 @@ import re
 from openai import OpenAI
 import json
 from json_templates import *
+import os
 
 os.environ["DEEPSEEK_API_KEY"] = "sk-40bc61c061c14be1a62008a4405f2207"
 problem = """Your physics problem text here"""
