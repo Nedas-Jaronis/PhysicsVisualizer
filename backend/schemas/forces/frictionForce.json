@@ -4,7 +4,20 @@
   "type": "object",
   "properties": {
     "normal_force": { "type": "number" },
-    "coefficient_of_friction": { "type": "number", "minimum": 0 }
+    "coefficient_of_friction": { "type": "number", "minimum": 0 },
+    "applied_to": {
+      "type": "string",
+      "description": "ID of the object this force is applied to"
+    },
+    "application_point": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Local point on the object where force is applied (optional)"
+    }
   },
-  "required": ["normal_force", "coefficient_of_friction"]
+  "required": ["normal_force", "coefficient_of_friction", "applied_to"]
 }

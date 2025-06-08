@@ -24,7 +24,7 @@ class TypeBuilder(_TypeBuilder):
         super().__init__(classes=set(
           ["AnimationData","Resume",]
         ), enums=set(
-          ["Fields","Forces","Interactions","Materials","Motions","Objects",]
+          ["Forces","Interactions","Motions","Objects",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
 
@@ -44,7 +44,7 @@ class AnimationDataAst:
     def __init__(self, tb: _TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("AnimationData")
-        self._properties: typing.Set[str] = set([ "forces",  "fields",  "interactions",  "materials",  "motions",  "objects", ])
+        self._properties: typing.Set[str] = set([ "forces",  "interactions",  "motions",  "objects", ])
         self._props = AnimationDataProperties(self._bldr, self._properties)
 
     def type(self) -> FieldType:
@@ -77,16 +77,8 @@ class AnimationDataProperties:
         return ClassPropertyViewer(self.__bldr.property("forces"))
 
     @property
-    def fields(self) -> ClassPropertyViewer:
-        return ClassPropertyViewer(self.__bldr.property("fields"))
-
-    @property
     def interactions(self) -> ClassPropertyViewer:
         return ClassPropertyViewer(self.__bldr.property("interactions"))
-
-    @property
-    def materials(self) -> ClassPropertyViewer:
-        return ClassPropertyViewer(self.__bldr.property("materials"))
 
     @property
     def motions(self) -> ClassPropertyViewer:
@@ -149,88 +141,6 @@ class ResumeProperties:
     
 
 
-
-class FieldsAst:
-    def __init__(self, tb: _TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("Fields")
-        self._values: typing.Set[str] = set([ "AccelerationField",  "ElectricField",  "FluidFlowField",  "FluidVelocityField",  "ForceField",  "GravitationalField",  "MagneticField",  "PotentialField",  "PressureField",  "TemperatureField", ])
-        self._vals = FieldsValues(self._bldr, self._values)
-
-    def type(self) -> FieldType:
-        return self._bldr.field()
-
-    @property
-    def values(self) -> "FieldsValues":
-        return self._vals
-
-
-class FieldsViewer(FieldsAst):
-    def __init__(self, tb: _TypeBuilder):
-        super().__init__(tb)
-
-    def list_values(self) -> typing.List[typing.Tuple[str, EnumValueViewer]]:
-        return [(name, EnumValueViewer(self._bldr.value(name))) for name in self._values]
-
-
-class FieldsValues:
-    def __init__(self, enum_bldr: EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values
-
-    
-
-    @property
-    def AccelerationField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("AccelerationField"))
-    
-
-    @property
-    def ElectricField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("ElectricField"))
-    
-
-    @property
-    def FluidFlowField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("FluidFlowField"))
-    
-
-    @property
-    def FluidVelocityField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("FluidVelocityField"))
-    
-
-    @property
-    def ForceField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("ForceField"))
-    
-
-    @property
-    def GravitationalField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("GravitationalField"))
-    
-
-    @property
-    def MagneticField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("MagneticField"))
-    
-
-    @property
-    def PotentialField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("PotentialField"))
-    
-
-    @property
-    def PressureField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("PressureField"))
-    
-
-    @property
-    def TemperatureField(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("TemperatureField"))
-    
-
-    
 
 class ForcesAst:
     def __init__(self, tb: _TypeBuilder):
@@ -412,78 +322,6 @@ class InteractionsValues:
     @property
     def Tension(self) -> EnumValueViewer:
         return EnumValueViewer(self.__bldr.value("Tension"))
-    
-
-    
-
-class MaterialsAst:
-    def __init__(self, tb: _TypeBuilder):
-        _tb = tb._tb # type: ignore (we know how to use this private attribute)
-        self._bldr = _tb.enum("Materials")
-        self._values: typing.Set[str] = set([ "Density",  "Elasticity",  "FractureToughnes",  "Hardness",  "Plasticity",  "StressStrain",  "ThermalProperties",  "Viscosity", ])
-        self._vals = MaterialsValues(self._bldr, self._values)
-
-    def type(self) -> FieldType:
-        return self._bldr.field()
-
-    @property
-    def values(self) -> "MaterialsValues":
-        return self._vals
-
-
-class MaterialsViewer(MaterialsAst):
-    def __init__(self, tb: _TypeBuilder):
-        super().__init__(tb)
-
-    def list_values(self) -> typing.List[typing.Tuple[str, EnumValueViewer]]:
-        return [(name, EnumValueViewer(self._bldr.value(name))) for name in self._values]
-
-
-class MaterialsValues:
-    def __init__(self, enum_bldr: EnumBuilder, values: typing.Set[str]):
-        self.__bldr = enum_bldr
-        self.__values = values
-
-    
-
-    @property
-    def Density(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Density"))
-    
-
-    @property
-    def Elasticity(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Elasticity"))
-    
-
-    @property
-    def FractureToughnes(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("FractureToughnes"))
-    
-
-    @property
-    def Hardness(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Hardness"))
-    
-
-    @property
-    def Plasticity(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Plasticity"))
-    
-
-    @property
-    def StressStrain(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("StressStrain"))
-    
-
-    @property
-    def ThermalProperties(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("ThermalProperties"))
-    
-
-    @property
-    def Viscosity(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Viscosity"))
     
 
     

@@ -20,7 +20,7 @@ import { toBamlError, BamlStream, type HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AnimationData, Fields, Forces, Interactions, Materials, Motions, Objects, Resume} from "./types"
+import type {AnimationData, Forces, Interactions, Motions, Objects, Resume} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -130,7 +130,7 @@ export class BamlAsyncClient {
   }
   
   async Update_Animation_Data(
-      data: string,
+      data: string,problem: string,
       __baml_options__?: BamlCallOptions
   ): Promise<string> {
     try {
@@ -139,7 +139,7 @@ export class BamlAsyncClient {
       const raw = await this.runtime.callFunction(
         "Update_Animation_Data",
         {
-          "data": data
+          "data": data,"problem": problem
         },
         this.ctxManager.cloneContext(),
         options.tb?.__tb(),
@@ -225,7 +225,7 @@ class BamlStreamClient {
   }
   
   Update_Animation_Data(
-      data: string,
+      data: string,problem: string,
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
   ): BamlStream<string, string> {
     try {
@@ -234,7 +234,7 @@ class BamlStreamClient {
       const raw = this.runtime.streamFunction(
         "Update_Animation_Data",
         {
-          "data": data
+          "data": data,"problem": problem
         },
         undefined,
         this.ctxManager.cloneContext(),

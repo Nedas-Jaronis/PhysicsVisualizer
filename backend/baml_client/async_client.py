@@ -156,7 +156,7 @@ class BamlAsyncClient:
     
     async def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> str:
       options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
@@ -172,7 +172,7 @@ class BamlAsyncClient:
       raw = await self.__runtime.call_function(
         "Update_Animation_Data",
         {
-          "data": data,
+          "data": data,"problem": problem,
         },
         self.__ctx_manager.get(),
         tb,
@@ -261,7 +261,7 @@ class BamlStreamClient:
     
     def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlStream[Optional[str], str]:
       options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
@@ -277,6 +277,7 @@ class BamlStreamClient:
         "Update_Animation_Data",
         {
           "data": data,
+          "problem": problem,
         },
         None,
         self.__ctx_manager.get(),

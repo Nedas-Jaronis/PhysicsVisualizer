@@ -46,19 +46,6 @@ export function all_succeeded<CheckName extends string>(checks: Record<CheckName
 export function get_checks<CheckName extends string>(checks: Record<CheckName, Check>): Check[] {
     return Object.values(checks)
 }
-export enum Fields {
-  AccelerationField = "AccelerationField",
-  ElectricField = "ElectricField",
-  FluidFlowField = "FluidFlowField",
-  FluidVelocityField = "FluidVelocityField",
-  ForceField = "ForceField",
-  GravitationalField = "GravitationalField",
-  MagneticField = "MagneticField",
-  PotentialField = "PotentialField",
-  PressureField = "PressureField",
-  TemperatureField = "TemperatureField",
-}
-
 export enum Forces {
   AirResistance = "AirResistance",
   AppliedForce = "AppliedForce",
@@ -89,17 +76,6 @@ export enum Interactions {
   Tension = "Tension",
 }
 
-export enum Materials {
-  Density = "Density",
-  Elasticity = "Elasticity",
-  FractureToughnes = "FractureToughnes",
-  Hardness = "Hardness",
-  Plasticity = "Plasticity",
-  StressStrain = "StressStrain",
-  ThermalProperties = "ThermalProperties",
-  Viscosity = "Viscosity",
-}
-
 export enum Motions {
   CombinedTransRotMotion = "CombinedTransRotMotion",
   DampedOscillation = "DampedOscillation",
@@ -119,9 +95,7 @@ export enum Objects {
 
 export interface AnimationData {
   forces: Forces[]
-  fields: Fields[]
   interactions: Interactions[]
-  materials: Materials[]
   motions: Motions[]
   objects: Objects[]
   

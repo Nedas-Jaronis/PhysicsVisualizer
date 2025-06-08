@@ -6,7 +6,15 @@
     "charge1": { "type": "number" },
     "charge2": { "type": "number" },
     "distance": { "type": "number" },
-    "k_e": { "type": "number", "default": 8.99e9 }
+    "k_e": { "type": "number", "default": 8.99e9 },
+    "object1_id": {
+      "type": "string",
+      "description": "ID of the first object involved"
+    },
+    "object2_id": {
+      "type": "string",
+      "description": "ID of the second object involved"
+    }
   },
-  "required": ["charge1", "charge2", "distance"]
+  "required": ["charge1", "charge2", "distance", "object1_id", "object2_id"]
 }

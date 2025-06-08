@@ -4,7 +4,20 @@
   "type": "object",
   "properties": {
     "spring_constant": { "type": "number" },
-    "displacement": { "type": "number" }
+    "displacement": { "type": "number" },
+    "applied_to": {
+      "type": "string",
+      "description": "ID of the object this force is applied to"
+    },
+    "application_point": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Local point on the object where force is applied (optional)"
+    }
   },
-  "required": ["spring_constant", "displacement"]
+  "required": ["spring_constant", "displacement", "applied_to"]
 }

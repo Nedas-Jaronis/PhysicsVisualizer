@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "GravitationalForce",
+  "title": "Gravitational Force",
   "type": "object",
   "properties": {
     "type": { "const": "gravitational" },
@@ -25,7 +25,15 @@
       "type": "string",
       "enum": ["attractive"],
       "description": "Direction of the gravitational force"
+    },
+    "object1_id": {
+      "type": "string",
+      "description": "ID of the first object"
+    },
+    "object2_id": {
+      "type": "string",
+      "description": "ID of the second object"
     }
   },
-  "required": ["type", "mass1", "mass2", "distance"]
+  "required": ["type", "mass1", "mass2", "distance", "object1_id", "object2_id"]
 }

@@ -22,18 +22,14 @@ import { DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME } from "./
 export default class TypeBuilder {
     private tb: _TypeBuilder;
     
-    AnimationData: ClassViewer<'AnimationData', "forces" | "fields" | "interactions" | "materials" | "motions" | "objects">;
+    AnimationData: ClassViewer<'AnimationData', "forces" | "interactions" | "motions" | "objects">;
     
     Resume: ClassViewer<'Resume', "name" | "email" | "experience" | "skills">;
     
     
-    Fields: EnumViewer<'Fields', "AccelerationField" | "ElectricField" | "FluidFlowField" | "FluidVelocityField" | "ForceField" | "GravitationalField" | "MagneticField" | "PotentialField" | "PressureField" | "TemperatureField">;
-    
     Forces: EnumViewer<'Forces', "AirResistance" | "AppliedForce" | "BuoyantForce" | "CentripetalForce" | "CoriolisForce" | "ElectricForce" | "FrictionForce" | "GravitationalForce" | "LiftThrustForce" | "MagneticForce" | "NetForce" | "SpringForce" | "TensionForce" | "Torque">;
     
     Interactions: EnumViewer<'Interactions', "Buoyancy" | "Collision" | "DragForce" | "ElectrostaticForce" | "Friction" | "Gravity" | "MagneticForce" | "NormalForce" | "SpringForce" | "Tension">;
-    
-    Materials: EnumViewer<'Materials', "Density" | "Elasticity" | "FractureToughnes" | "Hardness" | "Plasticity" | "StressStrain" | "ThermalProperties" | "Viscosity">;
     
     Motions: EnumViewer<'Motions', "CombinedTransRotMotion" | "DampedOscillation" | "LinearMotion" | "ProjectileMotion2D" | "ProjectileMotion3D" | "RelativeMotion" | "ResistiveMotion" | "RotationalMotion" | "SimpleHarmonicMotion" | "UniformCircularMotion">;
     
@@ -46,13 +42,13 @@ export default class TypeBuilder {
             "AnimationData","Resume",
           ]),
           enums: new Set([
-            "Fields","Forces","Interactions","Materials","Motions","Objects",
+            "Forces","Interactions","Motions","Objects",
           ]),
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
         
         this.AnimationData = this.tb.classViewer("AnimationData", [
-          "forces","fields","interactions","materials","motions","objects",
+          "forces","interactions","motions","objects",
         ]);
         
         this.Resume = this.tb.classViewer("Resume", [
@@ -60,20 +56,12 @@ export default class TypeBuilder {
         ]);
         
         
-        this.Fields = this.tb.enumViewer("Fields", [
-          "AccelerationField","ElectricField","FluidFlowField","FluidVelocityField","ForceField","GravitationalField","MagneticField","PotentialField","PressureField","TemperatureField",
-        ]);
-        
         this.Forces = this.tb.enumViewer("Forces", [
           "AirResistance","AppliedForce","BuoyantForce","CentripetalForce","CoriolisForce","ElectricForce","FrictionForce","GravitationalForce","LiftThrustForce","MagneticForce","NetForce","SpringForce","TensionForce","Torque",
         ]);
         
         this.Interactions = this.tb.enumViewer("Interactions", [
           "Buoyancy","Collision","DragForce","ElectrostaticForce","Friction","Gravity","MagneticForce","NormalForce","SpringForce","Tension",
-        ]);
-        
-        this.Materials = this.tb.enumViewer("Materials", [
-          "Density","Elasticity","FractureToughnes","Hardness","Plasticity","StressStrain","ThermalProperties","Viscosity",
         ]);
         
         this.Motions = this.tb.enumViewer("Motions", [

@@ -85,7 +85,7 @@ class HttpRequest:
     
     def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
@@ -98,7 +98,7 @@ class HttpRequest:
       return self.__runtime.build_request_sync(
         "Update_Animation_Data",
         {
-          "data": data,
+          "data": data,"problem": problem,
         },
         self.__ctx_manager.get(),
         tb,
@@ -165,7 +165,7 @@ class HttpStreamRequest:
     
     def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
@@ -178,7 +178,7 @@ class HttpStreamRequest:
       return self.__runtime.build_request_sync(
         "Update_Animation_Data",
         {
-          "data": data,
+          "data": data,"problem": problem,
         },
         self.__ctx_manager.get(),
         tb,

@@ -13,7 +13,20 @@
         },
         "required": ["magnitude", "angle"]
       }
+    },
+    "applied_to": {
+      "type": "string",
+      "description": "ID of the object this net force is applied to"
+    },
+    "application_point": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["forces"]
+  "required": ["forces", "applied_to"]
 }

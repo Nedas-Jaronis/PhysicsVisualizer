@@ -39,9 +39,7 @@ class StreamState(BaseModel, Generic[T]):
 
 class AnimationData(BaseModel):
     forces: List[types.Forces]
-    fields: List[types.Fields]
     interactions: List[types.Interactions]
-    materials: List[types.Materials]
     motions: List[types.Motions]
     objects: List[types.Objects]
 

@@ -19,7 +19,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio } from "
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AnimationData, Fields, Forces, Interactions, Materials, Motions, Objects, Resume} from "./types"
+import type {AnimationData, Forces, Interactions, Motions, Objects, Resume} from "./types"
 import type TypeBuilder from "./type_builder"
 
 type BamlCallOptions = {
@@ -72,14 +72,14 @@ export class AsyncHttpRequest {
   }
   
   async Update_Animation_Data(
-      data: string,
+      data: string,problem: string,
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
       return await this.runtime.buildRequest(
         "Update_Animation_Data",
         {
-          "data": data
+          "data": data,"problem": problem
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -138,14 +138,14 @@ export class AsyncHttpStreamRequest {
   }
   
   async Update_Animation_Data(
-      data: string,
+      data: string,problem: string,
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
       return await this.runtime.buildRequest(
         "Update_Animation_Data",
         {
-          "data": data
+          "data": data,"problem": problem
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),

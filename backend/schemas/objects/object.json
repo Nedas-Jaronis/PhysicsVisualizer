@@ -1,82 +1,49 @@
 {
-    "type": "object",
-    "properties": {
-        "id":{
-            "type": "string",
-            "description": "Unique identifier for the object"
-        },
-        "name": {
-            "type": "string",
-            "description": "Human-readable name for the object"
-        },
-        "type": {
-            "type": "string",
-            "enum": ["rigid_body", "particle", "deformable", "composite"],
-            "description": "Type/category oif the object"
-        },
-        "mass" :{
-            "type": "number",
-            "miniminum": 0,
-            "description": "Mass of the object in kilograms"
-        },
-        "position": {
-            "type": "object",
-            "properties": {
-                "x": {"type": "number"},
-                "y": {"type": "number"},
-                "z": {"type": "number"}
-            },
-            "required": ["x", "y", "z"],
-            "description": "3D position coordinates of the object"
-        },
-        "velocity": {
-            "type": "object",
-            "properties": {
-                "x": {"type": "number"},
-                "y": {"type": "number"},
-                "z": {"type": "number"}
-            },
-            "description": "3D acceleration vector"
-        },
-        "shape": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "enum": ["sphere", "cube", "cylinder", "custom"],
-                    "description": "Geometric shape of the object"
-                },
-                "dimensions": {
-                    "type": "object",
-                    "description": "Dimeonsions relevant to the shape",
-                    "properties": {
-                        "radius": {"type": "number"},
-                        "width": {"type": "number"},
-                        "height": {"type": "number"},
-                        "depth": {"type": "number"}
-                    }
-                }
-            },
-            "required": ["type"]
-        },
-        "material": {
-            "type": "object",
-            "properties" : {
-                "density": {"type": "number"},
-                "elasticity": {"type": "number"},
-                "friction_coefficient": {"type": "number"}
-            },
-            "description": "Physical properties of the object's material"
-        },
-        "initial_conditions": {
-            "type": "object",
-            "properties": {
-                "position": {"$ref": "#/properties/position"},
-                "velocity": {"$ref": "#/properties/velocity"},
-                "acceleration": {"$ref": "#/properties/acceleration"}
-            },
-            "description": "Optional initial state values"
-        }
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "Unique identifier" },
+    "type": { "type": "string", "enum": ["particle", "rigid_body"], "default": "particle" },
+    "mass": { "type": "number", "minimum": 0, "description": "Mass in kilograms" },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number", "default": 0 }
+      },
+      "required": ["x", "y"],
+      "description": "Starting position"
     },
-    "required": ["id", "type", "mass", "position", "shape"]
+    "velocity": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Initial velocity"
+    },
+    "acceleration": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Initial acceleration"
+    },
+    "orientation": {
+      "type": "object",
+      "properties": {
+        "angle": { "type": "number", "default": 0 }
+      },
+      "description": "Orientation angle (for rigid bodies)"
+    },
+    "angular_velocity": {
+      "type": "number",
+      "default": 0,
+      "description": "Angular velocity (for rigid bodies)"
+    }
+  },
+  "required": ["id", "mass", "position"]
 }

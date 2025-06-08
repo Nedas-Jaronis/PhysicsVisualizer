@@ -16,18 +16,18 @@ enum Forces {
   Torque
 }
 
-enum Fields {
-  AccelerationField
-  ElectricField
-  FluidFlowField
-  FluidVelocityField
-  ForceField
-  GravitationalField
-  MagneticField
-  PotentialField
-  PressureField
-  TemperatureField
-}
+// enum Fields {
+//   AccelerationField
+//   ElectricField
+//   FluidFlowField
+//   FluidVelocityField
+//   ForceField
+//   GravitationalField
+//   MagneticField
+//   PotentialField
+//   PressureField
+//   TemperatureField
+// }
 
 enum Interactions {
   Buoyancy
@@ -42,16 +42,16 @@ enum Interactions {
   Tension
 }
 
-enum Materials {
-  Density
-  Elasticity
-  FractureToughnes
-   Hardness
-   Plasticity
-   StressStrain
-  ThermalProperties
-  Viscosity
-}
+// enum Materials {
+//   Density
+//   Elasticity
+//   FractureToughnes
+//    Hardness
+//    Plasticity
+//    StressStrain
+//   ThermalProperties
+//   Viscosity
+// }
 
 enum Motions {
   CombinedTransRotMotion
@@ -73,14 +73,21 @@ enum Objects {
 // --- AnimationData schema ---
 class AnimationData {
   forces Forces[]
-  fields Fields[]
+  // fields Fields[]
   interactions Interactions[]
-  materials Materials[]
+  // materials Materials[]
   motions Motions[]
   objects Objects[]
 }
 
 
+//Extra to the prompt (not using currently):   
+//materials: ["Density", "Elasticity", "FractureToughness", "Hardness", "Plasticity", "StressStrain", "ThermalProperties", "Viscosity"]
+//  fields: ["AccelerationField", "ElectricField", "FluidFlowField", "FluidVelocityField", "ForceField", "GravitationalField", "MagneticField", "PotentialField", "PressureField", "TemperatureField"]
+
+//Original Prompts Here that I have changed:
+
+//  forces: ["AirResistance", "AppliedForce", "BuoyantForce", "CentripetalForce", "CoriolisForce", "ElectricForce", "FrictionForce", "GravitationalForce", "LiftThrustForce", "MagneticForce", "NetForce", "SpringForce", "TensionForce", "Torque"]
 
 
 // --- Step 1: Extract animation types from problem ---
@@ -91,15 +98,12 @@ function Extract_animation_data(problem: string) -> AnimationData {
 
   ## Categories:
 
-  forces: ["AirResistance", "AppliedForce", "BuoyantForce", "CentripetalForce", "CoriolisForce", "ElectricForce", "FrictionForce", "GravitationalForce", "LiftThrustForce", "MagneticForce", "NetForce", "SpringForce", "TensionForce", "Torque"]
-
-  fields: ["AccelerationField", "ElectricField", "FluidFlowField", "FluidVelocityField", "ForceField", "GravitationalField", "MagneticField", "PotentialField", "PressureField", "TemperatureField"]
+  forces: ["AirResistance", "AppliedForce", "BuoyantForce", "CentripetalForce", "FrictionForce", "GravitationalForce", "NetForce", "SpringForce", "TensionForce", "Torque", "NormalForce"]
   
-  interactions: ["Buoyancy", "Collision", "DragForce", "ElectrostaticForce", "Friction", "Gravity", "MagneticForce", "NormalForce", "SpringForce", "Tension"]
+  interactions: ["Buoyancy", "Collision", "Friction", "Tension"]
   
-  materials: ["Density", "Elasticity", "FractureToughness", "Hardness", "Plasticity", "StressStrain", "ThermalProperties", "Viscosity"]
   
-  motions: ["CombinedTransRotMotion", "DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RelativeMotion", "ResistiveMotion", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]
+  motions: ["DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]
   
   objects: ["Object"]
 
@@ -114,27 +118,34 @@ function Extract_animation_data(problem: string) -> AnimationData {
   """#
 }
 
-function Update_Animation_Data(data: string) -> string{
+function Update_Animation_Data(data: string, problem: string) -> string{
   client "DeepseekChatClient"
   prompt #"""
 You are a physics simulation expert.
 
-Given structured animation data with physics categories such as forces, fields, interactions, motions, and objects, your task is to **fill in or update the fields in this JSON** with realistic default values or enhancements.
+Given structured animation data in JSON format with categories such as forces, fields, interactions, motions, and objects, your task is to **replace empty or default values** with realistic physics values that match the meaning of each field. Fill in all fields by using the problem given to piece together all key values.
 
 ## Instructions:
-- Keep the structure of the input JSON the same.
-- For every motion or object with a JSON schema, update it to include example or default values **that satisfy the schema**.
-- Use realistic physics defaults (e.g., `g = 9.8`, projectile launched at `vx = 50 * cos(θ)`, etc.).
-- Never remove keys from the original JSON.
-- All values should be in SI units.
-- Return only the final **updated JSON object** as output.
-- Do not explain anything — just return a valid JSON object.
+- DO NOT add or remove any keys.
+- DO NOT change the structure of the JSON.
+- ONLY fill in or replace values for existing keys.
+- Use realistic defaults where necessary (e.g., `g = 9.8`, objects falling from height, etc.).
+- Assume standard physics conventions: `y` is vertical, `x` is horizontal.
+- All units must be in SI units.
+- Return only the updated JSON object — no extra explanation or formatting.
+
+## Examples:
+- If `"initialPosition.y": 0` but the problem implies a 45-meter cliff, set `"initialPosition.y": 45`.
+- Leave all other fields untouched unless their value needs to be set.
 
 ## Input:
+{{problem}}
 {{data}}
 
 ## Output:
-Updated JSON with motion and object fields populated according to schema.
+Updated JSON with only the values filled or replaced according to the problem, just return json data, with the updated key values.
 """#
+
+
 
 } 

@@ -4,8 +4,21 @@
   "type": "object",
   "properties": {
     "mass": { "type": "number", "description": "Mass of the object (kg)" },
-    "acceleration_due_to_gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s^2)" },
-    "angle_of_incline": { "type": "number", "description": "Angle of incline in degrees", "minimum": 0, "maximum": 90 }
+    "acceleration_due_to_gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s²)" },
+    "angle_of_incline": { "type": "number", "minimum": 0, "maximum": 90, "description": "Angle of incline in degrees" },
+    "applied_to": {
+      "type": "string",
+      "description": "ID of the object this force is applied to"
+    },
+    "application_point": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number", "default": 0 },
+        "z": { "type": "number", "default": 0 }
+      },
+      "description": "Local point on the object where force is applied (optional)"
+    }
   },
-  "required": ["mass"]
+  "required": ["mass", "applied_to"]
 }

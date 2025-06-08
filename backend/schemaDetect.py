@@ -48,7 +48,7 @@ def load_all_schemas(animation_dict: dict):
 # Example usage (you can remove this block if importing elsewhere)
 if __name__ == "__main__":
     # Replace with your actual AnimationData output from BAML
-    problem = "A rock is dropped from the top of a 45-meter tall cliff.Assume no air resistance and use 𝑔=9.8 m/s2g=9.8m/s 2."
+    problem = "A rock is dropped from the top of a 45-meter tall cliff.Assume no air resistance and use 𝑔=9.8 m/s."
     schemes_data = b.Extract_animation_data(problem)
     # print(type(schemes_data))
     animation_dict = schemes_data.model_dump()
@@ -56,5 +56,6 @@ if __name__ == "__main__":
     print("You have got to this point checkpoint before json.dump")
     json_string = json.dumps(all_loaded)
     print("Finished checkpoint")
-    final_result = b.Update_Animation_Data(json_string)
+    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+    final_result = b.Update_Animation_Data(json_string, problem)
     print(final_result)

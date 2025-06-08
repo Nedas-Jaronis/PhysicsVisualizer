@@ -85,7 +85,7 @@ class AsyncHttpRequest:
     
     async def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
@@ -99,6 +99,7 @@ class AsyncHttpRequest:
         "Update_Animation_Data",
         {
           "data": data,
+          "problem": problem,
         },
         self.__ctx_manager.get(),
         tb,
@@ -165,7 +166,7 @@ class AsyncHttpStreamRequest:
     
     async def Update_Animation_Data(
         self,
-        data: str,
+        data: str,problem: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
@@ -179,6 +180,7 @@ class AsyncHttpStreamRequest:
         "Update_Animation_Data",
         {
           "data": data,
+          "problem": problem,
         },
         self.__ctx_manager.get(),
         tb,

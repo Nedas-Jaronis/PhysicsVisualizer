@@ -41,19 +41,6 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 
 
 
-class Fields(str, Enum):
-    
-    AccelerationField = "AccelerationField"
-    ElectricField = "ElectricField"
-    FluidFlowField = "FluidFlowField"
-    FluidVelocityField = "FluidVelocityField"
-    ForceField = "ForceField"
-    GravitationalField = "GravitationalField"
-    MagneticField = "MagneticField"
-    PotentialField = "PotentialField"
-    PressureField = "PressureField"
-    TemperatureField = "TemperatureField"
-
 class Forces(str, Enum):
     
     AirResistance = "AirResistance"
@@ -84,17 +71,6 @@ class Interactions(str, Enum):
     SpringForce = "SpringForce"
     Tension = "Tension"
 
-class Materials(str, Enum):
-    
-    Density = "Density"
-    Elasticity = "Elasticity"
-    FractureToughnes = "FractureToughnes"
-    Hardness = "Hardness"
-    Plasticity = "Plasticity"
-    StressStrain = "StressStrain"
-    ThermalProperties = "ThermalProperties"
-    Viscosity = "Viscosity"
-
 class Motions(str, Enum):
     
     CombinedTransRotMotion = "CombinedTransRotMotion"
@@ -114,9 +90,7 @@ class Objects(str, Enum):
 
 class AnimationData(BaseModel):
     forces: List["Forces"]
-    fields: List["Fields"]
     interactions: List["Interactions"]
-    materials: List["Materials"]
     motions: List["Motions"]
     objects: List["Objects"]
 
