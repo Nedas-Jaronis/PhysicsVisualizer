@@ -48,7 +48,11 @@ def load_all_schemas(animation_dict: dict):
 # Example usage (you can remove this block if importing elsewhere)
 if __name__ == "__main__":
     # Replace with your actual AnimationData output from BAML
-    problem = "A rock is dropped from the top of a 45-meter tall cliff.Assume no air resistance and use 𝑔=9.8 m/s."
+    problem = """A spring with spring constant 𝑘=200N/m is compressed 0.3 m.
+
+(a) How much potential energy is stored in the spring?
+
+(b) If the spring launches a 1 kg mass on a frictionless surface, what is its speed just as it leaves the spring?"""
     schemes_data = b.Extract_animation_data(problem)
     # print(type(schemes_data))
     animation_dict = schemes_data.model_dump()

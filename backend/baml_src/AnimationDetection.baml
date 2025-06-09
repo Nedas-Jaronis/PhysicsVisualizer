@@ -143,7 +143,7 @@ Given structured animation data in JSON format with categories such as forces, f
 {{data}}
 
 ## Output:
-Updated JSON with only the values filled or replaced according to the problem, just return json data, with the updated key values.
+Updated JSON with only the values filled or replaced according to the problem, just return json data, with the updated key values. Keep the exact same format!!!
 """#
 
 
