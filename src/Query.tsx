@@ -84,7 +84,9 @@ function QueryBox() {
             setProblem(problemSolution.problem);
             
             // Set animation data - this includes both categories and updated schemas
-            setAnimationData(animationData.updated_schemas);
+            console.log("Here is the log before saving:", animationData)
+            setAnimationData(animationData);
+            console.log("post: here is the log after saving:", animationData)
 
             console.log("🧭 Navigating to second page...");
             navigate("/second-page");

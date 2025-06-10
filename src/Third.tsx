@@ -89,16 +89,21 @@ const Third: React.FC = () => {
       return;
     }
 
-    // Animation data is optional - if not available, that's fine
-    if (!animation_data || Object.keys(animation_data).length === 0) {
-      console.log("No animation data available - animation will not be shown");
-      return;
-    }
 
-    console.log("Initializing MatterManager with animation data:", animation_data);
 
-    // Pass animation data to window object so MatterManager can access it
-    window.ANIMATION_DATA = JSON.stringify(animation_data);
+  if (!animation_data || Object.keys(animation_data).length === 0) {
+    console.log(typeof animation_data, "=====here here here")
+    console.log("No animation data available - animation will not be shown");
+    return;
+  }
+
+  window.ANIMATION_DATA = animation_data;
+  console.log("Window animation data set successfully:", animation_data);
+
+
+
+
+
 
     // Clean up previous instance
     if (matterManagerRef.current) {
