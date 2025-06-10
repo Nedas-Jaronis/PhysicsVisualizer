@@ -43,6 +43,12 @@ class AnimationData(BaseModel):
     motions: List[types.Motions]
     objects: List[types.Objects]
 
+class ProblemData(BaseModel):
+    problem: Optional[str] = None
+    stepByStep: Optional[str] = None
+    formulas: Optional[str] = None
+    solution: Optional[str] = None
+
 class Resume(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None

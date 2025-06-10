@@ -20,7 +20,7 @@ import { toBamlError, BamlStream, type HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AnimationData, Forces, Interactions, Motions, Objects, Resume} from "./types"
+import type {AnimationData, Forces, Interactions, Motions, Objects, ProblemData, Resume} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -101,6 +101,29 @@ export class BamlAsyncClient {
         collector,
       )
       return raw.parsed(false) as Resume
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  async Extract_ProblemData(
+      data: string,
+      __baml_options__?: BamlCallOptions
+  ): Promise<ProblemData> {
+    try {
+      const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+      const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const raw = await this.runtime.callFunction(
+        "Extract_ProblemData",
+        {
+          "data": data
+        },
+        this.ctxManager.cloneContext(),
+        options.tb?.__tb(),
+        options.clientRegistry,
+        collector,
+      )
+      return raw.parsed(false) as ProblemData
     } catch (error) {
       throw toBamlError(error);
     }
@@ -188,6 +211,35 @@ class BamlStreamClient {
         raw,
         (a): partial_types.Resume => a,
         (a): Resume => a,
+        this.ctxManager.cloneContext(),
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  Extract_ProblemData(
+      data: string,
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
+  ): BamlStream<partial_types.ProblemData, ProblemData> {
+    try {
+      const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
+      const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const raw = this.runtime.streamFunction(
+        "Extract_ProblemData",
+        {
+          "data": data
+        },
+        undefined,
+        this.ctxManager.cloneContext(),
+        options.tb?.__tb(),
+        options.clientRegistry,
+        collector,
+      )
+      return new BamlStream<partial_types.ProblemData, ProblemData>(
+        raw,
+        (a): partial_types.ProblemData => a,
+        (a): ProblemData => a,
         this.ctxManager.cloneContext(),
       )
     } catch (error) {

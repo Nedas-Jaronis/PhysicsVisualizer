@@ -1,125 +1,58 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import traceback
-import math
 from datetime import datetime
-import baml_py
-
-# Try to import GPT_API, but handle gracefully if it fails
-try:
-    import GPT_API
-    GPT_API_AVAILABLE = True
-    print("✅ GPT_API imported successfully")
-except ImportError as e:
-    print(f"⚠️ GPT_API import failed: {e}")
-    print("📝 Server will run without GPT_API functionality")
-    GPT_API = None
-    GPT_API_AVAILABLE = False
+import schemaDetect
+from baml_client import b
+import json
+import re
 
 app = Flask(__name__)
 CORS(app)
 
-# # Add startup logging
-# print("="*50)
-# print("🚀 FLASK SERVER STARTING...")
-# print(f"📅 Timestamp: {datetime.now()}")
-# print(f"🤖 GPT_API Available: {GPT_API_AVAILABLE}")
-# print("="*50)
 
+def clean_and_parse_json(raw_data):
+    """
+    Clean and parse JSON data that might be wrapped in markdown code blocks
+    """
+    if isinstance(raw_data, dict):
+        return raw_data
 
-def fix_animation_data(animation_data, num_motions):
-    """Fix and validate animation data before sending to frontend"""
-    print(f"🔧 Fixing animation data for {num_motions} motions")
-    if not animation_data:
-        print("⚠️ No animation data provided, creating empty structure")
-        animation_data = {}
+    if not isinstance(raw_data, str):
+        return raw_data
 
-    default_colors = ["RED", "BLUE", "GREEN", "YELLOW", "PURPLE", "ORANGE"]
-    fixed_data = {}
+    # Remove markdown code blocks if present
+    cleaned_data = raw_data.strip()
 
-    for i in range(1, int(num_motions) + 1):
-        prefix = f"{i}_"
-
-        # Get raw values with proper default handling
-        color = animation_data.get(f"{i}_color")
-        initial_pos = animation_data.get(f"{i}_initial_position", 0)
-        final_pos = animation_data.get(f"{i}_final_position", 0)
-        initial_vel = animation_data.get(f"{i}_initial_velocity", 0)
-        final_vel = animation_data.get(f"{i}_final_velocity", 0)
-        acceleration = animation_data.get(f"{i}_acceleration", 9.8)
-        bounce_height = animation_data.get(f"{i}_bounce_height", 0)
-        time_duration = animation_data.get(f"{i}_time", 1.0)
-
-        # Convert to float only if not None, otherwise use defaults
+    # Check if it starts with ```json and ends with ```
+    if cleaned_data.startswith('```json') and cleaned_data.endswith('```'):
+        # Extract JSON content between the code blocks
+        json_content = cleaned_data[7:-3].strip()  # Remove ```json and ```
         try:
-            initial_pos = float(
-                initial_pos) if initial_pos is not None else 0.0
-            final_pos = float(final_pos) if final_pos is not None else 0.0
-            initial_vel = float(
-                initial_vel) if initial_vel is not None else 0.0
-            final_vel = float(final_vel) if final_vel is not None else 0.0
-            acceleration = float(
-                acceleration) if acceleration is not None else 9.8
-            bounce_height = float(
-                bounce_height) if bounce_height is not None else 0.0
-            time_duration = float(
-                time_duration) if time_duration is not None else 1.0
-        except (ValueError, TypeError) as e:
-            print(f"⚠️ Warning: Error converting values for motion {i}: {e}")
-            initial_pos = 0.0
-            final_pos = 0.0
-            initial_vel = 0.0
-            final_vel = 0.0
-            acceleration = 9.8
-            bounce_height = 0.0
-            time_duration = 1.0
+            return json.loads(json_content)
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse JSON content: {e}")
+            return None
 
-        # Fix color - assign default if None
-        if color is None or color == "None":
-            color = default_colors[(i-1) % len(default_colors)]
+    # Check if it starts with ``` and ends with ```
+    elif cleaned_data.startswith('```') and cleaned_data.endswith('```'):
+        # Extract content between the code blocks
+        json_content = cleaned_data[3:-3].strip()  # Remove ``` and ```
+        try:
+            return json.loads(json_content)
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse JSON content: {e}")
+            return None
 
-        # Fix acceleration - make positive (gravity magnitude)
-        if acceleration < 0:
-            acceleration = abs(acceleration)
-
-        # Calculate proper time duration based on physics
-        if initial_pos > final_pos:  # Falling phase
-            height_diff = initial_pos - final_pos
-            if height_diff > 0:
-                time_duration = math.sqrt(2 * height_diff / acceleration)
-        elif final_pos > initial_pos:  # Rising phase (after bounce)
-            height_diff = final_pos - initial_pos
-            if height_diff > 0:
-                time_duration = math.sqrt(2 * height_diff / acceleration)
-
-        # Ensure minimum time
-        time_duration = max(time_duration, 0.1)
-
-        # Calculate proper velocities based on physics
-        if initial_pos > final_pos:  # Falling
-            initial_vel = 0 if i == 1 else abs(final_vel)
-            final_vel = -math.sqrt(2 * acceleration *
-                                   (initial_pos - final_pos))
-        elif final_pos > initial_pos:  # Rising
-            initial_vel = math.sqrt(
-                2 * acceleration * (final_pos - initial_pos))
-            final_vel = 0
-
-        # Store fixed values
-        fixed_data[f"{i}_color"] = color
-        fixed_data[f"{i}_initial_position"] = initial_pos
-        fixed_data[f"{i}_final_position"] = final_pos
-        fixed_data[f"{i}_initial_velocity"] = initial_vel
-        fixed_data[f"{i}_final_velocity"] = final_vel
-        fixed_data[f"{i}_acceleration"] = acceleration
-        fixed_data[f"{i}_bounce_height"] = bounce_height
-        fixed_data[f"{i}_time"] = round(time_duration, 2)
-
-    print(f"✅ Animation data fixed successfully")
-    return fixed_data
+    # Try to parse as regular JSON
+    else:
+        try:
+            return json.loads(cleaned_data)
+        except json.JSONDecodeError as e:
+            print(f"❌ Failed to parse as regular JSON: {e}")
+            return None
 
 
-# Enhanced logging middleware with error handling
 @app.before_request
 def log_request_info():
     try:
@@ -187,7 +120,7 @@ def health_check():
             'flask_version': '2.x',
             'python_version': '3.x',
             'port': 5000,
-            'gpt_api_available': GPT_API_AVAILABLE
+            'baml_available': True
         }
     })
 
@@ -199,7 +132,7 @@ def test_endpoint():
     return jsonify({
         'message': 'Test successful!',
         'time': str(datetime.now()),
-        'gpt_api_available': GPT_API_AVAILABLE
+        'baml_available': True
     })
 
 
@@ -214,7 +147,7 @@ def root():
             '/api/test',
             '/api/solve'
         ],
-        'gpt_api_available': GPT_API_AVAILABLE
+        'baml_available': True
     })
 
 
@@ -223,75 +156,112 @@ def solve_problem():
     print("🔬 SOLVE ENDPOINT HIT!")
 
     try:
-        # Check if GPT_API is available
-        if not GPT_API_AVAILABLE:
-            print("❌ GPT_API not available")
-            return jsonify({
-                'error': 'GPT_API module not available',
-                'message': 'Please check if GPT_API.py exists and imports correctly'
-            }), 503
-
-        # Get request data
         if not request.is_json:
-            print("❌ No JSON data in request")
             return jsonify({'error': 'Request must contain JSON data'}), 400
 
         data = request.get_json()
-        if not data:
-            print("❌ Empty JSON data")
-            return jsonify({'error': 'Empty JSON data'}), 400
-
         problem = data.get('problem', '')
         if not problem:
-            print("❌ No problem provided")
             return jsonify({'error': 'No problem provided in request'}), 400
 
         print(f"🤖 Processing problem: {problem}")
 
-        # Generate physics solution
+        # Step 1: Extract animation data from problem
         try:
-            solution, step_by_step, formulas, animation_data, num_motions = GPT_API.process_physics_response(
-                problem)
-            print(f"✅ GPT response received")
-        except Exception as gpt_error:
-            print(f"❌ GPT_API error: {gpt_error}")
+            print("🔍 Extracting animation data...")
+            animation_data = b.Extract_animation_data(problem)
+            animation_dict = animation_data.model_dump()
+            print(f"✅ Animation data extracted: {animation_dict}")
+        except Exception as e:
+            print(f"❌ Animation data extraction failed: {e}")
             return jsonify({
-                'error': 'GPT_API processing failed',
-                'message': str(gpt_error),
-                'traceback': traceback.format_exc()
+                'error': 'Animation data extraction failed',
+                'message': str(e)
             }), 500
 
-        print(f"📊 Number of motions: {num_motions}")
-        print(f"📊 Raw animation data type: {type(animation_data)}")
-
-        # Check if animation_data is None or empty
-        if not animation_data:
-            print("⚠️ Warning: animation_data is None or empty")
-            animation_data = {}
-
-        # Fix animation data
+        # Step 2: Load and process schemas
         try:
-            fixed_animation_data = fix_animation_data(
-                animation_data, num_motions)
-            print(f"✅ Animation data fixed")
-        except Exception as fix_error:
-            print(f"❌ Error fixing animation data: {fix_error}")
-            fixed_animation_data = {}
+            print("📋 Loading schemas...")
+            all_schemas = schemaDetect.load_all_schemas(animation_dict)
+            print("✅ Schemas loaded successfully")
+        except Exception as e:
+            print(f"❌ Schema loading failed: {e}")
+            return jsonify({
+                'error': 'Schema loading failed',
+                'message': str(e)
+            }), 500
 
-        # Return response with fixed data
+        # Step 3: Update animation data with problem-specific values
+        try:
+            print("🔄 Updating animation data with problem values...")
+            json_string = json.dumps(all_schemas)
+            updated_animation_data_raw = b.Update_Animation_Data(
+                json_string, problem)
+
+            print(f"Raw response from BAML: {updated_animation_data_raw}")
+            print(f"Raw response type: {type(updated_animation_data_raw)}")
+
+            # Since BAML returns a string, we need to parse it
+            if isinstance(updated_animation_data_raw, str):
+                # Use the improved parsing function to handle markdown-wrapped JSON
+                updated_animation_data = clean_and_parse_json(
+                    updated_animation_data_raw)
+
+                if updated_animation_data is None:
+                    print("❌ Failed to parse updated animation data, using fallback")
+                    updated_animation_data = all_schemas
+                else:
+                    print("✅ Successfully parsed updated animation data from string")
+                    print(f"Parsed data type: {type(updated_animation_data)}")
+                    if isinstance(updated_animation_data, dict):
+                        print(
+                            f"Parsed data keys: {list(updated_animation_data.keys())}")
+            else:
+                # If it's already a dict, use it directly
+                updated_animation_data = updated_animation_data_raw
+                print("✅ Animation data was already in correct format")
+
+        except Exception as e:
+            print(f"❌ Animation data update failed: {e}")
+            print(f"📋 Traceback: {traceback.format_exc()}")
+            # Use fallback data
+            updated_animation_data = all_schemas
+
+        # Step 4: Extract problem data (solution steps, formulas, etc.)
+        try:
+            print("📝 Extracting problem solution data...")
+            problem_data = b.Extract_ProblemData(problem)
+            problem_dict = problem_data.model_dump()
+            print("✅ Problem solution data extracted")
+        except Exception as e:
+            print(f"❌ Problem data extraction failed: {e}")
+            return jsonify({
+                'error': 'Problem data extraction failed',
+                'message': str(e)
+            }), 500
+
+        # Ensure we have a proper dictionary for animation_data
+        final_animation_data = updated_animation_data
+        if not isinstance(final_animation_data, dict):
+            print("❌ Final animation data is not a dict, using schemas fallback")
+            final_animation_data = all_schemas
+
+        # Return comprehensive response with animation_data as a direct JSON object
         response_data = {
-            'solution': solution,
-            'step_by_step': step_by_step,
-            'formulas': formulas,
-            'animation_data': fixed_animation_data,
-            'num_motions': num_motions
+            'status': 'success',
+            # This should be a dict with forces, interactions, motions, objects
+            'animation_data': final_animation_data,
+            'problem_solution': problem_dict,
+            'message': 'Problem processed successfully'
         }
 
-        print("✅ Sending successful response")
+        print(
+            f"🎯 Final response animation_data keys: {list(final_animation_data.keys()) if isinstance(final_animation_data, dict) else 'Not a dict'}")
+
         return jsonify(response_data)
 
     except Exception as e:
-        print(f"❌ Error in solve_problem: {e}")
+        print(f"❌ Unexpected error in solve_problem: {e}")
         print(f"📋 Traceback: {traceback.format_exc()}")
         return jsonify({
             'error': str(e),
@@ -300,18 +270,9 @@ def solve_problem():
 
 
 if __name__ == '__main__':
-    print("\n🎯 Starting Flask development server...")
-    print("🌐 Server will be available at:")
-    print("   - http://localhost:5000")
-    print("   - http://127.0.0.1:5000")
-    print("\n🧪 Test endpoints:")
-    print("   - GET  http://localhost:5000/")
-    print("   - GET  http://localhost:5000/api/health")
-    print("   - GET  http://localhost:5000/api/test")
-    print("   - POST http://localhost:5000/api/solve")
-    print("\n" + "="*50)
-
     try:
+        print("🚀 Starting Flask server...")
+        print("📡 BAML client integration enabled")
         app.run(debug=True, port=5000, host='0.0.0.0')
     except Exception as e:
         print(f"❌ Failed to start server: {e}")

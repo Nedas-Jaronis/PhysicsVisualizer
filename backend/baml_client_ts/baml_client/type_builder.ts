@@ -24,6 +24,8 @@ export default class TypeBuilder {
     
     AnimationData: ClassViewer<'AnimationData', "forces" | "interactions" | "motions" | "objects">;
     
+    ProblemData: ClassViewer<'ProblemData', "problem" | "stepByStep" | "formulas" | "solution">;
+    
     Resume: ClassViewer<'Resume', "name" | "email" | "experience" | "skills">;
     
     
@@ -39,7 +41,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "AnimationData","Resume",
+            "AnimationData","ProblemData","Resume",
           ]),
           enums: new Set([
             "Forces","Interactions","Motions","Objects",
@@ -49,6 +51,10 @@ export default class TypeBuilder {
         
         this.AnimationData = this.tb.classViewer("AnimationData", [
           "forces","interactions","motions","objects",
+        ]);
+        
+        this.ProblemData = this.tb.classViewer("ProblemData", [
+          "problem","stepByStep","formulas","solution",
         ]);
         
         this.Resume = this.tb.classViewer("Resume", [

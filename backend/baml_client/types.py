@@ -94,6 +94,12 @@ class AnimationData(BaseModel):
     motions: List["Motions"]
     objects: List["Objects"]
 
+class ProblemData(BaseModel):
+    problem: str
+    stepByStep: str
+    formulas: str
+    solution: str
+
 class Resume(BaseModel):
     name: str
     email: str

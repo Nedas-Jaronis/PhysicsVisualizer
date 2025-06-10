@@ -63,6 +63,32 @@ class LlmResponseParser:
 
       return cast(types.Resume, parsed)
     
+    def Extract_ProblemData(
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.ProblemData:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      parsed = self.__runtime.parse_llm_response(
+        "Extract_ProblemData",
+        llm_response,
+        types,
+        types,
+        partial_types,
+        False,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return cast(types.ProblemData, parsed)
+    
     def Extract_animation_data(
         self,
         llm_response: str,
@@ -151,6 +177,32 @@ class LlmStreamParser:
       )
 
       return cast(partial_types.Resume, parsed)
+    
+    def Extract_ProblemData(
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
+    ) -> partial_types.ProblemData:
+      __tb__ = baml_options.get("tb", None)
+      if __tb__ is not None:
+        tb = __tb__._tb # type: ignore (we know how to use this private attribute)
+      else:
+        tb = None
+      __cr__ = baml_options.get("client_registry", None)
+
+      parsed = self.__runtime.parse_llm_response(
+        "Extract_ProblemData",
+        llm_response,
+        types,
+        types,
+        partial_types,
+        True,
+        self.__ctx_manager.get(),
+        tb,
+        __cr__,
+      )
+
+      return cast(partial_types.ProblemData, parsed)
     
     def Extract_animation_data(
         self,

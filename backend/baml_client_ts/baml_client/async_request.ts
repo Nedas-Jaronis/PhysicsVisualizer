@@ -19,7 +19,7 @@ import type { BamlRuntime, BamlCtxManager, ClientRegistry, Image, Audio } from "
 import { toBamlError, HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {AnimationData, Forces, Interactions, Motions, Objects, Resume} from "./types"
+import type {AnimationData, Forces, Interactions, Motions, Objects, ProblemData, Resume} from "./types"
 import type TypeBuilder from "./type_builder"
 
 type BamlCallOptions = {
@@ -40,6 +40,26 @@ export class AsyncHttpRequest {
         "ExtractResume",
         {
           "resume": resume
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        false,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  async Extract_ProblemData(
+      data: string,
+      __baml_options__?: BamlCallOptions
+  ): Promise<HTTPRequest> {
+    try {
+      return await this.runtime.buildRequest(
+        "Extract_ProblemData",
+        {
+          "data": data
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
@@ -106,6 +126,26 @@ export class AsyncHttpStreamRequest {
         "ExtractResume",
         {
           "resume": resume
+        },
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+        true,
+      )
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  async Extract_ProblemData(
+      data: string,
+      __baml_options__?: BamlCallOptions
+  ): Promise<HTTPRequest> {
+    try {
+      return await this.runtime.buildRequest(
+        "Extract_ProblemData",
+        {
+          "data": data
         },
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),

@@ -20,7 +20,7 @@ import { toBamlError } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {AnimationData, Forces, Interactions, Motions, Objects, Resume} from "./types"
+import type {AnimationData, Forces, Interactions, Motions, Objects, ProblemData, Resume} from "./types"
 import type TypeBuilder from "./type_builder"
 
 export class LlmResponseParser {
@@ -40,6 +40,24 @@ export class LlmResponseParser {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
       ) as Resume
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  Extract_ProblemData(
+      llmResponse: string,
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
+  ): ProblemData {
+    try {
+      return this.runtime.parseLlmResponse(
+        "Extract_ProblemData",
+        llmResponse,
+        false,
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+      ) as ProblemData
     } catch (error) {
       throw toBamlError(error);
     }
@@ -100,6 +118,24 @@ export class LlmStreamParser {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
       ) as partial_types.Resume
+    } catch (error) {
+      throw toBamlError(error);
+    }
+  }
+  
+  Extract_ProblemData(
+      llmResponse: string,
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
+  ): partial_types.ProblemData {
+    try {
+      return this.runtime.parseLlmResponse(
+        "Extract_ProblemData",
+        llmResponse,
+        true,
+        this.ctxManager.cloneContext(),
+        __baml_options__?.tb?.__tb(),
+        __baml_options__?.clientRegistry,
+      ) as partial_types.ProblemData
     } catch (error) {
       throw toBamlError(error);
     }

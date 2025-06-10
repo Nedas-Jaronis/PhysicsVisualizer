@@ -22,7 +22,7 @@ from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIM
 class TypeBuilder(_TypeBuilder):
     def __init__(self):
         super().__init__(classes=set(
-          ["AnimationData","Resume",]
+          ["AnimationData","ProblemData","Resume",]
         ), enums=set(
           ["Forces","Interactions","Motions","Objects",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
@@ -31,6 +31,10 @@ class TypeBuilder(_TypeBuilder):
     @property
     def AnimationData(self) -> "AnimationDataAst":
         return AnimationDataAst(self)
+
+    @property
+    def ProblemData(self) -> "ProblemDataAst":
+        return ProblemDataAst(self)
 
     @property
     def Resume(self) -> "ResumeAst":
@@ -87,6 +91,56 @@ class AnimationDataProperties:
     @property
     def objects(self) -> ClassPropertyViewer:
         return ClassPropertyViewer(self.__bldr.property("objects"))
+
+    
+
+class ProblemDataAst:
+    def __init__(self, tb: _TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.class_("ProblemData")
+        self._properties: typing.Set[str] = set([ "problem",  "stepByStep",  "formulas",  "solution", ])
+        self._props = ProblemDataProperties(self._bldr, self._properties)
+
+    def type(self) -> FieldType:
+        return self._bldr.field()
+
+    @property
+    def props(self) -> "ProblemDataProperties":
+        return self._props
+
+
+class ProblemDataViewer(ProblemDataAst):
+    def __init__(self, tb: _TypeBuilder):
+        super().__init__(tb)
+
+    
+    def list_properties(self) -> typing.List[typing.Tuple[str, ClassPropertyViewer]]:
+        return [(name, ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+
+
+
+class ProblemDataProperties:
+    def __init__(self, bldr: ClassBuilder, properties: typing.Set[str]):
+        self.__bldr = bldr
+        self.__properties = properties
+
+    
+
+    @property
+    def problem(self) -> ClassPropertyViewer:
+        return ClassPropertyViewer(self.__bldr.property("problem"))
+
+    @property
+    def stepByStep(self) -> ClassPropertyViewer:
+        return ClassPropertyViewer(self.__bldr.property("stepByStep"))
+
+    @property
+    def formulas(self) -> ClassPropertyViewer:
+        return ClassPropertyViewer(self.__bldr.property("formulas"))
+
+    @property
+    def solution(self) -> ClassPropertyViewer:
+        return ClassPropertyViewer(self.__bldr.property("solution"))
 
     
 

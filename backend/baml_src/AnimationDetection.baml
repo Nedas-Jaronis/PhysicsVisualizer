@@ -118,34 +118,46 @@ function Extract_animation_data(problem: string) -> AnimationData {
   """#
 }
 
-function Update_Animation_Data(data: string, problem: string) -> string{
+function Update_Animation_Data(data: string, problem: string) -> string {
   client "DeepseekChatClient"
   prompt #"""
 You are a physics simulation expert.
 
-Given structured animation data in JSON format with categories such as forces, fields, interactions, motions, and objects, your task is to **replace empty or default values** with realistic physics values that match the meaning of each field. Fill in all fields by using the problem given to piece together all key values.
+Given structured animation data in JSON format, your task is to fill in realistic physics values based on the provided problem description.
 
-## Instructions:
-- DO NOT add or remove any keys.
-- DO NOT change the structure of the JSON.
-- ONLY fill in or replace values for existing keys.
-- Use realistic defaults where necessary (e.g., `g = 9.8`, objects falling from height, etc.).
-- Assume standard physics conventions: `y` is vertical, `x` is horizontal.
-- All units must be in SI units.
-- Return only the updated JSON object — no extra explanation or formatting.
+## CRITICAL REQUIREMENTS:
+1. Return the COMPLETE JSON structure exactly as provided
+2. Fill in ALL empty or default values with realistic physics data
+3. Format ALL values as direct key-value pairs: "fieldName": number
+4. Keep the exact same JSON structure - do not add, remove, or modify keys
+5. Use SI units for all measurements
+6. Return ONLY the JSON - no explanations, no markdown, no extra text
 
-## Examples:
-- If `"initialPosition.y": 0` but the problem implies a 45-meter cliff, set `"initialPosition.y": 45`.
-- Leave all other fields untouched unless their value needs to be set.
+## Value Format Example:
+```json
+{
+  "initialPosition": {
+    "x": 0,
+    "y": 45
+  },
+  "mass": 2.5,
+  "gravity": 9.8
+}
+```
 
-## Input:
-{{problem}}
-{{data}}
+## Physics Conventions:
+- y-axis is vertical (positive up)
+- x-axis is horizontal
+- Standard gravity: 9.8 m/s²
+- Include all objects, forces, and interactions mentioned in the problem
+- For springs: include both as force AND object with position
+
+## Input Data:
+Problem: {{problem}}
+
+JSON Structure: {{data}}
 
 ## Output:
-Updated JSON with only the values filled or replaced according to the problem, just return json data, with the updated key values. Keep the exact same format!!!
+Return the complete JSON with all values filled as direct numbers (e.g., "x": 45, "mass": 2.5).
 """#
-
-
-
-} 
+}

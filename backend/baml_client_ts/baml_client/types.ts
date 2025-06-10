@@ -101,6 +101,14 @@ export interface AnimationData {
   
 }
 
+export interface ProblemData {
+  problem: string
+  stepByStep: string
+  formulas: string
+  solution: string
+  
+}
+
 export interface Resume {
   name: string
   email: string

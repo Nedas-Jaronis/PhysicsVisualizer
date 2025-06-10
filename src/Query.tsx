@@ -7,7 +7,13 @@ function QueryBox() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-    const { setSolution, setFormulas, setStepByStep, setAnimationData, setNumMotions } = usePhysics();
+    const { 
+        setSolution, 
+        setFormulas, 
+        setStepByStep, 
+        setProblem,
+        setAnimationData 
+    } = usePhysics();
 
     const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setQuestion(event.target.value);
@@ -39,7 +45,6 @@ function QueryBox() {
             });
 
             console.log("📨 Response status:", response.status);
-            console.log("📨 Response headers:", response.headers);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -50,19 +55,36 @@ function QueryBox() {
             const data = await response.json();
             console.log("✅ Received data:", data);
 
-            // Validate the response data
-            if (!data.solution || !data.formulas || !data.step_by_step) {
-                console.error("❌ Invalid response structure:", data);
-                throw new Error("Invalid response from backend");
+            // Check for success status
+            if (data.status !== 'success') {
+                console.error("❌ Backend returned error:", data);
+                throw new Error(data.error || "Backend processing failed");
             }
 
-            // Save data to context using individual setters
+            // Validate the response data structure
+            if (!data.problem_solution || !data.animation_data) {
+                console.error("❌ Invalid response structure:", data);
+                throw new Error("Invalid response from backend - missing required data");
+            }
+
+            const problemSolution = data.problem_solution;
+            const animationData = data.animation_data;
+
+            // Validate problem solution fields based on your BAML structure
+            if (!problemSolution.solution || !problemSolution.formulas || !problemSolution.stepByStep || !problemSolution.problem) {
+                console.error("❌ Missing problem solution fields:", problemSolution);
+                throw new Error("Incomplete solution data from backend");
+            }
+
+            // Save data to context using the correct field names
             console.log("💾 Saving to context...");
-            setSolution(data.solution);
-            setFormulas(data.formulas);
-            setStepByStep(data.step_by_step);
-            setAnimationData(data.animation_data || {});
-            setNumMotions(data.num_motions || 0);
+            setSolution(problemSolution.solution);
+            setFormulas(problemSolution.formulas);
+            setStepByStep(problemSolution.stepByStep);
+            setProblem(problemSolution.problem);
+            
+            // Set animation data - this includes both categories and updated schemas
+            setAnimationData(animationData.updated_schemas);
 
             console.log("🧭 Navigating to second page...");
             navigate("/second-page");
@@ -92,23 +114,6 @@ function QueryBox() {
                 className="query-textarea"
                 disabled={isLoading}
             />
-            
-            {/* Submit button for easier testing */}
-            {/* <button 
-                onClick={handleSubmit}
-                disabled={isLoading || !question.trim()}
-                style={{
-                    marginTop: '10px',
-                    padding: '8px 16px',
-                    backgroundColor: isLoading ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: isLoading ? 'not-allowed' : 'pointer'
-                }}
-            >
-                {isLoading ? "Processing..." : "Submit Question"}
-            </button> */}
 
             {/* Error display */}
             {error && (
