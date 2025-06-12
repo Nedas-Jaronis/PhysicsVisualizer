@@ -5,7 +5,17 @@
   "properties": {
     "type": { "const": "magnetic" },
     "charge": { "type": "number" },
-    "velocity": { "type": "number" },
+    "velocity": { 
+      "type": "object",
+      "properties": {
+        "x": { "type": "number"},
+        "y": { "type": "number"},
+        "z": { "type": "number"}
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "description": "Velocity vector of the object"
+  },
     "magnetic_field": { "type": "number" },
     "angle": { "type": "number", "description": "Angle between velocity and magnetic field (degrees)" }
   },

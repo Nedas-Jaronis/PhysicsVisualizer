@@ -5,7 +5,17 @@
   "properties": {
     "type": { "const": "coriolis" },
     "mass": { "type": "number" },
-    "velocity": { "type": "number" },
+    "velocity": { 
+      "type": "object",
+      "properties": {
+        "x": { "type": "number"},
+        "y": { "type": "number"},
+        "z": { "type": "number"}
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "description": "Velocity vector of the object"
+  },
     "angular_velocity": { "type": "number" },
     "applied_to": {
       "type": "string",

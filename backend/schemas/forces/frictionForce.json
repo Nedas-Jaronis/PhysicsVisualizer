@@ -4,6 +4,7 @@
   "type": "object",
   "properties": {
     "type": { "const": "friction" },
+    "frictionType": { "type": "string", "enum": ["static", "kinetic"] },
     "normal_force": { "type": "number" },
     "coefficient_of_friction": { "type": "number", "minimum": 0 },
     "applied_to": {
@@ -20,5 +21,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["type", "normal_force", "coefficient_of_friction", "applied_to"]
+  "required": ["type", "normal_force", "coefficient_of_friction", "applied_to", "frictionType"]
 }

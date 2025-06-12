@@ -6,7 +6,17 @@
     "type": { "const": "airResistance" },
     "drag_coefficient": { "type": "number" },
     "cross_sectional_area": { "type": "number" },
-    "velocity": { "type": "number" },
+    "velocity": { 
+      "type": "object",
+      "properties": {
+        "x": { "type": "number"},
+        "y": { "type": "number"},
+        "z": { "type": "number"}
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "description": "Velocity vector of the object"
+  },
     "air_density": { "type": "number", "default": 1.225 },
     "applied_to": {
       "type": "string",
