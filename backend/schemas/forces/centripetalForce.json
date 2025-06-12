@@ -3,6 +3,7 @@
   "title": "Centripetal Force",
   "type": "object",
   "properties": {
+    "type": { "const": "centripetal" },
     "mass": { "type": "number" },
     "velocity": { "type": "number" },
     "radius": { "type": "number" },
@@ -20,5 +21,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["mass", "velocity", "radius", "applied_to"]
+  "required": ["type", "mass", "velocity", "radius", "applied_to"]
 }

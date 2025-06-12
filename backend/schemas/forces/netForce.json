@@ -3,6 +3,7 @@
   "title": "Net Force",
   "type": "object",
   "properties": {
+    "type": { "const": "net" },
     "forces": {
       "type": "array",
       "items": {
@@ -28,5 +29,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["forces", "applied_to"]
+  "required": ["type", "forces", "applied_to"]
 }

@@ -3,6 +3,7 @@
   "title": "Applied Force",
   "type": "object",
   "properties": {
+    "type": { "const": "applied" },
     "magnitude": { "type": "number" },
     "direction": { "type": "string", "enum": ["x", "y", "angle"] },
     "angle": { "type": "number", "description": "Only required if direction is 'angle'" },
@@ -20,5 +21,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["magnitude", "direction", "applied_to"]
+  "required": ["type", "magnitude", "direction", "applied_to"]
 }

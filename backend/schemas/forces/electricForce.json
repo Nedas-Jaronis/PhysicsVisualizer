@@ -3,6 +3,7 @@
   "title": "Electric Force",
   "type": "object",
   "properties": {
+    "type": { "const": "electric" },
     "charge1": { "type": "number" },
     "charge2": { "type": "number" },
     "distance": { "type": "number" },
@@ -16,5 +17,5 @@
       "description": "ID of the second object involved"
     }
   },
-  "required": ["charge1", "charge2", "distance", "object1_id", "object2_id"]
+  "required": ["type", "charge1", "charge2", "distance", "object1_id", "object2_id"]
 }

@@ -132,6 +132,7 @@ Given structured animation data in JSON format, your task is to fill in realisti
 4. Keep the exact same JSON structure - do not add, remove, or modify keys
 5. Use SI units for all measurements
 6. Return ONLY the JSON - no explanations, no markdown, no extra text
+7. Any ID value should correspond to the same ID value as the object **IF and ONLY IF the object desires that motion, force, field, interaction, or material**. Match ID's as necessary!
 
 ## Value Format Example:
 ```json

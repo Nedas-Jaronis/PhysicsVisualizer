@@ -3,10 +3,11 @@
   "title": "Magnetic Force",
   "type": "object",
   "properties": {
+    "type": { "const": "magnetic" },
     "charge": { "type": "number" },
     "velocity": { "type": "number" },
     "magnetic_field": { "type": "number" },
     "angle": { "type": "number", "description": "Angle between velocity and magnetic field (degrees)" }
   },
-  "required": ["charge", "velocity", "magnetic_field", "angle"]
+  "required": ["type", "charge", "velocity", "magnetic_field", "angle"]
 }

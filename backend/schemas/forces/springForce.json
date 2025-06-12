@@ -3,8 +3,12 @@
   "title": "Spring Force",
   "type": "object",
   "properties": {
+    "type": { "const": "spring" },
     "spring_constant": { "type": "number" },
     "displacement": { "type": "number" },
+    "id": {
+      "type": "string",
+      "description": "ID corresponding to object ID"},
     "applied_to": {
       "type": "string",
       "description": "ID of the object this force is applied to"
@@ -19,5 +23,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["spring_constant", "displacement", "applied_to"]
+  "required": ["type", "spring_constant", "displacement", "applied_to"]
 }

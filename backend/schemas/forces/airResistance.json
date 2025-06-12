@@ -3,6 +3,7 @@
   "title": "Air Resistance",
   "type": "object",
   "properties": {
+    "type": { "const": "airResistance" },
     "drag_coefficient": { "type": "number" },
     "cross_sectional_area": { "type": "number" },
     "velocity": { "type": "number" },
@@ -21,5 +22,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["drag_coefficient", "cross_sectional_area", "velocity", "applied_to"]
+  "required": ["type", "drag_coefficient", "cross_sectional_area", "velocity", "applied_to"]
 }

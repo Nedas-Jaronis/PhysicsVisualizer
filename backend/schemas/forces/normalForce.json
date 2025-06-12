@@ -3,6 +3,7 @@
   "title": "Normal Force",
   "type": "object",
   "properties": {
+    "type": { "const": "normal" },
     "mass": { "type": "number", "description": "Mass of the object (kg)" },
     "acceleration_due_to_gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s²)" },
     "angle_of_incline": { "type": "number", "minimum": 0, "maximum": 90, "description": "Angle of incline in degrees" },
@@ -20,5 +21,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["mass", "applied_to"]
+  "required": ["type", "mass", "applied_to"]
 }

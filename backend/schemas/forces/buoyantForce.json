@@ -3,6 +3,7 @@
   "title": "Buoyant Force",
   "type": "object",
   "properties": {
+    "type": { "const": "buoyant" },
     "fluid_density": { "type": "number", "description": "Density of the fluid (kg/m³)" },
     "volume_displaced": { "type": "number", "description": "Volume of fluid displaced (m³)" },
     "gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s²)" },
@@ -20,5 +21,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["fluid_density", "volume_displaced", "applied_to"]
+  "required": ["type", "fluid_density", "volume_displaced", "applied_to"]
 }

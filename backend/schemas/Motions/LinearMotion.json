@@ -3,6 +3,9 @@
   "title": "LinearMotion",
   "type": "object",
   "properties": {
+    "id": {
+      "type": "string",
+      "description": "ID corresponding to object ID"},
     "initialPosition": {
       "type": "object",
       "properties": {

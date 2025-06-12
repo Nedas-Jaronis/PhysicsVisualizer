@@ -13,29 +13,46 @@ const COLOR_MAP: { [key: string]: string } = {
   PINK: "#FFC0CB",
   TEAL: "#008080",
 };
-
 // Interfaces for vectors, objects, interactions, motions, animation data
 interface Vector {
   x: number;
   y: number;
-  z?: number; // optional, some data have z
+  z?: number;
+}
+
+interface Force {
+  id: string;
+  spring_constant?: number;
+  displacement?: number;
+  applied_to: string;
+  application_point?: Vector;
 }
 
 interface Interaction {
-  type: "collision"; // from your JSON it's "collision" not "inelastic collision"
+  type: "collision";
   objectA: string;
   objectB: string;
   coefficientOfRestitution: number;
-  contactPoint: [number, number, number]; // 3D point
+  contactPoint: [number, number, number];
 }
 
 interface Motion {
-  object: string;
-  initialPosition: Vector;
-  initialVelocity: Vector;
+  objectId: string;
+  
+  // Linear motion properties
+  initialPosition?: Vector;
+  initialVelocity?: Vector;
   acceleration?: Vector;
-  time: number;
-  finalVelocity?: Vector; // optional: not in your JSON but can add if needed
+  time?: number;
+  finalVelocity?: Vector;
+  
+  // Harmonic motion properties
+  amplitude?: number;
+  angularFrequency?: number;
+  phase?: number;
+  equilibriumPosition?: number;
+  mass?: number;
+  duration?: number;
 }
 
 interface ObjectData {
@@ -50,7 +67,7 @@ interface ObjectData {
 }
 
 interface AnimationData {
-  forces: any[]; // Keep as any for now (empty array in your JSON)
+  forces: Force[];
   interactions: Interaction[];
   motions: Motion[];
   objects: ObjectData[];
@@ -63,6 +80,7 @@ class MatterManager {
   private render: Matter.Render;
   private runner: Matter.Runner;
   private bodies: Map<string, Matter.Body> = new Map();
+  private constraints: Map<string, Matter.Constraint> = new Map();
   private animationData: AnimationData | null = null;
   private hasCollided = false;
   private timeScale = 1.0;
@@ -77,8 +95,8 @@ class MatterManager {
     this.engine = Matter.Engine.create();
     this.world = this.engine.world;
 
-    // No gravity for cart collision simulation
-    this.engine.world.gravity.y = 0;
+    // Set appropriate gravity (can be adjusted based on simulation type)
+    this.engine.world.gravity.y = 0.8;
 
     // Create renderer
     this.render = Matter.Render.create({
@@ -89,8 +107,8 @@ class MatterManager {
         height: this.canvas.clientHeight,
         wireframes: false,
         background: "transparent",
-        showVelocity: true,
-        showAngleIndicator: true,
+        showVelocity: false,
+        showAngleIndicator: false,
         showCollisions: true,
       },
     });
@@ -101,7 +119,7 @@ class MatterManager {
     // Load animation data from window object
     this.loadAnimationData();
 
-    // Setup physics simulation bodies
+    // Setup physics simulation
     this.setupPhysics();
 
     // Setup collision handling
@@ -144,29 +162,30 @@ class MatterManager {
       return;
     }
 
-    // Create bodies for each object in animation data
+    // Create objects first
+    this.createObjects();
+    
+    // Create forces (springs, constraints, etc.)
+    this.createForces();
+  }
+
+  private createObjects(): void {
+    if (!this.animationData) return;
+
     this.animationData.objects.forEach((obj, index) => {
-      // Find corresponding motion entry by matching object id
-      const motion = this.animationData!.motions.find(
-        (m) => m.object === obj.id
-      );
+      // Scale positions for visualization
+      const scaledX = this.canvas.clientWidth * 0.5 + (obj.position.x ?? 0) * 200;
+      const scaledY = this.canvas.clientHeight * 0.5 + (obj.position.y ?? 0) * 200;
 
-      // Scale positions for visualization (adjust scale as needed)
-      const scaledX =
-        this.canvas.clientWidth * 0.2 + (obj.position.x ?? 0) * 100;
-      const scaledY =
-        this.canvas.clientHeight * 0.5 + (obj.position.y ?? 0) * 100;
+      // Body size based on mass
+      const radius = Math.max(15, Math.sqrt(obj.mass) * 10);
 
-      // Body size depends on mass
-      const width = Math.max(40, Math.sqrt(obj.mass) * 20);
-      const height = Math.max(30, Math.sqrt(obj.mass) * 15);
-
-      // Create rectangle body
-      const body = Matter.Bodies.rectangle(scaledX, scaledY, width, height, {
+      // Create circular body for better physics
+      const body = Matter.Bodies.circle(scaledX, scaledY, radius, {
         mass: obj.mass,
-        frictionAir: 0,
-        friction: 0,
-        restitution: 0,
+        frictionAir: 0.01,
+        friction: 0.1,
+        restitution: 0.8,
         render: {
           fillStyle: index === 0 ? COLOR_MAP.RED : COLOR_MAP.BLUE,
           strokeStyle: "#000",
@@ -175,13 +194,14 @@ class MatterManager {
         label: obj.id,
       });
 
-      // Set initial velocity if present in motions or object velocity
-      const velocityVector = motion?.initialVelocity ?? obj.velocity ?? { x: 0, y: 0 };
-      const scaledVelocity = {
-        x: velocityVector.x * 20,
-        y: velocityVector.y * 20,
-      };
-      Matter.Body.setVelocity(body, scaledVelocity);
+      // Set initial velocity if specified
+      if (obj.velocity) {
+        const scaledVelocity = {
+          x: obj.velocity.x * 50,
+          y: obj.velocity.y * 50,
+        };
+        Matter.Body.setVelocity(body, scaledVelocity);
+      }
 
       this.bodies.set(obj.id, body);
       Matter.World.add(this.world, body);
@@ -190,10 +210,71 @@ class MatterManager {
     console.log("Created bodies:", Array.from(this.bodies.keys()));
   }
 
+  private createForces(): void {
+    if (!this.animationData) return;
+
+    this.animationData.forces.forEach((force) => {
+      const body = this.bodies.get(force.applied_to);
+      if (!body) {
+        console.warn(`Body ${force.applied_to} not found for force ${force.id}`);
+        return;
+      }
+
+      if (force.spring_constant && force.displacement !== undefined) {
+        // Create a spring constraint
+        const motion = this.animationData!.motions.find(m => m.objectId === force.applied_to);
+        
+        // Determine anchor point (where spring is attached)
+        let anchorX = body.position.x;
+        let anchorY = body.position.y;
+        
+        // If we have motion data with equilibrium position, use that
+        if (motion && motion.equilibriumPosition !== undefined) {
+          anchorX = this.canvas.clientWidth * 0.5 + motion.equilibriumPosition * 200;
+        }
+        
+        // Adjust anchor based on displacement
+        anchorX -= force.displacement * 200;
+
+        // Create anchor body (invisible, static)
+        const anchor = Matter.Bodies.circle(anchorX, anchorY, 5, {
+          isStatic: true,
+          render: {
+            fillStyle: COLOR_MAP.GREEN,
+            strokeStyle: "#000",
+            lineWidth: 1,
+          }
+        });
+
+        Matter.World.add(this.world, anchor);
+
+        // Create spring constraint
+        const spring = Matter.Constraint.create({
+          bodyA: anchor,
+          bodyB: body,
+          stiffness: force.spring_constant / 1000, // Scale down for Matter.js
+          damping: 0.01,
+          length: Math.abs(force.displacement) * 200, // Rest length
+          render: {
+            visible: true,
+            lineWidth: 3,
+            strokeStyle: COLOR_MAP.GREEN,
+            type: 'spring',
+            anchors: true
+          }
+        });
+
+        this.constraints.set(force.id, spring);
+        Matter.World.add(this.world, spring);
+
+        console.log(`Created spring ${force.id} with k=${force.spring_constant}, displacement=${force.displacement}`);
+      }
+    });
+  }
+
   private setupCollisions(): void {
     if (!this.animationData) return;
 
-    // Filter only collision interactions
     const collisions = this.animationData.interactions.filter(
       (interaction) => interaction.type === "collision"
     );
@@ -237,50 +318,29 @@ class MatterManager {
 
     if (!body1 || !body2) return;
 
-    // Find motions for both objects
-    const motion1 = this.animationData!.motions.find((m) => m.object === objectA);
-    const motion2 = this.animationData!.motions.find((m) => m.object === objectB);
+    // Apply restitution
+    body1.restitution = coefficientOfRestitution;
+    body2.restitution = coefficientOfRestitution;
 
-    if (!motion1 || !motion2) return;
+    // Change colors on collision
+    body1.render.fillStyle = COLOR_MAP.PURPLE;
+    body2.render.fillStyle = COLOR_MAP.PURPLE;
 
-    // For perfectly inelastic collision (restitution = 0)
-    if (coefficientOfRestitution === 0) {
-      // Set both bodies to the same final velocity (using motion1 final velocity or fallback to initial)
-      const finalVelocityVec =
-        motion1.finalVelocity ?? motion1.initialVelocity ?? { x: 0, y: 0 };
-
-      const finalVelocity = {
-        x: finalVelocityVec.x * 20,
-        y: finalVelocityVec.y * 20,
-      };
-
-      Matter.Body.setVelocity(body1, finalVelocity);
-      Matter.Body.setVelocity(body2, finalVelocity);
-
-      // Change colors on collision
-      body1.render.fillStyle = COLOR_MAP.PURPLE;
-      body2.render.fillStyle = COLOR_MAP.PURPLE;
-
-      console.log("Applied final velocities:", finalVelocity);
-
-      this.dispatchPhysicsUpdate();
-    }
+    this.dispatchPhysicsUpdate();
   }
 
   private dispatchPhysicsUpdate(): void {
     if (!this.animationData) return;
 
     const currentTime = this.engine.timing.timestamp / 1000 - this.startTime;
-
-    // Use first body as reference for height/velocity display (can customize)
     const firstBody = Array.from(this.bodies.values())[0];
 
     const physicsData = {
       height: firstBody
-        ? Math.abs(firstBody.position.y - this.canvas.clientHeight * 0.5) / 100
+        ? Math.abs(firstBody.position.y - this.canvas.clientHeight * 0.5) / 200
         : 0,
       velocity: firstBody
-        ? Math.sqrt(firstBody.velocity.x ** 2 + firstBody.velocity.y ** 2) / 20
+        ? Math.sqrt(firstBody.velocity.x ** 2 + firstBody.velocity.y ** 2) / 50
         : 0,
       time: currentTime,
       phase: this.hasCollided ? 2 : 1,
@@ -322,6 +382,7 @@ class MatterManager {
 
     Matter.World.clear(this.world, false);
     this.bodies.clear();
+    this.constraints.clear();
 
     this.setupPhysics();
     this.setupCollisions();
@@ -364,6 +425,7 @@ class MatterManager {
     Matter.Engine.clear(this.engine);
 
     this.bodies.clear();
+    this.constraints.clear();
 
     console.log("MatterManager cleaned up");
   }

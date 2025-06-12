@@ -3,6 +3,7 @@
   "title": "Torque",
   "type": "object",
   "properties": {
+    "type": { "const": "torque" },
     "force": { "type": "number" },
     "lever_arm": { "type": "number" },
     "angle": { "type": "number", "description": "Angle between force and lever arm (degrees)" },
@@ -20,5 +21,5 @@
       "description": "Local point on the object where torque is applied (optional)"
     }
   },
-  "required": ["force", "lever_arm", "angle", "applied_to"]
+  "required": ["type", "force", "lever_arm", "angle", "applied_to"]
 }
