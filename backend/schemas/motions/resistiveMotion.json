@@ -4,13 +4,20 @@
   "description": "Schema describing motion with resistive forces such as friction or drag.",
   "type": "object",
   "properties": {
+    "type": { "const": "resistive"},
     "objectId": {
       "type": "string",
       "description": "Unique identifier of the moving object."
     },
     "initialVelocity": {
-      "type": "number",
-      "description": "Initial velocity of the object (m/s)."
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"],
+      "description": "Initial velocity vector (m/s) in 3D space."
     },
     "mass": {
       "type": "number",
@@ -38,6 +45,6 @@
       "minimum": 0
     }
   },
-  "required": ["objectId", "initialVelocity", "mass", "resistanceCoefficient", "direction", "duration"],
+  "required": ["type", "objectId", "initialVelocity", "mass", "resistanceCoefficient", "direction", "duration"],
   "additionalProperties": false
 }

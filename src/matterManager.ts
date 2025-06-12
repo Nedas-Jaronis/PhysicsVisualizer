@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import * as Interfaces from "./types/ForceInterface";
 
 // Color mapping
 const COLOR_MAP: { [key: string]: string } = {
@@ -13,20 +14,7 @@ const COLOR_MAP: { [key: string]: string } = {
   PINK: "#FFC0CB",
   TEAL: "#008080",
 };
-// Interfaces for vectors, objects, interactions, motions, animation data
-interface Vector {
-  x: number;
-  y: number;
-  z?: number;
-}
 
-interface Force {
-  id: string;
-  spring_constant?: number;
-  displacement?: number;
-  applied_to: string;
-  application_point?: Vector;
-}
 
 interface Interaction {
   type: "collision";

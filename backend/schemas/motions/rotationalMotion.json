@@ -4,6 +4,7 @@
   "description": "Schema describing rotational motion of an object around a fixed axis.",
   "type": "object",
   "properties": {
+    "type": { "const": "rotational"},
     "objectId": {
       "type": "string",
       "description": "Unique identifier of the rotating object."
@@ -43,6 +44,6 @@
       "default": false
     }
   },
-  "required": ["objectId", "axis", "angularVelocity", "duration"],
+  "required": ["type", "objectId", "axis", "angularVelocity", "duration"],
   "additionalProperties": false
 }

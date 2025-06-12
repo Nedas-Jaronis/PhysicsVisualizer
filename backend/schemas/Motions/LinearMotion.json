@@ -3,6 +3,7 @@
   "title": "LinearMotion",
   "type": "object",
   "properties": {
+    "type": { "const": "linear"},
     "id": {
       "type": "string",
       "description": "ID corresponding to object ID"},
@@ -35,5 +36,5 @@
     },
     "time": { "type": "number", "minimum": 0 }
   },
-  "required": ["initialPosition", "initialVelocity", "acceleration", "time"]
+  "required": ["type", "initialPosition", "initialVelocity", "acceleration", "time"]
 }

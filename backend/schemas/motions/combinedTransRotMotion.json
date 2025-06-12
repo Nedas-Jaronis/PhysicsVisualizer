@@ -3,10 +3,7 @@
   "title": "Combined Translational and Rotational Motion Schema",
   "type": "object",
   "properties": {
-    "motionType": {
-      "type": "string",
-      "enum": ["combined_trans_rot_motion"]
-    },
+    "type": { "const": "combined_trans_rot_motion"},
     "objectId": {
       "type": "string",
       "description": "ID of the object undergoing combined motion"
@@ -81,6 +78,6 @@
       "description": "ID of the reference frame"
     }
   },
-  "required": ["motionType", "objectId", "translation", "rotation"],
+  "required": ["type", "objectId", "translation", "rotation"],
   "additionalProperties": false
 }

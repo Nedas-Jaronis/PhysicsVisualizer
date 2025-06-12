@@ -4,6 +4,7 @@
   "description": "Schema describing the relative motion of an object from the perspective of a reference frame.",
   "type": "object",
   "properties": {
+    "type": { "const": "relative"},
     "objectId": {
       "type": "string",
       "description": "Unique identifier of the object in motion."
@@ -48,6 +49,6 @@
       "minimum": 0
     }
   },
-  "required": ["objectId", "referenceFrameId", "objectVelocity", "referenceFrameVelocity", "relativeVelocity", "time"],
+  "required": ["type", "objectId", "referenceFrameId", "objectVelocity", "referenceFrameVelocity", "relativeVelocity", "time"],
   "additionalProperties": false
 }

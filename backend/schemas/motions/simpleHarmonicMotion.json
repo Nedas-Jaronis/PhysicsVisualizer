@@ -4,6 +4,7 @@
   "description": "Schema describing simple harmonic motion of an object.",
   "type": "object",
   "properties": {
+    "type": { "const": "simpleHarmonic"},
     "objectId": {
       "type": "string",
       "description": "Unique identifier of the oscillating object."
@@ -40,6 +41,6 @@
       "minimum": 0
     }
   },
-  "required": ["objectId", "amplitude", "angularFrequency", "phase", "mass", "duration"],
+  "required": ["type", "objectId", "amplitude", "angularFrequency", "phase", "mass", "duration"],
   "additionalProperties": false
 }

@@ -4,6 +4,7 @@
   "description": "Schema describing uniform circular motion for physics animation.",
   "type": "object",
   "properties": {
+    "type": { "const": "uniformCircular"},
     "objectId": {
       "type": "string",
       "description": "Unique identifier of the object undergoing circular motion."
@@ -50,6 +51,6 @@
       "default": false
     }
   },
-  "required": ["objectId", "radius", "angularVelocity", "center", "duration"],
+  "required": ["type", "objectId", "radius", "angularVelocity", "center", "duration"],
   "additionalProperties": false
 }

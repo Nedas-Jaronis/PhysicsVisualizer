@@ -3,10 +3,7 @@
   "title": "Damped Oscillation Motion Schema",
   "type": "object",
   "properties": {
-    "motionType": {
-      "type": "string",
-      "enum": ["damped_oscillation"]
-    },
+    "type": { "const": "dampedOscillation"},
     "objectId": {
       "type": "string",
       "description": "ID of the object undergoing damped oscillation"
@@ -31,8 +28,14 @@
       "description": "Initial displacement from equilibrium position (meters)"
     },
     "initialVelocity": {
-      "type": "number",
-      "description": "Initial velocity at t=0 (m/s)"
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number" }
+      },
+      "required": ["x", "y", "z"],
+      "description": "Initial velocity vector at t=0 (m/s)"
     },
     "startTime": {
       "type": "number",
@@ -44,7 +47,7 @@
     }
   },
   "required": [
-    "motionType",
+    "type",
     "objectId",
     "mass",
     "springConstant",

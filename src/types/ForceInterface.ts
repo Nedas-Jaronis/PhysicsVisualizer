@@ -11,14 +11,7 @@ interface ForceVector {
 
 //Forces
 
-interface ForceBase {
-    id: string;             //identifier
-    applied_to: string;        //what object the force acts on
-    application_point?: Vector;     //point of application
-    forceType: string;          //discriminator for force type
-}
-
-interface GravitaitonalForce extends ForceBase {
+interface GravitaitonalForce {
     type: "gravitational";
     mass1: number;
     mass2: number;
@@ -30,7 +23,7 @@ interface GravitaitonalForce extends ForceBase {
 
 }
 
-interface NormalForce extends ForceBase {
+interface NormalForce {
     type: "normal";
     mass: number;
     applied_to: number;
@@ -39,7 +32,7 @@ interface NormalForce extends ForceBase {
     acceleration_due_to_gravity?: number;
 }
 
-interface AirResistance extends ForceBase {
+interface AirResistance {
     type: "airResistance";
     drag_coefficient: number;
     cross_sectional_area: number;
@@ -49,7 +42,7 @@ interface AirResistance extends ForceBase {
     air_density?: number;
 }
 
-interface AppliedForce extends ForceBase {
+interface AppliedForce {
     type: "applied";
     magnitude: number;
     direction: string;
@@ -58,7 +51,7 @@ interface AppliedForce extends ForceBase {
     angle?:number;
 }
 
-interface BuoyantForce extends ForceBase {
+interface BuoyantForce {
     type: "buoyant";
     fluid_density: number;
     volume_displaced: number;
@@ -67,7 +60,7 @@ interface BuoyantForce extends ForceBase {
     gravity?: number;
 }
 
-interface CentripetalForce extends ForceBase {
+interface CentripetalForce {
     type: "centripetal";
     mass: number;
     velocity: Vector;
@@ -76,7 +69,7 @@ interface CentripetalForce extends ForceBase {
     application_point?: Vector;
 }
 
-interface CoriolisForce extends ForceBase {
+interface CoriolisForce {
     type: "coriolis";
     mass: number;
     velocity: Vector;
@@ -85,7 +78,7 @@ interface CoriolisForce extends ForceBase {
     application_point?: Vector;
 }
 
-interface ElectricForce extends ForceBase {
+interface ElectricForce {
     type: "electric";
     charge1: number;
     charge2: number;
@@ -95,7 +88,7 @@ interface ElectricForce extends ForceBase {
     k_e?: number;
 }
 
-interface FrictionForce extends ForceBase {
+interface FrictionForce {
     type: "friction";
     normal_force: number;
     coefficient_of_friction: number;
@@ -104,13 +97,13 @@ interface FrictionForce extends ForceBase {
     applicationPoint?: Vector;
 }
 
-interface LiftThrustForce extends ForceBase {
+interface LiftThrustForce {
     type: "liftThrust";
     lift: number;
     thrust: number;
 }
 
-interface MagneticForce extends ForceBase {
+interface MagneticForce {
     type: "magnetic";
     charge: number;
     velocity: Vector;
@@ -118,14 +111,14 @@ interface MagneticForce extends ForceBase {
     angle: number;
 }
 
-interface NetForce extends ForceBase {
+interface NetForce {
     type: "net";
     forces: ForceVector[];
     applied_to: string;
     application_point?: Vector;
 }
 
-interface SpringForce extends ForceBase {
+interface SpringForce {
     type: "spring";
     spring_constant: number;
     displacement: number;
@@ -133,7 +126,7 @@ interface SpringForce extends ForceBase {
     application_point?: Vector;
 }
 
-interface TensionForce extends ForceBase {
+interface TensionForce {
     type: "tension";
     mass: number;
     applied_to: string;
@@ -142,7 +135,7 @@ interface TensionForce extends ForceBase {
     acceleration?: number;
 }
 
-interface Torque extends ForceBase {
+interface Torque {
     type: "torque";
     force: number;
     lever_arm: number;

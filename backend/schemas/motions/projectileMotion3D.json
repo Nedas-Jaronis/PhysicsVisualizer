@@ -3,6 +3,7 @@
   "title": "3D Projectile Motion",
   "type": "object",
   "properties": {
+    "type": { "const": "projectileMotion3D"},
     "initialPosition": {
       "type": "object",
       "properties": {
@@ -32,6 +33,6 @@
     },
     "time": { "type": "number", "minimum": 0 }
   },
-  "required": ["initialPosition", "initialVelocity", "acceleration", "time"],
+  "required": ["type", "initialPosition", "initialVelocity", "acceleration", "time"],
   "additionalProperties": false
 }
