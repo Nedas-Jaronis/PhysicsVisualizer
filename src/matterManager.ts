@@ -1,5 +1,7 @@
 import Matter from "matter-js";
-import * as Interfaces from "./types/ForceInterface";
+import * as ForceInterface from "./types/forceInterface";
+import * as MotionInterface from "./types/MotionInterface";
+import * as obje
 
 // Color mapping
 const COLOR_MAP: { [key: string]: string } = {
