@@ -1,6 +1,4 @@
-import { NumberLiteralType } from "typescript";
-
-interface buoyancy {
+export interface buoyancy {
     type: buoyancy;
     object: string;
     fluidDensity: number;
@@ -8,7 +6,7 @@ interface buoyancy {
     gravityAcceleration?: number;
 }
 
-interface collision {
+export interface collision {
     type: "collision";
     objectA: string;
     objectB: string;
@@ -16,7 +14,7 @@ interface collision {
     contactPoint?: [number, number, number]; 
 }
 
-interface dragForce {
+export interface dragForce {
     type: "drag_force";
     object: string;
     dragCoefficient: number;
@@ -25,7 +23,7 @@ interface dragForce {
     velocity: [number, number, number]
 }
 
-interface electroStatic {
+export interface electroStatic {
     type: "electrostatic_force";
     chargeA: string;
     chargeB: string;
@@ -34,7 +32,7 @@ interface electroStatic {
     permittivity?:number;
 }
 
-interface friction {
+export interface friction {
     type: "friction";
     objectA: string;
     objectB: string;
@@ -43,14 +41,14 @@ interface friction {
     frictionDirection?: [number, number, number];
 }
 
-interface gravity {
+export interface gravity {
     type: "gravity";
     objects: string[];
     gravityConstant?: number;
     direction?: [number, number, number];
 }
 
-interface magneticForce {
+export interface magneticForce {
     type: "magnetic_force";
     magnetA: string;
     magnetB: string;
@@ -59,7 +57,7 @@ interface magneticForce {
     fieldStrength?: number;
 }
 
-interface normalForce {
+export interface normalForce {
     type: "normal_force";
     objectA: string;
     objectB: string;
@@ -67,7 +65,7 @@ interface normalForce {
     direction: [number, number, number];
 }
 
-interface springForce {
+export interface springForce {
     type: "spring_force";
     objectA: string;
     objectB: string;
@@ -76,7 +74,7 @@ interface springForce {
     dampingCoefficient?: number;
 }
 
-interface tension {
+export interface tension {
     type: "tension";
     objectA: string;
     objectB: string;

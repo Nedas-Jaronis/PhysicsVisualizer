@@ -1,14 +1,14 @@
-interface Vector {
+export interface Vector {
     x: number;                  //x, y and z coordinates for the object
     y: number;
     z?: number;
 }
 
-interface Orientation {
+export interface Orientation {
     angle: number;              // may be updated later
 }
 
-interface Object {
+export interface Object {
     id: string;
     type?: string;
     mass: string;

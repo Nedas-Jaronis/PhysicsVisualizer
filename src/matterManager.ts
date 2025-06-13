@@ -1,7 +1,11 @@
 import Matter from "matter-js";
-import * as ForceInterface from "./types/forceInterface";
-import * as MotionInterface from "./types/MotionInterface";
-import * as obje
+import * as fields from "./types/fieldInterface";
+import * as forces from "./types/forceInterface";
+import * as interactions from "./types/interactionInterface";
+import * as materials from "./types/materialsInterface";
+import * as motions from "./types/motionInterface";
+import * as object from "./types/objectInterface";
+
 
 // Color mapping
 const COLOR_MAP: { [key: string]: string } = {
@@ -18,43 +22,6 @@ const COLOR_MAP: { [key: string]: string } = {
 };
 
 
-interface Interaction {
-  type: "collision";
-  objectA: string;
-  objectB: string;
-  coefficientOfRestitution: number;
-  contactPoint: [number, number, number];
-}
-
-interface Motion {
-  objectId: string;
-  
-  // Linear motion properties
-  initialPosition?: Vector;
-  initialVelocity?: Vector;
-  acceleration?: Vector;
-  time?: number;
-  finalVelocity?: Vector;
-  
-  // Harmonic motion properties
-  amplitude?: number;
-  angularFrequency?: number;
-  phase?: number;
-  equilibriumPosition?: number;
-  mass?: number;
-  duration?: number;
-}
-
-interface ObjectData {
-  id: string;
-  mass: number;
-  position: Vector;
-  velocity: Vector;
-  acceleration?: Vector;
-  angular_velocity?: number;
-  orientation?: { angle: number };
-  type?: string;
-}
 
 interface AnimationData {
   forces: Force[];

@@ -1,25 +1,23 @@
-import { NumberLiteralType } from "typescript";
-
-interface Vector {
+export interface Vector {
     x: number;                  //x, y and z coordinates for the object
     y: number;
     z?: number;
 }
 
-interface translation {
+export interface translation {
     initialPosition: Vector;
     initialVelocity: Vector;
     acceleration: Vector;
 }
 
-interface rotation {
+export interface rotation {
     initialAngle: number;
     initialAngularVelocity: number;
     angularAcceleration: number;
     axis: Vector;
 }
 
-interface CombinedTransRotMotion {
+export interface CombinedTransRotMotion {
     type: "combined_trans_rot_motion";
     objectID: string;
     translation: translation;
@@ -28,7 +26,7 @@ interface CombinedTransRotMotion {
     referenceFrameId?: string;
 }
 
-interface DampedOscillation {
+export interface DampedOscillation {
     type: "dampedOscillation";
     objectId: string;
     mass: number;
@@ -40,7 +38,7 @@ interface DampedOscillation {
     referenceFrameID?: number;
 }
 
-interface LinearMotion {
+export interface LinearMotion {
     type: "linear";
     initialPosition: Vector;
     initialVelocity: Vector;
@@ -49,7 +47,7 @@ interface LinearMotion {
     id?: string;
 }
 
-interface ProjectileMotion2D {
+export interface ProjectileMotion2D {
     type: "projectileMotion2D";
     initialPosition: Vector;
     initialVelocity: Vector;
@@ -57,7 +55,7 @@ interface ProjectileMotion2D {
     time: number;
 }
 
-interface ProjectileMotion3D {
+export interface ProjectileMotion3D {
     type: "projectileMotion3D";
     initialPosition: Vector;
     initialVelocity: Vector;
@@ -65,7 +63,7 @@ interface ProjectileMotion3D {
     time: number;
 }
 
-interface RelativeMotion {
+export interface RelativeMotion {
     type: "relative";
     objectId: string;
     referenceFrameId: string;
@@ -75,7 +73,7 @@ interface RelativeMotion {
     time:number;
 }
 
-interface ResistiveMotion {
+export interface ResistiveMotion {
     type: "resistive";
     objectId: string;
     initialVelocity: Vector;
@@ -86,7 +84,7 @@ interface ResistiveMotion {
     externalForce?: number;
 }
 
-interface RotationalMotion {
+export interface RotationalMotion {
     type: "rotational";
     objectId: string;
     axis: string;
@@ -98,7 +96,7 @@ interface RotationalMotion {
     repeat?: boolean;
 }
 
-interface SimpleHarmonicMotion {
+export interface SimpleHarmonicMotion {
     type: "simpleHarmonic";
     objectId: string;
     amplitude: number;
@@ -109,7 +107,7 @@ interface SimpleHarmonicMotion {
     equilibriumPosition?: number;
 }
 
-interface UniformCircularMotion {
+export interface UniformCircularMotion {
     type: "uniformCircular";
     objectId: string;
     radius: number;

@@ -1,17 +1,17 @@
-interface Vector {
+export interface Vector {
     x: number;                  //x, y and z coordinates for the object
     y: number;
     z?: number;
 }
 
-interface ForceVector {
+export interface ForceVector {
     magnitude: number;
     angle: number;
 }
 
 //Forces
 
-interface GravitaitonalForce {
+export interface GravitaitonalForce {
     type: "gravitational";
     mass1: number;
     mass2: number;
@@ -23,7 +23,7 @@ interface GravitaitonalForce {
 
 }
 
-interface NormalForce {
+export interface NormalForce {
     type: "normal";
     mass: number;
     applied_to: number;
@@ -32,7 +32,7 @@ interface NormalForce {
     acceleration_due_to_gravity?: number;
 }
 
-interface AirResistance {
+export interface AirResistance {
     type: "airResistance";
     drag_coefficient: number;
     cross_sectional_area: number;
@@ -42,7 +42,7 @@ interface AirResistance {
     air_density?: number;
 }
 
-interface AppliedForce {
+export interface AppliedForce {
     type: "applied";
     magnitude: number;
     direction: string;
@@ -51,7 +51,7 @@ interface AppliedForce {
     angle?:number;
 }
 
-interface BuoyantForce {
+export interface BuoyantForce {
     type: "buoyant";
     fluid_density: number;
     volume_displaced: number;
@@ -60,7 +60,7 @@ interface BuoyantForce {
     gravity?: number;
 }
 
-interface CentripetalForce {
+export interface CentripetalForce {
     type: "centripetal";
     mass: number;
     velocity: Vector;
@@ -69,7 +69,7 @@ interface CentripetalForce {
     application_point?: Vector;
 }
 
-interface CoriolisForce {
+export interface CoriolisForce {
     type: "coriolis";
     mass: number;
     velocity: Vector;
@@ -78,7 +78,7 @@ interface CoriolisForce {
     application_point?: Vector;
 }
 
-interface ElectricForce {
+export interface ElectricForce {
     type: "electric";
     charge1: number;
     charge2: number;
@@ -88,7 +88,7 @@ interface ElectricForce {
     k_e?: number;
 }
 
-interface FrictionForce {
+export interface FrictionForce {
     type: "friction";
     normal_force: number;
     coefficient_of_friction: number;
@@ -97,13 +97,13 @@ interface FrictionForce {
     applicationPoint?: Vector;
 }
 
-interface LiftThrustForce {
+export interface LiftThrustForce {
     type: "liftThrust";
     lift: number;
     thrust: number;
 }
 
-interface MagneticForce {
+export interface MagneticForce {
     type: "magnetic";
     charge: number;
     velocity: Vector;
@@ -111,14 +111,14 @@ interface MagneticForce {
     angle: number;
 }
 
-interface NetForce {
+export interface NetForce {
     type: "net";
     forces: ForceVector[];
     applied_to: string;
     application_point?: Vector;
 }
 
-interface SpringForce {
+export interface SpringForce {
     type: "spring";
     spring_constant: number;
     displacement: number;
@@ -126,7 +126,7 @@ interface SpringForce {
     application_point?: Vector;
 }
 
-interface TensionForce {
+export interface TensionForce {
     type: "tension";
     mass: number;
     applied_to: string;
@@ -135,7 +135,7 @@ interface TensionForce {
     acceleration?: number;
 }
 
-interface Torque {
+export interface Torque {
     type: "torque";
     force: number;
     lever_arm: number;
