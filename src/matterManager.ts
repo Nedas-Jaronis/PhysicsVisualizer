@@ -1,10 +1,10 @@
 import Matter from "matter-js";
-import * as fields from "./types/fieldInterface";
-import * as forces from "./types/forceInterface";
-import * as interactions from "./types/interactionInterface";
-import * as materials from "./types/materialsInterface";
-import * as motions from "./types/motionInterface";
-import * as object from "./types/objectInterface";
+import * as fieldsInterface from "./types/fieldInterface";
+import * as forcesInterface from "./types/forceInterface";
+import * as interactionsInterface from "./types/interactionInterface";
+import * as materialsInterface from "./types/materialsInterface";
+import * as motionsInterface from "./types/motionInterface";
+import * as objectInterface from "./types/objectInterface";
 
 
 // Color mapping
@@ -30,7 +30,6 @@ class MatterManager {
   private runner: Matter.Runner;
   private bodies: Map<string, Matter.Body> = new Map();
   private constraints: Map<string, Matter.Constraint> = new Map();
-
   private timeScale = 1.0;
   private isPaused = false;
 
@@ -80,37 +79,50 @@ class MatterManager {
       console.warn("No animation data found on window object");
       return;
     }
+    // console.log(data.forces)
+    // console.log(typeof(data.forces))
+    // console.log(Array.isArray(data.forces)); // true if it's an array        //All arrays confirmed
+    // console.log(Array.isArray(data.interactions))
+    // console.log(Array.isArray(data.fields))
+    // console.log(Array.isArray(data.materials))
+    // console.log(Array.isArray(data.motions))
+    // console.log(Array.isArray(data.objects))
+    let motions, forces, objects, interactions, fields, materials;
 
-  try{
-    const motions = data.motions
-  } catch {
-    console.log("No motion data")
-  }
-  try{
-    const forces = data.forces
-  }catch{
-    console.log("No forces")
-  }
-  try{
-    const objects = data.objects
-  } catch{
-    console.log("No objects")
-  }
-  try{
-    const interactions = data.interactions
-  } catch{
-    console.log("No interactions")
-  }
-  try{
-    const fields = data.fields
-  } catch{
-    console.log("No fields")
-  }
-  try{
-    const materials = data.materials
-  } catch{
-    console.log("No materials")
-  }
+    try{
+      motions = data.motions
+    } catch {
+      console.log("No motion data")
+    }
+    try{
+      forces = data.forces
+    }catch{
+      console.log("No forces")
+    }
+    try{
+      objects = data.objects
+    } catch{
+      console.log("No objects")
+    }
+    try{
+      interactions = data.interactions
+    } catch{
+      console.log("No interactions")
+    }
+    try{
+      fields = data.fields
+    } catch{
+      console.log("No fields")
+    }
+    try{
+      materials = data.materials
+    } catch{
+      console.log("No materials")
+    }
+
+    // console.log(typeof forces); // "object" (because arrays are objects)
+    // console.log(Array.isArray(forces)); // true if it's an array                   this is an array
+    // console.log(forces);
   }
 
   public resetAnimation(): void {
