@@ -13,19 +13,12 @@
 # flake8: noqa: E501,F401
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, Union, TypedDict, Type
-from typing_extensions import NotRequired, Literal
+from typing import Dict, List, Optional, Union
+from typing_extensions import Literal
 
 import baml_py
 
-from . import types
-from .types import Checked, Check
-from .type_builder import TypeBuilder
-
-
-class BamlCallOptions(TypedDict, total=False):
-    tb: NotRequired[TypeBuilder]
-    client_registry: NotRequired[baml_py.baml_py.ClientRegistry]
+from . import _baml
 
 
 class HttpRequest:
@@ -40,7 +33,7 @@ class HttpRequest:
     def ExtractResume(
         self,
         resume: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -48,6 +41,7 @@ class HttpRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "ExtractResume",
@@ -57,13 +51,14 @@ class HttpRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         False,
       )
     
     def Extract_ProblemData(
         self,
         data: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -71,6 +66,7 @@ class HttpRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Extract_ProblemData",
@@ -80,13 +76,14 @@ class HttpRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         False,
       )
     
     def Extract_animation_data(
         self,
         problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -94,6 +91,7 @@ class HttpRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Extract_animation_data",
@@ -103,13 +101,14 @@ class HttpRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         False,
       )
     
     def Update_Animation_Data(
         self,
         data: str,problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -117,6 +116,7 @@ class HttpRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Update_Animation_Data",
@@ -126,6 +126,7 @@ class HttpRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         False,
       )
     
@@ -143,7 +144,7 @@ class HttpStreamRequest:
     def ExtractResume(
         self,
         resume: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -151,6 +152,7 @@ class HttpStreamRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "ExtractResume",
@@ -160,13 +162,14 @@ class HttpStreamRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         True,
       )
     
     def Extract_ProblemData(
         self,
         data: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -174,6 +177,7 @@ class HttpStreamRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Extract_ProblemData",
@@ -183,13 +187,14 @@ class HttpStreamRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         True,
       )
     
     def Extract_animation_data(
         self,
         problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -197,6 +202,7 @@ class HttpStreamRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Extract_animation_data",
@@ -206,13 +212,14 @@ class HttpStreamRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         True,
       )
     
     def Update_Animation_Data(
         self,
         data: str,problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> baml_py.HTTPRequest:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -220,6 +227,7 @@ class HttpStreamRequest:
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       return self.__runtime.build_request_sync(
         "Update_Animation_Data",
@@ -229,6 +237,7 @@ class HttpStreamRequest:
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
         True,
       )
     

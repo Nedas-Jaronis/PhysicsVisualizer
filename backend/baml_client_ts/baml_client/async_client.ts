@@ -35,6 +35,7 @@ type BamlCallOptions = {
   tb?: TypeBuilder
   clientRegistry?: ClientRegistry
   collector?: Collector | Collector[]
+  env?: Record<string, string | undefined>
 }
 
 export class BamlAsyncClient {
@@ -90,6 +91,7 @@ export class BamlAsyncClient {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = await this.runtime.callFunction(
         "ExtractResume",
         {
@@ -99,6 +101,7 @@ export class BamlAsyncClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return raw.parsed(false) as Resume
     } catch (error) {
@@ -113,6 +116,7 @@ export class BamlAsyncClient {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = await this.runtime.callFunction(
         "Extract_ProblemData",
         {
@@ -122,6 +126,7 @@ export class BamlAsyncClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return raw.parsed(false) as ProblemData
     } catch (error) {
@@ -136,6 +141,7 @@ export class BamlAsyncClient {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = await this.runtime.callFunction(
         "Extract_animation_data",
         {
@@ -145,6 +151,7 @@ export class BamlAsyncClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return raw.parsed(false) as AnimationData
     } catch (error) {
@@ -159,6 +166,7 @@ export class BamlAsyncClient {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = await this.runtime.callFunction(
         "Update_Animation_Data",
         {
@@ -168,6 +176,7 @@ export class BamlAsyncClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return raw.parsed(false) as string
     } catch (error) {
@@ -185,17 +194,18 @@ class BamlStreamClient {
   constructor(runtime: BamlRuntime, ctxManager: BamlCtxManager, bamlOptions?: BamlCallOptions) {
     this.runtime = runtime
     this.ctxManager = ctxManager
-    this.bamlOptions = bamlOptions || {}
+    this.bamlOptions = bamlOptions || { env: { ...process.env } }
   }
 
   
   ExtractResume(
       resume: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[], env?: Record<string, string | undefined> }
   ): BamlStream<partial_types.Resume, Resume> {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = this.runtime.streamFunction(
         "ExtractResume",
         {
@@ -206,6 +216,7 @@ class BamlStreamClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return new BamlStream<partial_types.Resume, Resume>(
         raw,
@@ -220,11 +231,12 @@ class BamlStreamClient {
   
   Extract_ProblemData(
       data: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[], env?: Record<string, string | undefined> }
   ): BamlStream<partial_types.ProblemData, ProblemData> {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = this.runtime.streamFunction(
         "Extract_ProblemData",
         {
@@ -235,6 +247,7 @@ class BamlStreamClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return new BamlStream<partial_types.ProblemData, ProblemData>(
         raw,
@@ -249,11 +262,12 @@ class BamlStreamClient {
   
   Extract_animation_data(
       problem: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[], env?: Record<string, string | undefined> }
   ): BamlStream<partial_types.AnimationData, AnimationData> {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = this.runtime.streamFunction(
         "Extract_animation_data",
         {
@@ -264,6 +278,7 @@ class BamlStreamClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return new BamlStream<partial_types.AnimationData, AnimationData>(
         raw,
@@ -278,11 +293,12 @@ class BamlStreamClient {
   
   Update_Animation_Data(
       data: string,problem: string,
-      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[] }
+      __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, collector?: Collector | Collector[], env?: Record<string, string | undefined> }
   ): BamlStream<string, string> {
     try {
       const options = { ...this.bamlOptions, ...(__baml_options__ || {}) }
       const collector = options.collector ? (Array.isArray(options.collector) ? options.collector : [options.collector]) : [];
+      const env = options.env ? { ...process.env, ...options.env } : { ...process.env };
       const raw = this.runtime.streamFunction(
         "Update_Animation_Data",
         {
@@ -293,6 +309,7 @@ class BamlStreamClient {
         options.tb?.__tb(),
         options.clientRegistry,
         collector,
+        env,
       )
       return new BamlStream<string, string>(
         raw,

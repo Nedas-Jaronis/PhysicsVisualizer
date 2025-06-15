@@ -13,19 +13,13 @@
 # flake8: noqa: E501,F401
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, Union, TypedDict, Type, cast
-from typing_extensions import NotRequired, Literal
+from typing import Dict, List, Optional, Union, cast
+from typing_extensions import Literal
 
 import baml_py
 
-from . import types, partial_types
+from . import _baml
 from .types import Checked, Check
-from .type_builder import TypeBuilder
-
-
-class BamlCallOptions(TypedDict, total=False):
-    tb: NotRequired[TypeBuilder]
-    client_registry: NotRequired[baml_py.baml_py.ClientRegistry]
 
 
 class LlmResponseParser:
@@ -40,60 +34,66 @@ class LlmResponseParser:
     def ExtractResume(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.Resume:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.types.Resume:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       parsed = self.__runtime.parse_llm_response(
         "ExtractResume",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         False,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(types.Resume, parsed)
+      return cast(_baml.types.Resume, parsed)
     
     def Extract_ProblemData(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.ProblemData:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.types.ProblemData:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       parsed = self.__runtime.parse_llm_response(
         "Extract_ProblemData",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         False,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(types.ProblemData, parsed)
+      return cast(_baml.types.ProblemData, parsed)
     
     def Extract_animation_data(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.AnimationData:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.types.AnimationData:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -101,24 +101,27 @@ class LlmResponseParser:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
 
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
+
       parsed = self.__runtime.parse_llm_response(
         "Extract_animation_data",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         False,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(types.AnimationData, parsed)
+      return cast(_baml.types.AnimationData, parsed)
     
     def Update_Animation_Data(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> str:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -127,16 +130,19 @@ class LlmResponseParser:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
 
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
+
       parsed = self.__runtime.parse_llm_response(
         "Update_Animation_Data",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         False,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
       return cast(str, parsed)
@@ -155,60 +161,66 @@ class LlmStreamParser:
     def ExtractResume(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> partial_types.Resume:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.partial_types.Resume:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       parsed = self.__runtime.parse_llm_response(
         "ExtractResume",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         True,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(partial_types.Resume, parsed)
+      return cast(_baml.partial_types.Resume, parsed)
     
     def Extract_ProblemData(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> partial_types.ProblemData:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.partial_types.ProblemData:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
       else:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
+
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
 
       parsed = self.__runtime.parse_llm_response(
         "Extract_ProblemData",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         True,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(partial_types.ProblemData, parsed)
+      return cast(_baml.partial_types.ProblemData, parsed)
     
     def Extract_animation_data(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
-    ) -> partial_types.AnimationData:
+        baml_options: _baml.BamlCallOptionsModApi = {},
+    ) -> _baml.partial_types.AnimationData:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -216,24 +228,27 @@ class LlmStreamParser:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
 
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
+
       parsed = self.__runtime.parse_llm_response(
         "Extract_animation_data",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         True,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
-      return cast(partial_types.AnimationData, parsed)
+      return cast(_baml.partial_types.AnimationData, parsed)
     
     def Update_Animation_Data(
         self,
         llm_response: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptionsModApi = {},
     ) -> Optional[str]:
       __tb__ = baml_options.get("tb", None)
       if __tb__ is not None:
@@ -242,16 +257,19 @@ class LlmStreamParser:
         tb = None
       __cr__ = baml_options.get("client_registry", None)
 
+      env = _baml.env_vars_to_dict(baml_options.get("env", {}))
+
       parsed = self.__runtime.parse_llm_response(
         "Update_Animation_Data",
         llm_response,
-        types,
-        types,
-        partial_types,
+        _baml.types,
+        _baml.types,
+        _baml.partial_types,
         True,
         self.__ctx_manager.get(),
         tb,
         __cr__,
+        env,
       )
 
       return cast(Optional[str], parsed)

@@ -13,40 +13,33 @@
 # flake8: noqa: E501,F401
 # pylint: disable=unused-import,line-too-long
 # fmt: off
-from typing import Any, Dict, List, Optional, TypeVar, Union, TypedDict, Type, cast
-from typing_extensions import NotRequired, Literal
-import pprint
+from typing import Dict, List, Optional, TypeVar, Union, cast
+from typing_extensions import Literal
 
 import baml_py
-from pydantic import BaseModel, ValidationError, create_model
 
-from . import partial_types, types
+from . import _baml
+from ._baml import BamlCallOptions
 from .types import Checked, Check
-from .type_builder import TypeBuilder
-from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
-from .sync_request import HttpRequest, HttpStreamRequest
 from .parser import LlmResponseParser, LlmStreamParser
+from .sync_request import HttpRequest, HttpStreamRequest
+from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
+
 
 OutputType = TypeVar('OutputType')
-
-
-# Define the TypedDict with optional parameters having default values
-class BamlCallOptions(TypedDict, total=False):
-    tb: NotRequired[TypeBuilder]
-    client_registry: NotRequired[baml_py.baml_py.ClientRegistry]
-    collector: NotRequired[Union[baml_py.baml_py.Collector, List[baml_py.baml_py.Collector]]]
 
 
 class BamlSyncClient:
     __runtime: baml_py.BamlRuntime
     __ctx_manager: baml_py.BamlCtxManager
     __stream_client: "BamlStreamClient"
-    __http_request: "HttpRequest"
-    __http_stream_request: "HttpStreamRequest"
+    __http_request: HttpRequest
+    __http_stream_request: HttpStreamRequest
     __llm_response_parser: LlmResponseParser
-    __baml_options: BamlCallOptions
+    __llm_stream_parser: LlmStreamParser
+    __baml_options: _baml.BamlCallOptions
 
-    def __init__(self, runtime: baml_py.BamlRuntime, ctx_manager: baml_py.BamlCtxManager, baml_options: Optional[BamlCallOptions] = None):
+    def __init__(self, runtime: baml_py.BamlRuntime, ctx_manager: baml_py.BamlCtxManager, baml_options: Optional[_baml.BamlCallOptions] = None):
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
       self.__stream_client = BamlStreamClient(self.__runtime, self.__ctx_manager, baml_options)
@@ -78,15 +71,16 @@ class BamlSyncClient:
 
     def with_options(
       self,
-      tb: Optional[TypeBuilder] = None,
+      tb: Optional[_baml.type_builder.TypeBuilder] = None,
       client_registry: Optional[baml_py.baml_py.ClientRegistry] = None,
       collector: Optional[Union[baml_py.baml_py.Collector, List[baml_py.baml_py.Collector]]] = None,
+      env: Optional[Dict[str, str]] = None,
     ) -> "BamlSyncClient":
       """
       Returns a new instance of BamlSyncClient with explicitly typed baml options
       for Python 3.8 compatibility.
       """
-      new_options: BamlCallOptions = self.__baml_options.copy()
+      new_options: _baml.BamlCallOptions = self.__baml_options.copy()
 
       # Override if any keyword arguments were provided.
       if tb is not None:
@@ -95,15 +89,17 @@ class BamlSyncClient:
           new_options["client_registry"] = client_registry
       if collector is not None:
           new_options["collector"] = collector
+      if env is not None:
+          new_options["env"] = env
       return BamlSyncClient(self.__runtime, self.__ctx_manager, new_options)
 
     
     def ExtractResume(
         self,
         resume: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.Resume:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> _baml.types.Resume:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -112,7 +108,7 @@ class BamlSyncClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.call_function_sync(
         "ExtractResume",
         {
@@ -122,15 +118,16 @@ class BamlSyncClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
-      return cast(types.Resume, raw.cast_to(types, types, partial_types, False))
+      return cast(_baml.types.Resume, raw.cast_to(_baml.types, _baml.types, _baml.partial_types, False))
     
     def Extract_ProblemData(
         self,
         data: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.ProblemData:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> _baml.types.ProblemData:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -139,7 +136,7 @@ class BamlSyncClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.call_function_sync(
         "Extract_ProblemData",
         {
@@ -149,15 +146,16 @@ class BamlSyncClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
-      return cast(types.ProblemData, raw.cast_to(types, types, partial_types, False))
+      return cast(_baml.types.ProblemData, raw.cast_to(_baml.types, _baml.types, _baml.partial_types, False))
     
     def Extract_animation_data(
         self,
         problem: str,
-        baml_options: BamlCallOptions = {},
-    ) -> types.AnimationData:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> _baml.types.AnimationData:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -166,7 +164,7 @@ class BamlSyncClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.call_function_sync(
         "Extract_animation_data",
         {
@@ -176,15 +174,16 @@ class BamlSyncClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
-      return cast(types.AnimationData, raw.cast_to(types, types, partial_types, False))
+      return cast(_baml.types.AnimationData, raw.cast_to(_baml.types, _baml.types, _baml.partial_types, False))
     
     def Update_Animation_Data(
         self,
         data: str,problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptions = {},
     ) -> str:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -193,7 +192,7 @@ class BamlSyncClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.call_function_sync(
         "Update_Animation_Data",
         {
@@ -203,8 +202,9 @@ class BamlSyncClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
-      return cast(str, raw.cast_to(types, types, partial_types, False))
+      return cast(str, raw.cast_to(_baml.types, _baml.types, _baml.partial_types, False))
     
 
 
@@ -212,8 +212,8 @@ class BamlSyncClient:
 class BamlStreamClient:
     __runtime: baml_py.BamlRuntime
     __ctx_manager: baml_py.BamlCtxManager
-    __baml_options: BamlCallOptions
-    def __init__(self, runtime: baml_py.BamlRuntime, ctx_manager: baml_py.BamlCtxManager, baml_options: Optional[BamlCallOptions] = None):
+    __baml_options: _baml.BamlCallOptions
+    def __init__(self, runtime: baml_py.BamlRuntime, ctx_manager: baml_py.BamlCtxManager, baml_options: Optional[_baml.BamlCallOptions] = None):
       self.__runtime = runtime
       self.__ctx_manager = ctx_manager
       self.__baml_options = baml_options or {}
@@ -222,9 +222,9 @@ class BamlStreamClient:
     def ExtractResume(
         self,
         resume: str,
-        baml_options: BamlCallOptions = {},
-    ) -> baml_py.BamlSyncStream[partial_types.Resume, types.Resume]:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[_baml.partial_types.Resume, _baml.types.Resume]:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -233,7 +233,7 @@ class BamlStreamClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.stream_function_sync(
         "ExtractResume",
         {
@@ -244,21 +244,22 @@ class BamlStreamClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
 
-      return baml_py.BamlSyncStream[partial_types.Resume, types.Resume](
+      return baml_py.BamlSyncStream[_baml.partial_types.Resume, _baml.types.Resume](
         raw,
-        lambda x: cast(partial_types.Resume, x.cast_to(types, types, partial_types, True)),
-        lambda x: cast(types.Resume, x.cast_to(types, types, partial_types, False)),
+        lambda x: cast(_baml.partial_types.Resume, x.cast_to(_baml.types, _baml.types, _baml.partial_types, True)),
+        lambda x: cast(_baml.types.Resume, x.cast_to(_baml.types, _baml.types, _baml.partial_types, False)),
         self.__ctx_manager.get(),
       )
     
     def Extract_ProblemData(
         self,
         data: str,
-        baml_options: BamlCallOptions = {},
-    ) -> baml_py.BamlSyncStream[partial_types.ProblemData, types.ProblemData]:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[_baml.partial_types.ProblemData, _baml.types.ProblemData]:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -267,7 +268,7 @@ class BamlStreamClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.stream_function_sync(
         "Extract_ProblemData",
         {
@@ -278,21 +279,22 @@ class BamlStreamClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
 
-      return baml_py.BamlSyncStream[partial_types.ProblemData, types.ProblemData](
+      return baml_py.BamlSyncStream[_baml.partial_types.ProblemData, _baml.types.ProblemData](
         raw,
-        lambda x: cast(partial_types.ProblemData, x.cast_to(types, types, partial_types, True)),
-        lambda x: cast(types.ProblemData, x.cast_to(types, types, partial_types, False)),
+        lambda x: cast(_baml.partial_types.ProblemData, x.cast_to(_baml.types, _baml.types, _baml.partial_types, True)),
+        lambda x: cast(_baml.types.ProblemData, x.cast_to(_baml.types, _baml.types, _baml.partial_types, False)),
         self.__ctx_manager.get(),
       )
     
     def Extract_animation_data(
         self,
         problem: str,
-        baml_options: BamlCallOptions = {},
-    ) -> baml_py.BamlSyncStream[partial_types.AnimationData, types.AnimationData]:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+        baml_options: _baml.BamlCallOptions = {},
+    ) -> baml_py.BamlSyncStream[_baml.partial_types.AnimationData, _baml.types.AnimationData]:
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -301,7 +303,7 @@ class BamlStreamClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.stream_function_sync(
         "Extract_animation_data",
         {
@@ -312,21 +314,22 @@ class BamlStreamClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
 
-      return baml_py.BamlSyncStream[partial_types.AnimationData, types.AnimationData](
+      return baml_py.BamlSyncStream[_baml.partial_types.AnimationData, _baml.types.AnimationData](
         raw,
-        lambda x: cast(partial_types.AnimationData, x.cast_to(types, types, partial_types, True)),
-        lambda x: cast(types.AnimationData, x.cast_to(types, types, partial_types, False)),
+        lambda x: cast(_baml.partial_types.AnimationData, x.cast_to(_baml.types, _baml.types, _baml.partial_types, True)),
+        lambda x: cast(_baml.types.AnimationData, x.cast_to(_baml.types, _baml.types, _baml.partial_types, False)),
         self.__ctx_manager.get(),
       )
     
     def Update_Animation_Data(
         self,
         data: str,problem: str,
-        baml_options: BamlCallOptions = {},
+        baml_options: _baml.BamlCallOptions = {},
     ) -> baml_py.BamlSyncStream[Optional[str], str]:
-      options: BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
+      options: _baml.BamlCallOptions = {**self.__baml_options, **(baml_options or {})}
       __tb__ = options.get("tb", None)
       if __tb__ is not None:
         tb = __tb__._tb # type: ignore (we know how to use this private attribute)
@@ -335,7 +338,7 @@ class BamlStreamClient:
       __cr__ = options.get("client_registry", None)
       collector = options.get("collector", None)
       collectors = collector if isinstance(collector, list) else [collector] if collector is not None else []
-
+      env = _baml.env_vars_to_dict(options.get("env", {}))
       raw = self.__runtime.stream_function_sync(
         "Update_Animation_Data",
         {
@@ -347,12 +350,13 @@ class BamlStreamClient:
         tb,
         __cr__,
         collectors,
+        env,
       )
 
       return baml_py.BamlSyncStream[Optional[str], str](
         raw,
-        lambda x: cast(Optional[str], x.cast_to(types, types, partial_types, True)),
-        lambda x: cast(str, x.cast_to(types, types, partial_types, False)),
+        lambda x: cast(Optional[str], x.cast_to(_baml.types, _baml.types, _baml.partial_types, True)),
+        lambda x: cast(str, x.cast_to(_baml.types, _baml.types, _baml.partial_types, False)),
         self.__ctx_manager.get(),
       )
     
@@ -360,4 +364,4 @@ class BamlStreamClient:
 
 b = BamlSyncClient(DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME, DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_CTX)
 
-__all__ = ["b"]
+__all__ = ["b", "BamlCallOptions"]

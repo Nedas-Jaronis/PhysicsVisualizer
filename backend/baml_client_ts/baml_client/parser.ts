@@ -32,6 +32,7 @@ export class LlmResponseParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): Resume {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "ExtractResume",
         llmResponse,
@@ -39,6 +40,7 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as Resume
     } catch (error) {
       throw toBamlError(error);
@@ -50,6 +52,7 @@ export class LlmResponseParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): ProblemData {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Extract_ProblemData",
         llmResponse,
@@ -57,6 +60,7 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as ProblemData
     } catch (error) {
       throw toBamlError(error);
@@ -68,6 +72,7 @@ export class LlmResponseParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): AnimationData {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Extract_animation_data",
         llmResponse,
@@ -75,6 +80,7 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as AnimationData
     } catch (error) {
       throw toBamlError(error);
@@ -86,6 +92,7 @@ export class LlmResponseParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): string {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Update_Animation_Data",
         llmResponse,
@@ -93,6 +100,7 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as string
     } catch (error) {
       throw toBamlError(error);
@@ -110,6 +118,7 @@ export class LlmStreamParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): partial_types.Resume {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "ExtractResume",
         llmResponse,
@@ -117,6 +126,7 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as partial_types.Resume
     } catch (error) {
       throw toBamlError(error);
@@ -128,6 +138,7 @@ export class LlmStreamParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): partial_types.ProblemData {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Extract_ProblemData",
         llmResponse,
@@ -135,6 +146,7 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as partial_types.ProblemData
     } catch (error) {
       throw toBamlError(error);
@@ -146,6 +158,7 @@ export class LlmStreamParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): partial_types.AnimationData {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Extract_animation_data",
         llmResponse,
@@ -153,6 +166,7 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as partial_types.AnimationData
     } catch (error) {
       throw toBamlError(error);
@@ -164,6 +178,7 @@ export class LlmStreamParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry }
   ): string {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return this.runtime.parseLlmResponse(
         "Update_Animation_Data",
         llmResponse,
@@ -171,6 +186,7 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
+        env,
       ) as string
     } catch (error) {
       throw toBamlError(error);

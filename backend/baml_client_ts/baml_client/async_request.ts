@@ -25,6 +25,7 @@ import type TypeBuilder from "./type_builder"
 type BamlCallOptions = {
   tb?: TypeBuilder
   clientRegistry?: ClientRegistry
+  env?: Record<string, string | undefined>
 }
 
 export class AsyncHttpRequest {
@@ -36,6 +37,7 @@ export class AsyncHttpRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "ExtractResume",
         {
@@ -45,6 +47,7 @@ export class AsyncHttpRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         false,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -56,6 +59,7 @@ export class AsyncHttpRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Extract_ProblemData",
         {
@@ -65,6 +69,7 @@ export class AsyncHttpRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         false,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -76,6 +81,7 @@ export class AsyncHttpRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Extract_animation_data",
         {
@@ -85,6 +91,7 @@ export class AsyncHttpRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         false,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -96,6 +103,7 @@ export class AsyncHttpRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Update_Animation_Data",
         {
@@ -105,6 +113,7 @@ export class AsyncHttpRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         false,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -122,6 +131,7 @@ export class AsyncHttpStreamRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "ExtractResume",
         {
@@ -131,6 +141,7 @@ export class AsyncHttpStreamRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         true,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -142,6 +153,7 @@ export class AsyncHttpStreamRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Extract_ProblemData",
         {
@@ -151,6 +163,7 @@ export class AsyncHttpStreamRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         true,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -162,6 +175,7 @@ export class AsyncHttpStreamRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Extract_animation_data",
         {
@@ -171,6 +185,7 @@ export class AsyncHttpStreamRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         true,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
@@ -182,6 +197,7 @@ export class AsyncHttpStreamRequest {
       __baml_options__?: BamlCallOptions
   ): Promise<HTTPRequest> {
     try {
+      const env = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
       return await this.runtime.buildRequest(
         "Update_Animation_Data",
         {
@@ -191,6 +207,7 @@ export class AsyncHttpStreamRequest {
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
         true,
+        env
       )
     } catch (error) {
       throw toBamlError(error);
