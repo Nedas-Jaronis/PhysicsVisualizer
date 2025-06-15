@@ -4,13 +4,9 @@
   "type": "object",
   "properties": {
     "type": { "const": "gravitational" },
-    "mass1": {
+    "mass": {
       "type": "number",
-      "description": "Mass of the first object (kg)"
-    },
-    "mass2": {
-      "type": "number",
-      "description": "Mass of the second object (kg)"
+      "description": "Mass of the object the force is applied to (kg)"
     },
     "distance": {
       "type": "number",
@@ -26,14 +22,14 @@
       "enum": ["attractive"],
       "description": "Direction of the gravitational force"
     },
-    "object1_id": {
+    "applied_to": {
       "type": "string",
-      "description": "ID of the first object"
+      "description": "ID of the object this force is applied to"
     },
-    "object2_id": {
+    "other_object_id": {
       "type": "string",
-      "description": "ID of the second object"
+      "description": "ID of the other object involved in the gravitational interaction"
     }
   },
-  "required": ["type", "mass1", "mass2", "distance", "object1_id", "object2_id"]
+  "required": ["type", "mass", "distance", "applied_to", "other_object_id"]
 }
