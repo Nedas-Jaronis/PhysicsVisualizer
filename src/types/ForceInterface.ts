@@ -11,26 +11,25 @@ export interface ForceVector {
 
 //Forces
 
-export interface GravitationalForce {
-  type: "gravitational";
-  mass: number;
-  distance: number;
-  applied_to: string;
-  other_object_id: string;
-  gravitational_constant?: number;
-  direction?: "attractive";
+export interface GravitaitonalForce {
+    type: "gravitational";
+    mass1: number;
+    mass2: number;
+    distance: number;
+    object1_id: string
+    object2_id: string
+    graviational_constant?: number;
+    direction?: string;
+
 }
 
-
 export interface NormalForce {
-  type: "normal";
-  mass: number;
-  applied_to: string;
-  application_point?: Vector;
-  angle_of_incline?: number;
-  acceleration_due_to_gravity?: number;
-  magnitude?: number;
-  direction?: "up";
+    type: "normal";
+    mass: number;
+    applied_to: number;
+    application_point?: Vector;
+    angle_of_incline?: number;
+    acceleration_due_to_gravity?: number;
 }
 
 export interface AirResistance {

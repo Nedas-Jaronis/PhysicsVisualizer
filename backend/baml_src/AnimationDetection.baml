@@ -107,22 +107,14 @@ function Extract_animation_data(problem: string) -> AnimationData {
   
   objects: ["Object"]
 
-  ## Instructions:
-  - For each detected category (force, motion, etc.), return a complete stub matching the full schema structure of that type, including all required keys (even with placeholder/default values).
-  - If the problem involves multiple instances of the same force type applied to different objects, return a separate complete object for each instance.
-  - For example, if there are two gravitational forces on two different objects, return two separate "GravitationalForce" objects in the forces array.
-  - Use empty strings or default numbers (e.g., `0`) for values.
-  - Return a full JSON object with arrays for: "forces", "motions", "interactions", and "objects".
-  - Do NOT leave any schema fields out — include all fields defined in your official JSON schemas.
-  - Do NOT invent new types — only use exact names from the lists above.
-  - Do NOT merge or combine multiple forces of the same type into one object.
-  - This data will be used in a second step to fill in the values.
-  - Always assume a NormalForce acts upward on any object unless the problem explicitly states it's in free fall.
-
 
     ## Problem:
     {{problem}}
 
+    ## Instructions:
+    - ONLY use exact type names from the enums.
+    - Do NOT include types that are not relevant.
+    - Format your response as a JSON object of type AnimationData.
   """#
 }
 
@@ -141,8 +133,6 @@ Given structured animation data in JSON format, your task is to fill in realisti
 5. Use SI units for all measurements
 6. Return ONLY the JSON - no explanations, no markdown, no extra text
 7. Any ID value should correspond to the same ID value as the object **IF and ONLY IF the object desires that motion, force, field, interaction, or material**. Match ID's as necessary!
-8. Always assume a NormalForce acts upward on any object unless the problem explicitly states it's in free fall.
-
 
 ## Value Format Example:
 ```json

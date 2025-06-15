@@ -4,36 +4,12 @@
   "type": "object",
   "properties": {
     "type": { "const": "normal" },
-    "mass": {
-      "type": "number",
-      "description": "Mass of the object (kg)"
-    },
-    "acceleration_due_to_gravity": {
-      "type": "number",
-      "default": 9.8,
-      "description": "Acceleration due to gravity (m/s²)"
-    },
-    "angle_of_incline": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 90,
-      "default": 0,
-      "description": "Angle of incline in degrees"
-    },
+    "mass": { "type": "number", "description": "Mass of the object (kg)" },
+    "acceleration_due_to_gravity": { "type": "number", "default": 9.8, "description": "Acceleration due to gravity (m/s²)" },
+    "angle_of_incline": { "type": "number", "minimum": 0, "maximum": 90, "description": "Angle of incline in degrees" },
     "applied_to": {
       "type": "string",
       "description": "ID of the object this force is applied to"
-    },
-    "magnitude": {
-      "type": "number",
-      "default": 0,
-      "description": "Magnitude of the normal force (N)"
-    },
-    "direction": {
-      "type": "string",
-      "enum": ["up"],
-      "default": "up",
-      "description": "Direction of the normal force"
     },
     "application_point": {
       "type": "object",
@@ -42,9 +18,8 @@
         "y": { "type": "number", "default": 0 },
         "z": { "type": "number", "default": 0 }
       },
-      "required": ["x", "y", "z"],
-      "description": "Local point on the object where force is applied"
+      "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["type", "mass", "applied_to", "magnitude", "direction", "application_point"]
+  "required": ["type", "mass", "applied_to"]
 }

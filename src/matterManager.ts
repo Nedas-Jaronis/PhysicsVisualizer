@@ -120,37 +120,9 @@ class MatterManager {
       console.log("No materials")
     }
 
-    
     // console.log(typeof forces); // "object" (because arrays are objects)
     // console.log(Array.isArray(forces)); // true if it's an array                   this is an array
     // console.log(forces);
-    type ForceEntry = {
-      type: string;
-      data: any;  // or your specific Force type
-    };
-
-
-    
-    const forceMap = new Map<string, ForceEntry[]>();
-
-    if (Array.isArray(forces)) {
-      for (const force of forces) {
-        const applied_to = force.applied_to;
-        if (!applied_to) continue;
-
-        const type = force.type;
-
-        if (!forceMap.has(applied_to)) {
-          forceMap.set(applied_to, []);
-        }
-
-        forceMap.get(applied_to)!.push({type, data: force});
-      }
-    }
-
-    console.log(forces)
-    console.log(forceMap)
-
   }
 
   public resetAnimation(): void {
