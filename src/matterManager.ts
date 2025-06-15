@@ -123,6 +123,42 @@ class MatterManager {
     // console.log(typeof forces); // "object" (because arrays are objects)
     // console.log(Array.isArray(forces)); // true if it's an array                   this is an array
     // console.log(forces);
+    type Force = {
+        type: string;
+        applied_to: string;
+        [key: string]: any;
+    };
+
+    type PhysicsObject = {
+      id: string;
+      [key: string]: any;
+    };
+
+    const forceMap = new Map<string, Force[]>();
+
+    if (!Array.isArray(objects) || !Array.isArray(forces)) {
+      console.warn("Objects or forces data is not an array");
+      return;
+    }
+
+    // Initialize force arrays for all known object IDs
+    objects.forEach((obj: PhysicsObject) => {
+      forceMap.set(obj.id, []);
+    });
+
+      // Add each force to the corresponding object's array
+    forces.forEach((force: Force) => {
+      const key = force.applied_to;
+      if (forceMap.has(key)) {
+        forceMap.get(key)!.push(force);
+      } else {
+          // If object id not tracked yet, add it with this force
+        forceMap.set(key, [force]);
+      }
+    });
+
+      // Optional: debug output
+      console.log(forceMap);
   }
 
   public resetAnimation(): void {
