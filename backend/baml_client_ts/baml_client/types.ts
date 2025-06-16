@@ -61,6 +61,7 @@ export enum Forces {
   SpringForce = "SpringForce",
   TensionForce = "TensionForce",
   Torque = "Torque",
+  NormalForce = "NormalForce",
 }
 
 export enum Interactions {

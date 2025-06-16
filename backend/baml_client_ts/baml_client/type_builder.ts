@@ -29,7 +29,7 @@ export default class TypeBuilder {
     Resume: ClassViewer<'Resume', "name" | "email" | "experience" | "skills">;
     
     
-    Forces: EnumViewer<'Forces', "AirResistance" | "AppliedForce" | "BuoyantForce" | "CentripetalForce" | "CoriolisForce" | "ElectricForce" | "FrictionForce" | "GravitationalForce" | "LiftThrustForce" | "MagneticForce" | "NetForce" | "SpringForce" | "TensionForce" | "Torque">;
+    Forces: EnumViewer<'Forces', "AirResistance" | "AppliedForce" | "BuoyantForce" | "CentripetalForce" | "CoriolisForce" | "ElectricForce" | "FrictionForce" | "GravitationalForce" | "LiftThrustForce" | "MagneticForce" | "NetForce" | "SpringForce" | "TensionForce" | "Torque" | "NormalForce">;
     
     Interactions: EnumViewer<'Interactions', "Buoyancy" | "Collision" | "DragForce" | "ElectrostaticForce" | "Friction" | "Gravity" | "MagneticForce" | "NormalForce" | "SpringForce" | "Tension">;
     
@@ -63,7 +63,7 @@ export default class TypeBuilder {
         
         
         this.Forces = this.tb.enumViewer("Forces", [
-          "AirResistance","AppliedForce","BuoyantForce","CentripetalForce","CoriolisForce","ElectricForce","FrictionForce","GravitationalForce","LiftThrustForce","MagneticForce","NetForce","SpringForce","TensionForce","Torque",
+          "AirResistance","AppliedForce","BuoyantForce","CentripetalForce","CoriolisForce","ElectricForce","FrictionForce","GravitationalForce","LiftThrustForce","MagneticForce","NetForce","SpringForce","TensionForce","Torque","NormalForce",
         ]);
         
         this.Interactions = this.tb.enumViewer("Interactions", [

@@ -124,42 +124,52 @@ class MatterManager {
     // console.log(Array.isArray(forces)); // true if it's an array                   this is an array
     // console.log(forces);
     type Force = {
-        type: string;
-        applied_to: string;
-        [key: string]: any;
-    };
+    type: string;
+    applied_to: string;
+    [key: string]: any;
+  };
 
-    type PhysicsObject = {
-      id: string;
-      [key: string]: any;
-    };
+  type PhysicsObject = {
+    id: string;
+    [key: string]: any;
+  };
 
-    const forceMap = new Map<string, Force[]>();
+  const forceMap = new Map<string, Force[]>();
 
-    if (!Array.isArray(objects) || !Array.isArray(forces)) {
-      console.warn("Objects or forces data is not an array");
-      return;
-    }
-
-    // Initialize force arrays for all known object IDs
-    objects.forEach((obj: PhysicsObject) => {
-      forceMap.set(obj.id, []);
-    });
-
-      // Add each force to the corresponding object's array
-    forces.forEach((force: Force) => {
-      const key = force.applied_to;
-      if (forceMap.has(key)) {
-        forceMap.get(key)!.push(force);
-      } else {
-          // If object id not tracked yet, add it with this force
-        forceMap.set(key, [force]);
-      }
-    });
-
-      // Optional: debug output
-      console.log(forceMap);
+  if (!Array.isArray(objects) || !Array.isArray(forces)) {
+    console.warn("Objects or forces data is not an array");
+    return;
   }
+
+  // Initialize force arrays for all known object IDs
+  objects.forEach((obj: PhysicsObject) => {
+    forceMap.set(obj.id, []);
+  });
+
+  // Add each force to the corresponding object's array
+  forces.forEach((force: Force) => {
+    const key = force.applied_to;
+    if (forceMap.has(key)) {
+      forceMap.get(key)!.push(force);
+    } else {
+      forceMap.set(key, [force]); // in case of unknown object
+    }
+  });
+
+  // 🔍 Structured debug output
+  console.log("🔍 Force Map Breakdown:");
+  forceMap.forEach((forceList, objectId) => {
+    console.log(`\n🧱 Object ID: ${objectId}`);
+    if (forceList.length === 0) {
+      console.log("  ⚠️  No forces applied.");
+    } else {
+      forceList.forEach((force, index) => {
+        console.log(`  [${index + 1}] Type: ${force.type}`);
+        console.log(`      Full Data:`, force);
+      });
+    }
+  });
+}
 
   public resetAnimation(): void {
     this.isPaused = false;

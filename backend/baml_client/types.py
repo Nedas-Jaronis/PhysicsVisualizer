@@ -57,6 +57,7 @@ class Forces(str, Enum):
     SpringForce = "SpringForce"
     TensionForce = "TensionForce"
     Torque = "Torque"
+    NormalForce = "NormalForce"
 
 class Interactions(str, Enum):
     

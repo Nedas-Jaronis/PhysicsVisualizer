@@ -200,7 +200,7 @@ class ForcesAst:
     def __init__(self, tb: _TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.enum("Forces")
-        self._values: typing.Set[str] = set([ "AirResistance",  "AppliedForce",  "BuoyantForce",  "CentripetalForce",  "CoriolisForce",  "ElectricForce",  "FrictionForce",  "GravitationalForce",  "LiftThrustForce",  "MagneticForce",  "NetForce",  "SpringForce",  "TensionForce",  "Torque", ])
+        self._values: typing.Set[str] = set([ "AirResistance",  "AppliedForce",  "BuoyantForce",  "CentripetalForce",  "CoriolisForce",  "ElectricForce",  "FrictionForce",  "GravitationalForce",  "LiftThrustForce",  "MagneticForce",  "NetForce",  "SpringForce",  "TensionForce",  "Torque",  "NormalForce", ])
         self._vals = ForcesValues(self._bldr, self._values)
 
     def type(self) -> FieldType:
@@ -294,6 +294,11 @@ class ForcesValues:
     @property
     def Torque(self) -> EnumValueViewer:
         return EnumValueViewer(self.__bldr.value("Torque"))
+    
+
+    @property
+    def NormalForce(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("NormalForce"))
     
 
     

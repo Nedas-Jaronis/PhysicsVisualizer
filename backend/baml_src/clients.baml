@@ -24,7 +24,7 @@ client<llm> CustomGPT4o {
   provider openai
   options {
     model "gpt-4o"
-    api_key env.OPENAI_API_KEY
+    api_key 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
   }
 }
 
