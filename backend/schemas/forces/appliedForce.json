@@ -25,5 +25,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["type", "magnitude", "direction", "applied_to"]
+  "required": ["type", "magnitude", "direction", "applied_to", "source"]
 }

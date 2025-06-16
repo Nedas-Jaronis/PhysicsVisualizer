@@ -25,5 +25,5 @@
       "description": "Local point on the object where force is applied (optional)"
     }
   },
-  "required": ["type", "mass", "applied_to"]
+  "required": ["type", "mass", "applied_to", "source"]
 }
