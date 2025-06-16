@@ -10,6 +10,10 @@
       "type": "string",
       "description": "ID of the object this force is applied to"
     },
+    "source": {
+      "type": "string",
+      "description": "The object exerting the spring force"
+    },
     "application_point": {
       "type": "object",
       "properties": {

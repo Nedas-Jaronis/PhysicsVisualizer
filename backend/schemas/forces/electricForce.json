@@ -8,6 +8,10 @@
     "charge2": { "type": "number" },
     "distance": { "type": "number" },
     "k_e": { "type": "number", "default": 8.99e9 },
+    "source": {
+      "type": "string",
+      "description": "The object exerting the electric force"
+    },
     "object1_id": {
       "type": "string",
       "description": "ID of the first object involved"

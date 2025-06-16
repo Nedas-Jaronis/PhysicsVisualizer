@@ -16,6 +16,10 @@
       "additionalProperties": false,
       "description": "Velocity vector of the object"
   },
+  "source": {
+      "type": "string",
+      "description": "The object exerting the magnetic force"
+    },
     "magnetic_field": { "type": "number" },
     "angle": { "type": "number", "description": "Angle between velocity and magnetic field (degrees)" }
   },

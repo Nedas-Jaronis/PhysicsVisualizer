@@ -3,37 +3,27 @@
   "title": "Gravitational Force",
   "type": "object",
   "properties": {
-    "type": { "const": "gravitational" },
-    "mass1": {
-      "type": "number",
-      "description": "Mass of the first object (kg)"
+    "type": {
+      "const": "gravitational",
+      "description": "Type of force; always 'gravitational'"
     },
-    "mass2": {
-      "type": "number",
-      "description": "Mass of the second object (kg)"
+    "applied_to": {
+      "type": "string",
+      "description": "The object receiving the gravitational force"
     },
-    "distance": {
-      "type": "number",
-      "description": "Distance between the centers of the two objects (m)"
-    },
-    "gravitationalConstant": {
-      "type": "number",
-      "default": 6.67430e-11,
-      "description": "Universal gravitational constant G"
+    "source": {
+      "type": "string",
+      "description": "The object exerting the gravitational force (e.g., Earth)"
     },
     "direction": {
       "type": "string",
       "enum": ["attractive"],
-      "description": "Direction of the gravitational force"
+      "description": "Direction of gravitational force; always attractive"
     },
-    "object1_id": {
-      "type": "string",
-      "description": "ID of the first object"
-    },
-    "object2_id": {
-      "type": "string",
-      "description": "ID of the second object"
+    "magnitude": {
+      "type": "number",
+      "description": "Optional magnitude of the gravitational force in newtons (N)"
     }
   },
-  "required": ["type", "mass1", "mass2", "distance", "object1_id", "object2_id"]
+  "required": ["type", "applied_to", "source", "direction"]
 }
