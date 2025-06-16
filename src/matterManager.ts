@@ -1,11 +1,10 @@
 import Matter from "matter-js";
-import * as fieldsInterface from "./types/fieldInterface";
-import * as forcesInterface from "./types/forceInterface";
-import * as interactionsInterface from "./types/interactionInterface";
-import * as materialsInterface from "./types/materialsInterface";
-import * as motionsInterface from "./types/motionInterface";
-import * as objectInterface from "./types/objectInterface";
-
+// import * as fieldsInterface from "./types/fieldInterface";
+// import * as forcesInterface from "./types/forceInterface";
+// import * as interactionsInterface from "./types/interactionInterface";
+// import * as materialsInterface from "./types/materialsInterface";
+// import * as motionsInterface from "./types/motionInterface";
+// import * as objectInterface from "./types/objectInterface";
 
 // Color mapping
 const COLOR_MAP: { [key: string]: string } = {
@@ -21,6 +20,28 @@ const COLOR_MAP: { [key: string]: string } = {
   TEAL: "#008080",
 };
 
+interface ForceData {
+  type: string;
+  magnitude?: number;
+  direction: string;
+  source?: string;
+  applied_to: string;
+}
+
+interface ObjectData {
+  id: string;
+  mass: number;
+  position?: { x: number; y: number };
+}
+
+interface AnimationData {
+  forces?: ForceData[];
+  objects?: ObjectData[];
+  motions?: any[];
+  interactions?: any[];
+  fields?: any[];
+  materials?: any[];
+}
 
 class MatterManager {
   private canvas: HTMLCanvasElement;
@@ -30,12 +51,15 @@ class MatterManager {
   private runner: Matter.Runner;
   private bodies: Map<string, Matter.Body> = new Map();
   private constraints: Map<string, Matter.Constraint> = new Map();
-  private timeScale = 1.0;
-  private isPaused = false;
-
+  private timeScale: number = 0.1; // Much slower default speed
+  private isPaused: boolean = false;
+  private forceUpdateHandler: (() => void) | null = null;
+  private renderContext: CanvasRenderingContext2D | null = null;
+  private animationData: AnimationData | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
+    this.renderContext = canvas.getContext('2d');
 
     // Create engine and world
     this.engine = Matter.Engine.create();
@@ -58,129 +82,514 @@ class MatterManager {
         showCollisions: true,
       },
     });
- 
-    // Create runner
-    this.runner = Matter.Runner.create();
+
+    // Create runner with much slower timing
+    this.runner = Matter.Runner.create({
+      delta: 16.666, // ~60 FPS
+      isFixed: true
+    });
+
+    // Set initial slow speed
+    this.engine.timing.timeScale = this.timeScale;
 
     // Load animation data from window object
     this.loadAnimationData();
 
-
     // Start rendering
     Matter.Render.run(this.render);
+
+    // Add custom rendering for force arrows
+    Matter.Events.on(this.render, 'afterRender', () => {
+      this.drawForceArrows();
+      this.drawObjectLabels();
+    });
+  }
+
+  private setupWorld(): void {
+    const canvasWidth: number = this.canvas.clientWidth;
+    const canvasHeight: number = this.canvas.clientHeight;
+
+    // Create ground
+    const ground: Matter.Body = Matter.Bodies.rectangle(
+      canvasWidth / 2,
+      canvasHeight - 30,
+      canvasWidth,
+      60,
+      {
+        isStatic: true,
+        render: {
+          fillStyle: '#8B4513',
+          strokeStyle: '#654321',
+          lineWidth: 2
+        }
+      }
+    );
+
+    // Create left and right walls
+    const leftWall: Matter.Body = Matter.Bodies.rectangle(
+      -30,
+      canvasHeight / 2,
+      60,
+      canvasHeight,
+      {
+        isStatic: true,
+        render: {
+          fillStyle: '#666666'
+        }
+      }
+    );
+
+    const rightWall: Matter.Body = Matter.Bodies.rectangle(
+      canvasWidth + 30,
+      canvasHeight / 2,
+      60,
+      canvasHeight,
+      {
+        isStatic: true,
+        render: {
+          fillStyle: '#666666'
+        }
+      }
+    );
+
+    Matter.World.add(this.world, [ground, leftWall, rightWall]);
+  }
+
+  private drawForceArrows(): void {
+    if (!this.renderContext || !this.animationData) return;
+
+    const ctx: CanvasRenderingContext2D = this.renderContext;
+    const data: AnimationData = this.animationData;
+    
+    if (!data.forces) return;
+
+    const forceMap: Map<string, ForceData[]> = this.buildForceMap(data.forces, data.objects || []);
+
+    forceMap.forEach((forces: ForceData[], objectId: string) => {
+      const body: Matter.Body | undefined = this.bodies.get(objectId);
+      if (!body) return;
+
+      forces.forEach((force: ForceData, index: number) => {
+        if (force && force.type === "applied") {
+          this.drawForceArrow(ctx, body, force, index, objectId);
+        }
+      });
+    });
+
+    // Draw force information panel
+    this.drawForceInfoPanel(ctx, forceMap);
+  }
+
+  private drawForceArrow(
+    ctx: CanvasRenderingContext2D, 
+    body: Matter.Body, 
+    force: ForceData, 
+    index: number, 
+    objectId: string
+  ): void {
+    const magnitude: number = force.magnitude ?? 0;
+    const direction: string = force.direction;
+    const source: string = force.source || "unknown";
+    const appliedTo: string = force.applied_to || objectId;
+    
+    // Scale arrow length based on magnitude (more realistic scaling)
+    const baseArrowLength: number = 50;
+    const arrowLength: number = Math.max(baseArrowLength, Math.min(magnitude * 1.5, 120));
+    
+    // Position arrows around the object based on direction
+    const bodyRadius: number = 25; // Approximate body radius
+    let startX: number = body.position.x;
+    let startY: number = body.position.y;
+    let endX: number = startX;
+    let endY: number = startY;
+    
+    // Offset start position to edge of object based on direction
+    switch (direction) {
+      case "x":
+        startX = body.position.x + bodyRadius;
+        startY = body.position.y - (index * 30);
+        endX = startX + arrowLength;
+        endY = startY;
+        break;
+      case "-x":
+        startX = body.position.x - bodyRadius;
+        startY = body.position.y - (index * 30);
+        endX = startX - arrowLength;
+        endY = startY;
+        break;
+      case "y":
+        startX = body.position.x - (index * 30);
+        startY = body.position.y + bodyRadius;
+        endX = startX;
+        endY = startY + arrowLength;
+        break;
+      case "-y":
+        startX = body.position.x - (index * 30);
+        startY = body.position.y - bodyRadius;
+        endX = startX;
+        endY = startY - arrowLength;
+        break;
+    }
+
+    // Color code arrows based on source
+    let arrowColor: string = '#FF0000'; // Default red
+    switch (source) {
+      case 'gravity':
+        arrowColor = '#0000FF'; // Blue for gravity
+        break;
+      case 'tension':
+        arrowColor = '#00FF00'; // Green for tension
+        break;
+      case 'normal':
+        arrowColor = '#FFA500'; // Orange for normal force
+        break;
+      case 'friction':
+        arrowColor = '#800080'; // Purple for friction
+        break;
+      case 'applied':
+        arrowColor = '#FF0000'; // Red for applied forces
+        break;
+    }
+
+    // Draw arrow with better styling
+    ctx.strokeStyle = arrowColor;
+    ctx.fillStyle = arrowColor;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    // Arrow line with shadow for better visibility
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    // Arrow head
+    const headLength: number = 15;
+    const headAngle: number = Math.PI / 6;
+    const angle: number = Math.atan2(endY - startY, endX - startX);
+    
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(
+      endX - headLength * Math.cos(angle - headAngle),
+      endY - headLength * Math.sin(angle - headAngle)
+    );
+    ctx.lineTo(
+      endX - headLength * Math.cos(angle + headAngle),
+      endY - headLength * Math.sin(angle + headAngle)
+    );
+    ctx.closePath();
+    ctx.fill();
+
+    // Force label with better formatting
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 3;
+    
+    const labelX: number = startX + (endX - startX) * 0.7;
+    const labelY: number = startY + (endY - startY) * 0.7 - 15;
+    
+    // Draw text outline for better visibility
+    ctx.strokeText(`${magnitude}N`, labelX, labelY);
+    ctx.fillText(`${magnitude}N`, labelX, labelY);
+    
+    // Draw source label
+    ctx.font = '12px Arial';
+    ctx.fillStyle = arrowColor;
+    ctx.strokeText(`(${source})`, labelX, labelY + 15);
+    ctx.fillText(`(${source})`, labelX, labelY + 15);
+  }
+
+  private drawObjectLabels(): void {
+    if (!this.renderContext) return;
+
+    const ctx: CanvasRenderingContext2D = this.renderContext;
+    
+    // Draw mass labels on objects
+    this.bodies.forEach((body: Matter.Body, id: string) => {
+      const massLabel: string = (body as any).massLabel;
+      if (massLabel) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#000000';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 2;
+        
+        // Draw text outline for better visibility
+        ctx.strokeText(massLabel, body.position.x, body.position.y + 5);
+        ctx.fillText(massLabel, body.position.x, body.position.y + 5);
+      }
+    });
+  }
+
+  private drawForceInfoPanel(ctx: CanvasRenderingContext2D, forceMap: Map<string, ForceData[]>): void {
+    // Draw force legend/info panel
+    const panelX: number = 10;
+    const panelY: number = 10;
+    const panelWidth: number = 200;
+    let panelHeight: number = 30;
+    
+    // Calculate panel height based on number of forces
+    let totalForces: number = 0;
+    forceMap.forEach((forces: ForceData[]) => totalForces += forces.length);
+    panelHeight = Math.max(100, 30 + totalForces * 25);
+    
+    // Draw panel background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 2;
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+    ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+    
+    // Draw panel title
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Force Analysis', panelX + 10, panelY + 25);
+    
+    // Draw force information
+    let yOffset: number = 45;
+    ctx.font = '12px Arial';
+    
+    forceMap.forEach((forces: ForceData[], objectId: string) => {
+      if (forces.length > 0) {
+        ctx.fillStyle = '#333333';
+        ctx.fillText(`Object: ${objectId}`, panelX + 10, panelY + yOffset);
+        yOffset += 20;
+        
+        forces.forEach((force: ForceData) => {
+          const source: string = force.source || 'unknown';
+          const magnitude: number = force.magnitude ?? 0;
+          const direction: string = force.direction;
+          
+          // Color code text based on source
+          let textColor: string = '#FF0000';
+          switch (source) {
+            case 'gravity': 
+              textColor = '#0000FF'; 
+              break;
+            case 'tension': 
+              textColor = '#00FF00'; 
+              break;
+            case 'normal': 
+              textColor = '#FFA500'; 
+              break;
+            case 'friction': 
+              textColor = '#800080'; 
+              break;
+          }
+          
+          ctx.fillStyle = textColor;
+          ctx.fillText(`  ${source}: ${magnitude}N (${direction})`, panelX + 15, panelY + yOffset);
+          yOffset += 18;
+        });
+        yOffset += 5;
+      }
+    });
   }
 
   private loadAnimationData(): void {
-    const windowWithData = window as Window & { ANIMATION_DATA?: any };
-    const data = windowWithData.ANIMATION_DATA;
-    
+    const windowWithData = window as Window & { ANIMATION_DATA?: AnimationData };
+    const data: AnimationData | undefined = windowWithData.ANIMATION_DATA;
 
     if (!data) {
       console.warn("No animation data found on window object");
       return;
     }
-    // console.log(data.forces)
-    // console.log(typeof(data.forces))
-    // console.log(Array.isArray(data.forces)); // true if it's an array        //All arrays confirmed
-    // console.log(Array.isArray(data.interactions))
-    // console.log(Array.isArray(data.fields))
-    // console.log(Array.isArray(data.materials))
-    // console.log(Array.isArray(data.motions))
-    // console.log(Array.isArray(data.objects))
-    let motions, forces, objects, interactions, fields, materials;
 
-    try{
-      motions = data.motions
-    } catch {
-      console.log("No motion data")
-    }
-    try{
-      forces = data.forces
-    }catch{
-      console.log("No forces")
-    }
-    try{
-      objects = data.objects
-    } catch{
-      console.log("No objects")
-    }
-    try{
-      interactions = data.interactions
-    } catch{
-      console.log("No interactions")
-    }
-    try{
-      fields = data.fields
-    } catch{
-      console.log("No fields")
-    }
-    try{
-      materials = data.materials
-    } catch{
-      console.log("No materials")
-    }
+    this.animationData = data;
 
-    // console.log(typeof forces); // "object" (because arrays are objects)
-    // console.log(Array.isArray(forces)); // true if it's an array                   this is an array
-    // console.log(forces);
-    type Force = {
-    type: string;
-    applied_to: string;
-    [key: string]: any;
-  };
-
-  type PhysicsObject = {
-    id: string;
-    [key: string]: any;
-  };
-
-  const forceMap = new Map<string, Force[]>();
-
-  if (!Array.isArray(objects) || !Array.isArray(forces)) {
-    console.warn("Objects or forces data is not an array");
-    return;
+    const forceMap: Map<string, ForceData[]> = this.buildForceMap(data.forces || [], data.objects || []);
+    console.log("Force map:", forceMap);
   }
 
-  // Initialize force arrays for all known object IDs
-  objects.forEach((obj: PhysicsObject) => {
-    forceMap.set(obj.id, []);
-  });
+  private buildForceMap(forces: ForceData[], objects: ObjectData[]): Map<string, ForceData[]> {
+    const forceMap: Map<string, ForceData[]> = new Map();
 
-  // Add each force to the corresponding object's array
-  forces.forEach((force: Force) => {
-    const key = force.applied_to;
-    if (forceMap.has(key)) {
-      forceMap.get(key)!.push(force);
-    } else {
-      forceMap.set(key, [force]); // in case of unknown object
+    if (!Array.isArray(objects) || !Array.isArray(forces)) {
+      console.warn("Objects or forces data is not an array");
+      return forceMap;
     }
-  });
 
-  // 🔍 Structured debug output
-  console.log("🔍 Force Map Breakdown:");
-  forceMap.forEach((forceList, objectId) => {
-    console.log(`\n🧱 Object ID: ${objectId}`);
-    if (forceList.length === 0) {
-      console.log("  ⚠️  No forces applied.");
-    } else {
-      forceList.forEach((force, index) => {
-        console.log(`  [${index + 1}] Type: ${force.type}`);
-        console.log(`      Full Data:`, force);
+    // Initialize force arrays for all known object IDs
+    objects.forEach((obj: ObjectData) => {
+      if (obj && obj.id) {
+        forceMap.set(obj.id, []);
+      }
+    });
+
+    // Add each force to the corresponding object's array
+    forces.forEach((force: ForceData) => {
+      if (force && force.applied_to) {
+        const key: string = force.applied_to;
+        if (forceMap.has(key)) {
+          const forceArray: ForceData[] | undefined = forceMap.get(key);
+          if (forceArray) {
+            forceArray.push(force);
+          }
+        } else {
+          forceMap.set(key, [force]); // in case of unknown object
+        }
+      }
+    });
+
+    return forceMap;
+  }
+
+  public startAnimation(): void {
+    const data: AnimationData | null = this.animationData;
+    if (!data || !Array.isArray(data.objects)) return;
+
+    const canvasWidth: number = this.canvas.clientWidth;
+    const canvasHeight: number = this.canvas.clientHeight;
+
+    // Setup the world first
+    this.setupWorld();
+
+    // Disable gravity for horizontal frictionless surface
+    this.engine.world.gravity.y = 0;
+    this.engine.world.gravity.x = 0;
+
+    // Set much slower engine timing for realistic physics
+    this.engine.timing.timeScale = this.timeScale;
+
+    // Create bodies from object data with more realistic properties
+    data.objects.forEach((obj: ObjectData) => {
+      if (!obj) return;
+      
+      const x: number = obj.position?.x ?? 0;
+      const y: number = obj.position?.y ?? 0;
+
+      // Appropriately sized rectangular blocks
+      const width: number = 50;
+      const height: number = 40;
+
+      const body: Matter.Body = Matter.Bodies.rectangle(
+        x * 80 + canvasWidth / 2 - 50, // Better spacing and centered
+        canvasHeight - 120, // Position above ground
+        width,
+        height,
+        {
+          mass: obj.mass || 1,
+          label: obj.id || 'unknown',
+          frictionAir: 0.005, // Minimal air resistance
+          friction: 0.01, // Very small friction
+          restitution: 0.3, // Some bounce for realism
+          render: {
+            fillStyle: obj.id === "m1" ? "#FF6B6B" : "#4ECDC4",
+            strokeStyle: "#333",
+            lineWidth: 2,
+          },
+        }
+      );
+
+      // Store mass info for custom rendering
+      (body as any).massLabel = `${obj.mass || 1}kg`;
+
+      Matter.World.add(this.world, body);
+      if (obj.id) {
+        this.bodies.set(obj.id, body);
+      }
+    });
+
+    // Create rope constraint between m1 and m2 if they exist
+    const m1Body: Matter.Body | undefined = this.bodies.get("m1");
+    const m2Body: Matter.Body | undefined = this.bodies.get("m2");
+
+    if (m1Body && m2Body) {
+      const rope: Matter.Constraint = Matter.Constraint.create({
+        bodyA: m1Body,
+        bodyB: m2Body,
+        length: 80, // Realistic rope length
+        stiffness: 0.9, // Slightly flexible rope
+        damping: 0.05, // Small damping to prevent excessive oscillations
+        render: {
+          visible: true,
+          strokeStyle: "#8B4513",
+          lineWidth: 4,
+          type: "line",
+        },
       });
+
+      Matter.World.add(this.world, rope);
+      this.constraints.set("rope", rope);
     }
-  });
-}
+
+    // Apply continuous forces using beforeUpdate event
+    const forceMap: Map<string, ForceData[]> = this.buildForceMap(data.forces || [], data.objects);
+
+    // Remove any existing force handler
+    if (this.forceUpdateHandler) {
+      Matter.Events.off(this.engine, "beforeUpdate", this.forceUpdateHandler);
+    }
+
+    // Create new force handler with realistic force scaling
+    this.forceUpdateHandler = () => {
+      forceMap.forEach((forces: ForceData[], objectId: string) => {
+        const body: Matter.Body | undefined = this.bodies.get(objectId);
+        if (!body) return;
+
+        forces.forEach((force: ForceData) => {
+          if (force && force.type === "applied") {
+            // Apply external force with realistic scaling
+            const magnitude: number = force.magnitude ?? 0;
+            const direction: string = force.direction;
+            const scale: number = 0.00005; // More realistic scaling factor
+
+            let fx: number = 0;
+            let fy: number = 0;
+            if (direction === "x") fx = magnitude * scale;
+            if (direction === "-x") fx = -magnitude * scale;
+            if (direction === "y") fy = magnitude * scale;
+            if (direction === "-y") fy = -magnitude * scale;
+
+            Matter.Body.applyForce(
+              body,
+              { x: body.position.x, y: body.position.y },
+              { x: fx, y: fy }
+            );
+          }
+        });
+      });
+    };
+
+    Matter.Events.on(this.engine, "beforeUpdate", this.forceUpdateHandler);
+
+    Matter.Runner.run(this.runner, this.engine);
+  }
 
   public resetAnimation(): void {
     this.isPaused = false;
-    this.timeScale = 1.0;
+    this.timeScale = 0.1; // Reset to slow speed
 
     Matter.Runner.stop(this.runner);
+
+    // Remove force update handler if it exists
+    if (this.forceUpdateHandler) {
+      Matter.Events.off(this.engine, "beforeUpdate", this.forceUpdateHandler);
+      this.forceUpdateHandler = null;
+    }
 
     Matter.World.clear(this.world, false);
     this.bodies.clear();
     this.constraints.clear();
 
+    // Reset gravity and timing
+    this.engine.world.gravity.y = 0.8;
+    this.engine.timing.timeScale = this.timeScale;
 
     console.log("Animation reset");
   }
@@ -193,11 +602,16 @@ class MatterManager {
     } else {
       Matter.Runner.run(this.runner, this.engine);
     }
-
   }
 
   public toggleSlowMotion(): void {
-    this.timeScale = this.timeScale === 1.0 ? 0.3 : 1.0;
+    this.timeScale = this.timeScale === 0.1 ? 0.05 : 0.1; // Toggle between slow and very slow
+    this.engine.timing.timeScale = this.timeScale;
+  }
+
+  public setAnimationSpeed(speed: number): void {
+    // Allow setting custom animation speed (0.01 to 1.0)
+    this.timeScale = Math.max(0.01, Math.min(1.0, speed));
     this.engine.timing.timeScale = this.timeScale;
   }
 
@@ -209,9 +623,14 @@ class MatterManager {
   }
 
   public cleanup(): void {
-
     Matter.Runner.stop(this.runner);
     Matter.Render.stop(this.render);
+
+    // Remove force update handler if it exists
+    if (this.forceUpdateHandler) {
+      Matter.Events.off(this.engine, "beforeUpdate", this.forceUpdateHandler);
+      this.forceUpdateHandler = null;
+    }
 
     Matter.World.clear(this.world, false);
     Matter.Engine.clear(this.engine);
