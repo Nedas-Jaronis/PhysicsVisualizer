@@ -144,6 +144,11 @@ Given structured animation data in JSON format, your task is to fill in realisti
 6. Return ONLY the JSON - no explanations, no markdown, no extra text
 7. Any ID value should correspond to the same ID value as the object **IF and ONLY IF the object desires that motion, force, field, interaction, or material**. Match ID's as necessary!
 8. Always assume a NormalForce acts upward on any object unless the problem explicitly states it's in free fall.
+9. **For multiple objects of the same type (e.g., multiple blocks), assign distinct starting positions in space to prevent overlap or stacking.** Positions should be spaced reasonably apart along the relevant axis (usually the direction of motion, typically the x-axis).
+10. If physical dimensions of objects are not specified, assume a default size of about 0.5 meters width and place objects at least that far apart on the axis of motion.
+11. Use y=0 as the table or ground level unless the problem states otherwise.
+12. For horizontal motion problems, initialize objects’ y positions at zero (on the surface), and set x positions distinctively.
+13. For inclined planes or vertical setups, position coordinates must respect geometry implied by the angle and physical constraints.
 
 
 ## Value Format Example:

@@ -99,10 +99,10 @@ class MatterManager {
     Matter.Render.run(this.render);
 
     // Add custom rendering for force arrows
-    // Matter.Events.on(this.render, 'afterRender', () => {
-    //   // this.drawForceArrows();
-    //   // this.drawObjectLabels();
-    // });
+    Matter.Events.on(this.render, 'afterRender', () => {
+      this.drawForceArrows();
+      this.drawObjectLabels();
+    });
   }
 
   private setupWorld(): void {
@@ -112,7 +112,7 @@ class MatterManager {
     // Create ground
     const ground: Matter.Body = Matter.Bodies.rectangle(
       canvasWidth / 2,
-      canvasHeight - 30,
+      canvasHeight - 70,
       canvasWidth,
       60,
       {
@@ -120,7 +120,7 @@ class MatterManager {
         render: {
           fillStyle: '#8B4513',
           strokeStyle: '#654321',
-          lineWidth: 2
+          lineWidth: 5
         }
       }
     );
@@ -305,12 +305,6 @@ class MatterManager {
     // Draw text outline for better visibility
     ctx.strokeText(`${magnitude}N`, labelX, labelY);
     ctx.fillText(`${magnitude}N`, labelX, labelY);
-    
-    // Draw source label
-    ctx.font = '12px Arial';
-    ctx.fillStyle = arrowColor;
-    ctx.strokeText(`(${source})`, labelX, labelY + 15);
-    ctx.fillText(`(${source})`, labelX, labelY + 15);
   }
 
   private drawObjectLabels(): void {
