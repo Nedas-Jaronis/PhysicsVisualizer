@@ -7,18 +7,18 @@ import Matter from "matter-js";
 // import * as objectInterface from "./types/objectInterface";
 
 // Color mapping
-const COLOR_MAP: { [key: string]: string } = {
-  RED: "#FF0000",
-  GREEN: "#00FF00",
-  BLUE: "#0000FF",
-  YELLOW: "#FFFF00",
-  WHITE: "#FFFFFF",
-  BLACK: "#000000",
-  PURPLE: "#800080",
-  ORANGE: "#FFA500",
-  PINK: "#FFC0CB",
-  TEAL: "#008080",
-};
+// const COLOR_MAP: { [key: string]: string } = {
+//   RED: "#FF0000",
+//   GREEN: "#00FF00",
+//   BLUE: "#0000FF",
+//   YELLOW: "#FFFF00",
+//   WHITE: "#FFFFFF",
+//   BLACK: "#000000",
+//   PURPLE: "#800080",
+//   ORANGE: "#FFA500",
+//   PINK: "#FFC0CB",
+//   TEAL: "#008080",
+// };
 
 interface ForceData {
   type: string;
@@ -99,10 +99,10 @@ class MatterManager {
     Matter.Render.run(this.render);
 
     // Add custom rendering for force arrows
-    Matter.Events.on(this.render, 'afterRender', () => {
-      this.drawForceArrows();
-      this.drawObjectLabels();
-    });
+    // Matter.Events.on(this.render, 'afterRender', () => {
+    //   // this.drawForceArrows();
+    //   // this.drawObjectLabels();
+    // });
   }
 
   private setupWorld(): void {
@@ -181,10 +181,10 @@ class MatterManager {
   }
 
   private drawForceArrow(
-    ctx: CanvasRenderingContext2D, 
-    body: Matter.Body, 
-    force: ForceData, 
-    index: number, 
+    ctx: CanvasRenderingContext2D,
+    body: Matter.Body,
+    force: ForceData,
+    index: number,
     objectId: string
   ): void {
     const magnitude: number = force.magnitude ?? 0;
@@ -450,6 +450,7 @@ class MatterManager {
   }
 
   public startAnimation(): void {
+    this.resetAnimation();
     const data: AnimationData | null = this.animationData;
     if (!data || !Array.isArray(data.objects)) return;
 

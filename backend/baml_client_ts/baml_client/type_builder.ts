@@ -35,7 +35,7 @@ export default class TypeBuilder {
     
     Motions: EnumViewer<'Motions', "CombinedTransRotMotion" | "DampedOscillation" | "LinearMotion" | "ProjectileMotion2D" | "ProjectileMotion3D" | "RelativeMotion" | "ResistiveMotion" | "RotationalMotion" | "SimpleHarmonicMotion" | "UniformCircularMotion">;
     
-    Objects: EnumViewer<'Objects', "Object">;
+    Objects: EnumViewer<'Objects', "Object" | "Incline">;
     
 
     constructor() {
@@ -75,7 +75,7 @@ export default class TypeBuilder {
         ]);
         
         this.Objects = this.tb.enumViewer("Objects", [
-          "Object",
+          "Object","Incline",
         ]);
         
     }

@@ -471,7 +471,7 @@ class ObjectsAst:
     def __init__(self, tb: _TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.enum("Objects")
-        self._values: typing.Set[str] = set([ "Object", ])
+        self._values: typing.Set[str] = set([ "Object",  "Incline", ])
         self._vals = ObjectsValues(self._bldr, self._values)
 
     def type(self) -> FieldType:
@@ -500,6 +500,11 @@ class ObjectsValues:
     @property
     def Object(self) -> EnumValueViewer:
         return EnumValueViewer(self.__bldr.value("Object"))
+    
+
+    @property
+    def Incline(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("Incline"))
     
 
     

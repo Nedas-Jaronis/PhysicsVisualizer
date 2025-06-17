@@ -88,6 +88,7 @@ class Motions(str, Enum):
 class Objects(str, Enum):
     
     Object = "Object"
+    Incline = "Incline"
 
 class AnimationData(BaseModel):
     forces: List["Forces"]

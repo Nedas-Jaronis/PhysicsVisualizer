@@ -18,3 +18,22 @@ export interface Object {
     orientation?: Orientation;
     angular_velocity: number;
 }
+
+
+export interface Incline {
+  id: string;
+  type: "incline";
+  angle: number;
+  position: {
+    x: number;
+    y: number;
+    z?: number;
+  };
+  length: number;
+  width?: number;
+  friction: {
+    static?: number;
+    kinetic: number;
+  };
+  material?: string;
+}

@@ -69,6 +69,7 @@ enum Motions {
 
 enum Objects {
   Object
+  Incline
 }
 
 // --- AnimationData schema ---
@@ -106,7 +107,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   
   motions: ["DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]
   
-  objects: ["Object"]
+  objects: ["Object", "Incline"]
 
   ## Instructions:
   - For each detected category (force, motion, etc.), return a complete stub matching the full schema structure of that type, including all required keys (even with placeholder/default values).

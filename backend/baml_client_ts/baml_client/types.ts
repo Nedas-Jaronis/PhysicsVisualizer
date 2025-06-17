@@ -92,6 +92,7 @@ export enum Motions {
 
 export enum Objects {
   Object = "Object",
+  Incline = "Incline",
 }
 
 export interface AnimationData {
