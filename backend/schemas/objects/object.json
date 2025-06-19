@@ -4,6 +4,16 @@
     "id": { "type": "string", "description": "Unique identifier" },
     "type": { "type": "string", "enum": ["particle", "rigid_body"], "default": "particle" },
     "mass": { "type": "number", "minimum": 0, "description": "Mass in kilograms" },
+    "width" : {
+      "type": "number",
+      "minimum": 0,
+      "description": "Width of the object in world units"
+    },
+    "height": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Height of the object in world units"
+    },
     "position": {
       "type": "object",
       "properties": {

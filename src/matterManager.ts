@@ -47,9 +47,12 @@ interface AnimationData {
 }
 
 function toCanvasCoords(x: number, y: number, canvasWidth: number, canvasHeight: number) {
+    const CenterWidth = canvasWidth / 2;
+    const CenterHeight = canvasHeight * 0.90;
   return {
-    x: canvasWidth / 2 + x,
-    y: canvasHeight - y
+    
+    x: CenterWidth + x,
+    y:  CenterHeight - y
   };
 }
 
@@ -119,6 +122,8 @@ class MatterManager {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
+    const scale = 50;
+
 
     if (!data) {
       console.warn("No animation data available to setupWorld");
@@ -133,13 +138,13 @@ class MatterManager {
 
         switch (environment.type) {
           case "ground":
-            const groundX = environment.position?.x ?? canvasWidth / 2;
-            const groundWidth = environment.width ?? canvasWidth;
-            const groundThickness = environment.thickness ?? 20;
-            const groundY = environment.position?.y ?? (canvasHeight - groundThickness / 2);
+            const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
+            const groundWidth =( environment.width ?? canvasWidth) * scale;
+            const groundThickness = (environment.thickness ?? 20) * scale;
+            const groundY = (environment.position?.y ?? 0) * scale;
 
             const { x, y } = toCanvasCoords(groundX, groundY + groundThickness / 2, canvasWidth, canvasHeight);
-
+ 
             const ground = Matter.Bodies.rectangle(
               x,
               y,
@@ -164,8 +169,10 @@ class MatterManager {
             const angleDegrees = environment.angle ?? 30;
             const angleRadians = angleDegrees * (Math.PI / 100);
 
-            const posX = environment.position?.x ?? canvasWidth / 2;
-            const posY = environment.position?.y ?? canvasHeight - 100;
+            const inclineX = (environment.position?.x ?? 0) * scale;
+            const inclineY = (environment.position?.y ?? 0) * scale;
+            const { x: InclineX, y: InclineY } = toCanvasCoords(inclineX, inclineY, canvasWidth, canvasHeight);
+
 
             const length = environment.length ?? 200;
             const width = environment.width ?? 30;
@@ -174,8 +181,8 @@ class MatterManager {
             const frictionStatic = environment.friction?.static ?? 0;
 
             const incline = Matter.Bodies.rectangle(
-              posX,
-              posY,
+              InclineX,
+              InclineY,
               length,
               width,
               {
@@ -606,13 +613,14 @@ class MatterManager {
       const x: number = obj.position?.x ?? 0;
       const y: number = obj.position?.y ?? 0;
 
+      const scale =50
       // Appropriately sized rectangular blocks
       const width: number = 50;
       const height: number = 40;
-
+      const { x: xValue , y: yValue} = toCanvasCoords(x, y, canvasWidth, canvasHeight);
       const body: Matter.Body = Matter.Bodies.rectangle(
-        x * 80 + canvasWidth / 2 - 50, // Better spacing and centered
-        canvasHeight - 120, // Position above ground
+        xValue,
+        yValue,
         width,
         height,
         {
