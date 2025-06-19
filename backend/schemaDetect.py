@@ -12,7 +12,8 @@ CATEGORY_TO_FOLDER = {
     "interactions": "interactions",
     "materials": "materials",
     "motions": "motions",
-    "objects": "objects"
+    "objects": "objects",
+    "environments": "environments"
 }
 
 

@@ -5,6 +5,7 @@ import Matter from "matter-js";
 // import * as materialsInterface from "./types/materialsInterface";
 // import * as motionsInterface from "./types/motionInterface";
 // import * as objectInterface from "./types/objectInterface";
+// import * as environmentInterface from "./types/environmentInterface";
 
 // Color mapping
 // const COLOR_MAP: { [key: string]: string } = {
@@ -41,6 +42,7 @@ interface AnimationData {
   interactions?: any[];
   fields?: any[];
   materials?: any[];
+  environments?: any[];
 }
 
 class MatterManager {
@@ -108,6 +110,8 @@ class MatterManager {
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
+    
+
 
     // Create ground
     const ground: Matter.Body = Matter.Bodies.rectangle(
