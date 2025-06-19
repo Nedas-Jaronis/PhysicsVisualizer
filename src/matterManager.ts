@@ -46,6 +46,13 @@ interface AnimationData {
   environments?: any[];
 }
 
+function toCanvasCoords(x: number, y: number, canvasWidth: number, canvasHeight: number) {
+  return {
+    x: canvasWidth / 2 + x,
+    y: canvasHeight - y
+  };
+}
+
 class MatterManager {
   private canvas: HTMLCanvasElement;
   private engine: Matter.Engine;
@@ -127,25 +134,29 @@ class MatterManager {
         switch (environment.type) {
           case "ground":
             const groundX = environment.position?.x ?? canvasWidth / 2;
-            const groundY = environment.position?.y ?? canvasHeight - 50;
             const groundWidth = environment.width ?? canvasWidth;
             const groundThickness = environment.thickness ?? 20;
-            
+            const groundY = environment.position?.y ?? (canvasHeight - groundThickness / 2);
+
+            const { x, y } = toCanvasCoords(groundX, groundY + groundThickness / 2, canvasWidth, canvasHeight);
+
             const ground = Matter.Bodies.rectangle(
-              groundX,
-              groundY,
+              x,
+              y,
               groundWidth,
               groundThickness,
               {
                 isStatic: true,
                 friction: environment.friction?.kinetic ?? 0,
                 render: {
-                  fillStyle: '#FFFFFF',
+                  fillStyle: '#FF00FF',
                   strokeStyle: '#654321',
                   lineWidth: 3
                 }
               }
             );
+            console.log("Ground created at:", groundX, groundY, "with width", groundWidth, "and thickness", groundThickness);
+
             environmentBodies.push(ground);
             break;
 
@@ -250,6 +261,8 @@ class MatterManager {
       console.log("I had this many bodies", environmentBodies.length);
     }
     console.log("This many", environmentBodies.length);
+    console.log("This is it", environmentBodies);
+
 
     const leftWall: Matter.Body = Matter.Bodies.rectangle(
       -30,
