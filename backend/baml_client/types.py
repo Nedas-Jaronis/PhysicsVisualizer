@@ -41,6 +41,13 @@ def all_succeeded(checks: Dict[CheckName, Check]) -> bool:
 
 
 
+class Environments(str, Enum):
+    
+    Cliff = "Cliff"
+    Ground = "Ground"
+    Incline = "Incline"
+    Wall = "Wall"
+
 class Forces(str, Enum):
     
     AirResistance = "AirResistance"
@@ -88,13 +95,13 @@ class Motions(str, Enum):
 class Objects(str, Enum):
     
     Object = "Object"
-    Incline = "Incline"
 
 class AnimationData(BaseModel):
     forces: List["Forces"]
     interactions: List["Interactions"]
     motions: List["Motions"]
     objects: List["Objects"]
+    environments: List["Environments"]
 
 class ProblemData(BaseModel):
     problem: str

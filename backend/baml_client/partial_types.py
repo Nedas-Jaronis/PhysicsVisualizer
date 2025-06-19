@@ -42,6 +42,7 @@ class AnimationData(BaseModel):
     interactions: List[types.Interactions]
     motions: List[types.Motions]
     objects: List[types.Objects]
+    environments: List[types.Environments]
 
 class ProblemData(BaseModel):
     problem: Optional[str] = None

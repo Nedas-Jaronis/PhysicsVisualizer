@@ -69,7 +69,13 @@ enum Motions {
 
 enum Objects {
   Object
+}
+
+enum Environments {
+  Cliff
+  Ground
   Incline
+  Wall
 }
 
 // --- AnimationData schema ---
@@ -80,6 +86,7 @@ class AnimationData {
   // materials Materials[]
   motions Motions[]
   objects Objects[]
+  environments Environments[]
 }
 
 
@@ -107,7 +114,9 @@ function Extract_animation_data(problem: string) -> AnimationData {
   
   motions: ["DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]
   
-  objects: ["Object", "Incline"]
+  objects: ["Object"]
+
+  environments: ["Cliff", "Ground", "Incline", "Wall"]
 
   ## Instructions:
   - For each detected category (force, motion, etc.), return a complete stub matching the full schema structure of that type, including all required keys (even with placeholder/default values).
@@ -120,6 +129,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - Do NOT merge or combine multiple forces of the same type into one object.
   - This data will be used in a second step to fill in the values.
   - Always assume a NormalForce acts upward on any object unless the problem explicitly states it's in free fall.
+  - Use environments to create the animation, if there is a Cliff, Ground, Incline or Wall in the animation, include it.
 
 
     ## Problem:
@@ -149,6 +159,7 @@ Given structured animation data in JSON format, your task is to fill in realisti
 11. Use y=0 as the table or ground level unless the problem states otherwise.
 12. For horizontal motion problems, initialize objects’ y positions at zero (on the surface), and set x positions distinctively.
 13. For inclined planes or vertical setups, position coordinates must respect geometry implied by the angle and physical constraints.
+14. Update environments as needed to make the animation correctly stuctured.
 
 
 ## Value Format Example:

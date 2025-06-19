@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "Unique identifier for the cliff" },
+    "type": { "type": "string", "enum": ["cliff"], "default": "cliff" },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number", "default": 0 }
+      },
+      "required": ["x", "y"]
+    },
+    "height": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Vertical drop of the cliff"
+    },
+    "width": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Horizontal extent of the cliff top"
+    },
+    "edgeType": {
+      "type": "string",
+      "enum": ["sharp", "rounded"],
+      "description": "Type of cliff edge"
+    },
+    "material": {
+      "type": "string",
+      "description": "Optional material type of the cliff face"
+    }
+  },
+  "required": ["id", "position", "height", "width"]
+}

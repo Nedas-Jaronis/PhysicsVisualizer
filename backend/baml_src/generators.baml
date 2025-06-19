@@ -16,11 +16,3 @@ generator target {
     // This controls what `b.FunctionName()` will be (sync or async).
     default_client_mode sync
 }
-
-// Add TypeScript generator
-generator typescript_target {
-    output_type "typescript"
-    output_dir "../baml_client_ts"  // Different directory
-    version "0.90.0"
-    default_client_mode async
-}

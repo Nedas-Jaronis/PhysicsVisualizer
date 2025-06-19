@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "Unique identifier for the ground" },
+    "type": { "type": "string", "enum": ["ground"], "default": "ground" },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "description": "X-coordinate of origin" },
+        "y": { "type": "number", "description": "Y-coordinate of origin" },
+        "z": { "type": "number", "default": 0 }
+      },
+      "required": ["x", "y"]
+    },
+    "width": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Width of the ground surface"
+    },
+    "thickness": {
+      "type": "number",
+      "minimum": 0,
+      "default": 1,
+      "description": "Vertical thickness of the ground"
+    },
+    "friction": {
+      "type": "object",
+      "properties": {
+        "static": { "type": "number", "minimum": 0 },
+        "kinetic": { "type": "number", "minimum": 0 }
+      },
+      "required": ["kinetic"]
+    },
+    "material": {
+      "type": "string",
+      "description": "Optional material type of the ground"
+    }
+  },
+  "required": ["id", "position", "width", "friction"]
+}

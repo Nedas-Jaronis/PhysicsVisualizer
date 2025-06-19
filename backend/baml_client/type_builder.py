@@ -24,7 +24,7 @@ class TypeBuilder(_TypeBuilder):
         super().__init__(classes=set(
           ["AnimationData","ProblemData","Resume",]
         ), enums=set(
-          ["Forces","Interactions","Motions","Objects",]
+          ["Environments","Forces","Interactions","Motions","Objects",]
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
 
 
@@ -48,7 +48,7 @@ class AnimationDataAst:
     def __init__(self, tb: _TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.class_("AnimationData")
-        self._properties: typing.Set[str] = set([ "forces",  "interactions",  "motions",  "objects", ])
+        self._properties: typing.Set[str] = set([ "forces",  "interactions",  "motions",  "objects",  "environments", ])
         self._props = AnimationDataProperties(self._bldr, self._properties)
 
     def type(self) -> FieldType:
@@ -91,6 +91,10 @@ class AnimationDataProperties:
     @property
     def objects(self) -> ClassPropertyViewer:
         return ClassPropertyViewer(self.__bldr.property("objects"))
+
+    @property
+    def environments(self) -> ClassPropertyViewer:
+        return ClassPropertyViewer(self.__bldr.property("environments"))
 
     
 
@@ -195,6 +199,58 @@ class ResumeProperties:
     
 
 
+
+class EnvironmentsAst:
+    def __init__(self, tb: _TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.enum("Environments")
+        self._values: typing.Set[str] = set([ "Cliff",  "Ground",  "Incline",  "Wall", ])
+        self._vals = EnvironmentsValues(self._bldr, self._values)
+
+    def type(self) -> FieldType:
+        return self._bldr.field()
+
+    @property
+    def values(self) -> "EnvironmentsValues":
+        return self._vals
+
+
+class EnvironmentsViewer(EnvironmentsAst):
+    def __init__(self, tb: _TypeBuilder):
+        super().__init__(tb)
+
+    def list_values(self) -> typing.List[typing.Tuple[str, EnumValueViewer]]:
+        return [(name, EnumValueViewer(self._bldr.value(name))) for name in self._values]
+
+
+class EnvironmentsValues:
+    def __init__(self, enum_bldr: EnumBuilder, values: typing.Set[str]):
+        self.__bldr = enum_bldr
+        self.__values = values
+
+    
+
+    @property
+    def Cliff(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("Cliff"))
+    
+
+    @property
+    def Ground(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("Ground"))
+    
+
+    @property
+    def Incline(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("Incline"))
+    
+
+    @property
+    def Wall(self) -> EnumValueViewer:
+        return EnumValueViewer(self.__bldr.value("Wall"))
+    
+
+    
 
 class ForcesAst:
     def __init__(self, tb: _TypeBuilder):
@@ -471,7 +527,7 @@ class ObjectsAst:
     def __init__(self, tb: _TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.enum("Objects")
-        self._values: typing.Set[str] = set([ "Object",  "Incline", ])
+        self._values: typing.Set[str] = set([ "Object", ])
         self._vals = ObjectsValues(self._bldr, self._values)
 
     def type(self) -> FieldType:
@@ -500,11 +556,6 @@ class ObjectsValues:
     @property
     def Object(self) -> EnumValueViewer:
         return EnumValueViewer(self.__bldr.value("Object"))
-    
-
-    @property
-    def Incline(self) -> EnumValueViewer:
-        return EnumValueViewer(self.__bldr.value("Incline"))
     
 
     
