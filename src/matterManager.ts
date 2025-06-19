@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import { env } from "process";
 // import * as fieldsInterface from "./types/fieldInterface";
 // import * as forcesInterface from "./types/forceInterface";
 // import * as interactionsInterface from "./types/interactionInterface";
@@ -110,26 +111,146 @@ class MatterManager {
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
-    
+    const data = this.animationData
 
+    if (!data) {
+      console.warn("No animation data available to setupWorld");
+      return
+    }
 
-    // Create ground
-    const ground: Matter.Body = Matter.Bodies.rectangle(
-      canvasWidth / 2,
-      canvasHeight - 70,
-      canvasWidth,
-      60,
-      {
-        isStatic: true,
-        render: {
-          fillStyle: '#8B4513',
-          strokeStyle: '#654321',
-          lineWidth: 5
+    const environmentBodies: Matter.Body[] = [];
+
+    if (data.environments && Array.isArray(data.environments)){
+      data.environments.forEach(environment => {
+        if(!environment || typeof environment !== "object" || !environment.type) return;
+
+        switch (environment.type) {
+          case "ground":
+            const groundX = environment.position?.x ?? canvasWidth / 2;
+            const groundY = environment.position?.y ?? canvasHeight - 50;
+            const groundWidth = environment.width ?? canvasWidth;
+            const groundThickness = environment.thickness ?? 20;
+            
+            const ground = Matter.Bodies.rectangle(
+              groundX,
+              groundY,
+              groundWidth,
+              groundThickness,
+              {
+                isStatic: true,
+                friction: environment.friction?.kinetic ?? 0,
+                render: {
+                  fillStyle: '#FFFFFF',
+                  strokeStyle: '#654321',
+                  lineWidth: 3
+                }
+              }
+            );
+            environmentBodies.push(ground);
+            break;
+
+          case "incline":
+            const angleDegrees = environment.angle ?? 30;
+            const angleRadians = angleDegrees * (Math.PI / 100);
+
+            const posX = environment.position?.x ?? canvasWidth / 2;
+            const posY = environment.position?.y ?? canvasHeight - 100;
+
+            const length = environment.length ?? 200;
+            const width = environment.width ?? 30;
+
+            const frictionKinetic = environment.friction?.kinetic?? 0;
+            const frictionStatic = environment.friction?.static ?? 0;
+
+            const incline = Matter.Bodies.rectangle(
+              posX,
+              posY,
+              length,
+              width,
+              {
+                isStatic: true,
+                angle: angleRadians,
+                friction: frictionKinetic,
+                frictionStatic: frictionStatic,
+                render: {
+                  fillStyle: '#999999',
+                  strokeStyle: '#666666',
+                  lineWidth: 2
+                }
+              }
+            );
+
+            environmentBodies.push(incline);
+            break;
+
+          case "cliff":
+            const cliffX = environment.position?.x ?? canvasWidth / 2;
+            const cliffY = environment.position?.y ?? canvasHeight - 150;
+
+            const cliffWidth = environment.width ?? 150;
+            const cliffHeight = environment.height ?? 150;
+
+            const centerY = cliffY + cliffHeight / 2;
+
+            const cliff = Matter.Bodies.rectangle(
+              cliffX,
+              centerY,
+              cliffWidth,
+              cliffHeight,
+              {
+                isStatic: true,
+                friction: 0.6,
+                render:{
+                  fillStyle: environment.material === "rock" ? '#7B6F50' : '#885E3D',
+                  strokeStyle: '#5A4B31',
+                  lineWidth: 3,
+                }
+              }
+            );
+
+            environmentBodies.push(cliff);
+            break;
+
+          case "wall":
+            const wallX = environment.position?.x ?? canvasWidth / 2;
+            const wallY = environment.position?.y ?? canvasHeight / 2;
+
+            const wallWidth = environment.width ?? 50;
+            const wallHeight = environment.height ?? 200;
+            const wallThickness = environment.thickness ?? 0.5;
+
+            // Matter.js bodies are centered, so center by position.
+            // We create a rectangle with wallWidth and wallHeight.
+
+            const wall = Matter.Bodies.rectangle(
+              wallX,
+              wallY,
+              wallWidth,
+              wallHeight,
+              {
+                isStatic: true,
+                friction: 0.4,
+                restitution: environment.isReflective ? 0.9 : 0.1, // High restitution if reflective
+                render: {
+                  fillStyle: environment.material === "metal" ? "#A9A9A9" : "#888888",
+                  strokeStyle: "#555555",
+                  lineWidth: 2
+                }
+              }
+            );
+
+            environmentBodies.push(wall);
+            break;
         }
-      }
-    );
+      });
+    }
 
-    // Create left and right walls
+    if(environmentBodies.length > 0) {
+      Matter.World.add(this.world, environmentBodies);
+      console.log("I had this many bodies", environmentBodies.length);
+    }
+    console.log("This many", environmentBodies.length);
+
     const leftWall: Matter.Body = Matter.Bodies.rectangle(
       -30,
       canvasHeight / 2,
@@ -143,20 +264,20 @@ class MatterManager {
       }
     );
 
-    const rightWall: Matter.Body = Matter.Bodies.rectangle(
-      canvasWidth + 30,
-      canvasHeight / 2,
-      60,
-      canvasHeight,
-      {
-        isStatic: true,
-        render: {
-          fillStyle: '#666666'
-        }
+  const rightWall: Matter.Body = Matter.Bodies.rectangle(
+    canvasWidth + 30,
+    canvasHeight / 2,
+    60,
+    canvasHeight,
+    {
+      isStatic: true,
+      render: {
+        fillStyle: '#666666'
       }
-    );
+    }
+  );
 
-    Matter.World.add(this.world, [ground, leftWall, rightWall]);
+  Matter.World.add(this.world, [leftWall, rightWall]);
   }
 
   private drawForceArrows(): void {
