@@ -11,7 +11,7 @@ export interface Orientation {
 export interface Object {
     id: string;
     type?: string;
-    mass: string;
+    mass: number;
     position: Vector;
     velocity?: Vector;
     acceleration?: Vector;

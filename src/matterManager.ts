@@ -5,7 +5,8 @@ import { env } from "process";
 // import * as interactionsInterface from "./types/interactionInterface";
 // import * as materialsInterface from "./types/materialsInterface";
 // import * as motionsInterface from "./types/motionInterface";
-// import * as objectInterface from "./types/objectInterface";
+import { Object as PhysicsObject } from "./types/objectInterface";
+import { getEnvironmentData } from "worker_threads";
 // import * as environmentInterface from "./types/environmentInterface";
 
 // Color mapping
@@ -30,11 +31,7 @@ interface ForceData {
   applied_to: string;
 }
 
-interface ObjectData {
-  id: string;
-  mass: number;
-  position?: { x: number; y: number };
-}
+type ObjectData = PhysicsObject;
 
 interface AnimationData {
   forces?: ForceData[];
@@ -51,8 +48,8 @@ function toCanvasCoords(x: number, y: number, canvasWidth: number, canvasHeight:
     const CenterHeight = canvasHeight * 0.90;
   return {
     
-    x: CenterWidth + x,
-    y:  CenterHeight - y
+    x: (CenterWidth + x),
+    y:  (CenterHeight - y)
   };
 }
 
@@ -139,7 +136,7 @@ class MatterManager {
         switch (environment.type) {
           case "ground":
             const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const groundWidth =( environment.width ?? canvasWidth) * scale;
+            const groundWidth =( environment.width ?? canvasWidth) * canvasWidth;
             const groundThickness = (environment.thickness ?? 20) * scale;
             const groundY = (environment.position?.y ?? 0) * scale;
 
@@ -595,7 +592,13 @@ class MatterManager {
 
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
+    const environments = this.animationData?.environments ?? [];
+    const scale =50
 
+
+    const groundEnvironment = environments.find(env=> env.type === "ground");
+    const groundThickness = groundEnvironment?.thickness * 50;
+    console.log("The thickness is", groundThickness);
     // Setup the world first
     this.setupWorld();
 
@@ -610,14 +613,20 @@ class MatterManager {
     data.objects.forEach((obj: ObjectData) => {
       if (!obj) return;
       
-      const x: number = obj.position?.x ?? 0;
-      const y: number = obj.position?.y ?? 0;
+      const x: number = (obj.position?.x ?? 0) * scale;
+      const y: number = (obj.position?.y ?? 0) * scale;
 
-      const scale =50
+
       // Appropriately sized rectangular blocks
-      const width: number = 50;
-      const height: number = 40;
-      const { x: xValue , y: yValue} = toCanvasCoords(x, y, canvasWidth, canvasHeight);
+      const width = (obj.width ?? 50) * scale;
+      const height = (obj.height ?? 40) * scale;
+
+      const blockHeightWorld = height / scale;
+      const groundThicknessWorld = groundThickness;
+
+      const adjustedY = y+ groundThicknessWorld / 2 + blockHeightWorld / 2;
+
+      const { x: xValue , y: yValue} = toCanvasCoords(x, adjustedY, canvasWidth, canvasHeight);
       const body: Matter.Body = Matter.Bodies.rectangle(
         xValue,
         yValue,
@@ -627,8 +636,8 @@ class MatterManager {
           mass: obj.mass || 1,
           label: obj.id || 'unknown',
           frictionAir: 0.005, // Minimal air resistance
-          friction: 0.01, // Very small friction
-          restitution: 0.3, // Some bounce for realism
+          friction: 0.0, // Very small friction
+          restitution: 0, // Some bounce for realism
           render: {
             fillStyle: obj.id === "m1" ? "#FF6B6B" : "#4ECDC4",
             strokeStyle: "#333",
