@@ -171,8 +171,8 @@ class MatterManager {
             const { x: InclineX, y: InclineY } = toCanvasCoords(inclineX, inclineY, canvasWidth, canvasHeight);
 
 
-            const length = environment.length ?? 200;
-            const width = environment.width ?? 30;
+            const length = (environment.length ?? 200)*scale;
+            const width = (environment.width ?? 30) * scale;
 
             const frictionKinetic = environment.friction?.kinetic?? 0;
             const frictionStatic = environment.friction?.static ?? 0;
