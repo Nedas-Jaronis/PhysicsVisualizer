@@ -142,7 +142,7 @@ class MatterManager {
           case "ground":
             const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
             const groundWidth =( environment.width ?? canvasWidth) * scale;
-            const groundHeight_ = (environment?.height ?? 20) * scale;
+            const groundHeight_ = 20;
             const groundY = (environment.position?.y ?? 0) * scale;
 
             const { x, y } = toCanvasCoords(groundX, groundY, canvasWidth, canvasHeight);
@@ -195,7 +195,7 @@ class MatterManager {
             let groundTopY = null;
             if (groundIncline) {
               const groundY = (groundIncline.position?.y ?? 0) * scale;
-              const groundHeight = (groundIncline.height ?? 20) * scale;
+              const groundHeight = 20;
               const { y: groundCanvasY } = toCanvasCoords(0, groundY, canvasWidth, canvasHeight);
               groundTopY = groundCanvasY - groundHeight / 2;
             }
@@ -335,7 +335,7 @@ class MatterManager {
           //Wall Properties
           const ground_ = data.environments?.find(env => env.type === "ground");
           if(ground_){
-            const groundHeight = (ground_?.height ?? 20) * scale;
+            const groundHeight = 20;
             const groundYCoord = (ground_?.position?.y ?? 0) * scale;
             
             const groundTopY = groundYCoord + groundHeight / 2;
