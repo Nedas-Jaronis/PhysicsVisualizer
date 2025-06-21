@@ -109,17 +109,17 @@ class MatterManager {
     Matter.Render.run(this.render);
 
     // Add custom rendering for force arrows
-    Matter.Events.on(this.render, 'afterRender', () => {
-      this.drawForceArrows();
-      this.drawObjectLabels();
-    });
+    // Matter.Events.on(this.render, 'afterRender', () => {
+    //   this.drawForceArrows();
+    //   this.drawObjectLabels();
+    // });
   }
 
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
-    const scale = 50;
+    const scale = 25;
 
 
     if (!data) {
@@ -139,8 +139,9 @@ class MatterManager {
             const groundWidth =( environment.width ?? canvasWidth) * canvasWidth;
             const groundThickness = (environment.thickness ?? 20) * scale;
             const groundY = (environment.position?.y ?? 0) * scale;
+            const groundW = (environment.width ?? 0)
 
-            const { x, y } = toCanvasCoords(groundX, groundY + groundThickness / 2, canvasWidth, canvasHeight);
+            const { x, y } = toCanvasCoords(groundX, groundY, groundW, canvasHeight);
  
             const ground = Matter.Bodies.rectangle(
               x,
@@ -199,11 +200,11 @@ class MatterManager {
             break;
 
           case "cliff":
-            const cliffX = environment.position?.x ?? canvasWidth / 2;
-            const cliffY = environment.position?.y ?? canvasHeight - 150;
+            const cliffX = (environment.position?.x ?? canvasWidth / 2) * scale;
+            const cliffY = (environment.position?.y ?? canvasHeight - 150) * scale;
 
-            const cliffWidth = environment.width ?? 150;
-            const cliffHeight = environment.height ?? 150;
+            const cliffWidth = (environment.width ?? 150) * scale;
+            const cliffHeight = (environment.height ?? 150) * scale;
 
             const centerY = cliffY + cliffHeight / 2;
 
@@ -227,19 +228,18 @@ class MatterManager {
             break;
 
           case "wall":
-            const wallX = environment.position?.x ?? canvasWidth / 2;
-            const wallY = environment.position?.y ?? canvasHeight / 2;
+            const wallX = (environment.position?.x ?? canvasWidth / 2) * scale;
+            const wallY = (environment.position?.y ?? canvasHeight / 2) * scale;
 
-            const wallWidth = environment.width ?? 50;
-            const wallHeight = environment.height ?? 200;
-            const wallThickness = environment.thickness ?? 0.5;
+            const wallWidth = (environment.width ?? 50) * scale;
+            const wallHeight = (environment.height ?? 200) * scale;
+            const wallThickness = (environment.thickness ?? 0.5) * scale;
 
-            // Matter.js bodies are centered, so center by position.
-            // We create a rectangle with wallWidth and wallHeight.
+            const { x: wall_X, y: wall_Y } = toCanvasCoords (wallX, wallY, wallWidth, wallHeight);
 
             const wall = Matter.Bodies.rectangle(
-              wallX,
-              wallY,
+              wall_X,
+              wall_Y,
               wallWidth,
               wallHeight,
               {

@@ -130,6 +130,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - This data will be used in a second step to fill in the values.
   - Always assume a NormalForce acts upward on any object unless the problem explicitly states it's in free fall.
   - Use environments to create the animation, if there is a Cliff, Ground, Incline or Wall in the animation, include it.
+  - If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
 
 
     ## Problem:
@@ -160,6 +161,8 @@ Given structured animation data in JSON format, your task is to fill in realisti
 12. For horizontal motion problems, initialize objects’ y positions at zero (on the surface), and set x positions distinctively.
 13. For inclined planes or vertical setups, position coordinates must respect geometry implied by the angle and physical constraints.
 14. Update environments as needed to make the animation correctly stuctured.
+15. If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
+
 
 
 ## Value Format Example:
