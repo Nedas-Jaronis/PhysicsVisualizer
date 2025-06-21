@@ -7,6 +7,7 @@ import { env } from "process";
 // import * as motionsInterface from "./types/motionInterface";
 import { Object as PhysicsObject } from "./types/objectInterface";
 import { getEnvironmentData } from "worker_threads";
+import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 // import * as environmentInterface from "./types/environmentInterface";
 
 // Color mapping
@@ -69,6 +70,7 @@ class MatterManager {
   private renderContext: CanvasRenderingContext2D | null = null;
   private animationData: AnimationData | null = null;
   private scale: number = 1;
+  private groundHeight: number = 20;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -126,6 +128,7 @@ class MatterManager {
     const groundBodies: Matter.Body[] = [];
     const data = this.animationData
     const scale = this.scale;
+    const heightGround = this.groundHeight;
 
 
     if (!data) {
@@ -143,7 +146,7 @@ class MatterManager {
           case "ground":
             const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
             const groundWidth =( environment.width ?? canvasWidth) * scale;
-            const groundHeight_ = 20;
+            const groundHeight_ = heightGround;
             const groundY = (environment.position?.y ?? 0) * scale;
 
             const { x, y } = toCanvasCoords(groundX, groundY, canvasWidth, canvasHeight);
@@ -196,7 +199,7 @@ class MatterManager {
             let groundTopY = null;
             if (groundIncline) {
               const groundY = (groundIncline.position?.y ?? 0) * scale;
-              const groundHeight = 20;
+              const groundHeight = heightGround;
               const { y: groundCanvasY } = toCanvasCoords(0, groundY, canvasWidth, canvasHeight);
               groundTopY = groundCanvasY - groundHeight / 2;
             }
@@ -277,7 +280,7 @@ class MatterManager {
             
             const groundCliff = data.environments?.find(env => env.type === "ground");
             if(groundCliff){
-              const groundH = 20;
+              const groundH = heightGround;
               const groundYCliff = (groundCliff?.position?.y ?? 0) * scale;
               
               const groundTopYCoord = groundYCliff + groundH / 2;
@@ -336,7 +339,7 @@ class MatterManager {
           //Wall Properties
           const ground_ = data.environments?.find(env => env.type === "ground");
           if(ground_){
-            const groundHeight = 20;
+            const groundHeight = heightGround;
             const groundYCoord = (ground_?.position?.y ?? 0) * scale;
             
             const groundTopY = groundYCoord + groundHeight / 2;
@@ -415,13 +418,49 @@ class MatterManager {
   );
 
   if(environmentBodies.length > 0 || groundBodies.length >0){
-    Matter.World.add(this.world, [...environmentBodies, ...groundBodies]);
+    Matter.World.add(this.world, [...environmentBodies, ...groundBodies, rightWall, leftWall]);
   }
 
 
   // Matter.World.add(this.world, [leftWall, rightWall]);
   }
-  
+
+  public setupObjects(): void {
+  const data = this.animationData;
+  if (!data || !Array.isArray(data.objects)) return;
+  const groundHeight = this.groundHeight;
+
+  const scale = this.scale;
+  const canvasWidth = this.canvas.clientWidth;
+  const canvasHeight = this.canvas.clientHeight;
+
+  data.objects.forEach((obj: ObjectData) => {
+    const x = (obj.position?.x ?? 0) * scale;
+    const y = ((obj.position?.y ?? 0) * scale) +( groundHeight / 2);
+    const width = (obj.width ?? 50) * scale;
+    const height = (obj.height ?? 50) * scale;
+
+    const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
+
+    const body = Matter.Bodies.rectangle(xCanvas, yCanvas, width, height, {
+      mass: obj.mass ?? 1,
+      friction: 0,
+      restitution: 0,
+      frictionAir: 0.002,
+      render: {
+        fillStyle: "#4ECDC4",
+        strokeStyle: "#333",
+        lineWidth: 2,
+      },
+    });
+
+    Matter.World.add(this.world, body);
+
+    // Track bodies by ID for later
+    if (obj.id) this.bodies.set(obj.id, body);
+  });
+}
+
 
   private drawForceArrows(): void {
     if (!this.renderContext || !this.animationData) return;
@@ -747,6 +786,16 @@ class MatterManager {
 
   public startAnimation(): void {
     this.resetAnimation();
+    this.setupWorld();
+    this.setupObjects();
+
+    // Disable gravity for horizontal frictionless surface
+    this.engine.world.gravity.y = 0;
+    this.engine.world.gravity.x = 0;
+
+    // Set much slower engine timing for realistic physics
+    this.engine.timing.timeScale = this.timeScale;
+
     const data: AnimationData | null = this.animationData;
     if (!data || !Array.isArray(data.objects)) return;
 
@@ -759,67 +808,7 @@ class MatterManager {
 
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
-    const groundThickness = groundEnvironment?.thickness * scale;
-
-    console.log("The thickness is", groundThickness);
-    // Setup the world first
-    this.setupWorld();
-
-    // Disable gravity for horizontal frictionless surface
-    this.engine.world.gravity.y = 0;
-    this.engine.world.gravity.x = 0;
-
-    // Set much slower engine timing for realistic physics
-    this.engine.timing.timeScale = this.timeScale;
-
-
-
-
-    // Create bodies from object data with more realistic properties
-    data.objects.forEach((obj: ObjectData) => {
-      if (!obj) return;
-      
-      const x: number = (obj.position?.x ?? 0) * scale;
-      const y: number = (obj.position?.y ?? 0) * scale;
-
-
-      // Appropriately sized rectangular blocks
-      const width = (obj.width ?? 50) * scale;
-      const height = (obj.height ?? 40) * scale;
-
-      const blockHeightWorld = height / scale;
-      const groundThicknessWorld = groundThickness;
-
-      const adjustedY = y+ groundThicknessWorld / 2 + blockHeightWorld / 2;
-
-      const { x: xValue , y: yValue} = toCanvasCoords(x, adjustedY, canvasWidth, canvasHeight);
-      const body: Matter.Body = Matter.Bodies.rectangle(
-        xValue,
-        yValue,
-        width,
-        height,
-        {
-          mass: obj.mass || 1,
-          label: obj.id || 'unknown',
-          frictionAir: 0.005, // Minimal air resistance
-          friction: 0.0, // Very small friction
-          restitution: 0, // Some bounce for realism
-          render: {
-            fillStyle: obj.id === "m1" ? "#FF6B6B" : "#4ECDC4",
-            strokeStyle: "#333",
-            lineWidth: 2,
-          },
-        }
-      );
-
-      // Store mass info for custom rendering
-      (body as any).massLabel = `${obj.mass || 1}kg`;
-
-      Matter.World.add(this.world, body);
-      if (obj.id) {
-        this.bodies.set(obj.id, body);
-      }
-    });
+    const groundThickness = (groundEnvironment?.thickness ?? 20) * scale;
 
     // Create rope constraint between m1 and m2 if they exist
     const m1Body: Matter.Body | undefined = this.bodies.get("m1");
