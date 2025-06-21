@@ -109,17 +109,17 @@ class MatterManager {
     Matter.Render.run(this.render);
 
     // Add custom rendering for force arrows
-    // Matter.Events.on(this.render, 'afterRender', () => {
-    //   this.drawForceArrows();
-    //   this.drawObjectLabels();
-    // });
+    Matter.Events.on(this.render, 'afterRender', () => {
+      this.drawForceArrows();
+      this.drawObjectLabels();
+    });
   }
 
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
-    const scale = 25;
+    const scale = 50;
 
 
     if (!data) {
@@ -136,18 +136,17 @@ class MatterManager {
         switch (environment.type) {
           case "ground":
             const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const groundWidth =( environment.width ?? canvasWidth) * canvasWidth;
-            const groundThickness = (environment.thickness ?? 20) * scale;
+            const groundWidth =( environment.width ?? canvasWidth) * scale;
+            const groundHeight_ = (environment?.height ?? 20) * scale;
             const groundY = (environment.position?.y ?? 0) * scale;
-            const groundW = (environment.width ?? 0)
 
-            const { x, y } = toCanvasCoords(groundX, groundY, groundW, canvasHeight);
+            const { x, y } = toCanvasCoords(groundX, groundY, canvasWidth, canvasHeight);
  
             const ground = Matter.Bodies.rectangle(
               x,
               y,
               groundWidth,
-              groundThickness,
+              groundHeight_,
               {
                 isStatic: true,
                 friction: environment.friction?.kinetic ?? 0,
@@ -158,7 +157,7 @@ class MatterManager {
                 }
               }
             );
-            console.log("Ground created at:", groundX, groundY, "with width", groundWidth, "and thickness", groundThickness);
+            console.log("Ground created at:", x, y, "with width", groundWidth, "and thickness", groundHeight_);
 
             environmentBodies.push(ground);
             break;
@@ -229,13 +228,27 @@ class MatterManager {
 
           case "wall":
             const wallX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const wallY = (environment.position?.y ?? canvasHeight / 2) * scale;
-
+            
             const wallWidth = (environment.width ?? 50) * scale;
             const wallHeight = (environment.height ?? 200) * scale;
             const wallThickness = (environment.thickness ?? 0.5) * scale;
+            
+            let wallY: number;
+            //Wall Properties
+            const ground_ = data.environments?.find(env => env.type === "ground");
+            if(ground_){
+              const groundHeight = (ground_?.height ?? 20) * scale;
+              const groundYCoord = (ground_?.position?.y ?? 0) * scale;
+  
+              const groundTopY = groundYCoord + groundHeight / 2;
+              wallY = groundTopY + wallHeight / 2;
+            } else{
+              wallY = (environment.position?.y ?? canvasHeight / 2) * scale
+            }
+            
 
-            const { x: wall_X, y: wall_Y } = toCanvasCoords (wallX, wallY, wallWidth, wallHeight);
+            
+            const { x: wall_X, y: wall_Y } = toCanvasCoords (wallX, wallY, canvasWidth, canvasHeight);
 
             const wall = Matter.Bodies.rectangle(
               wall_X,
@@ -253,7 +266,7 @@ class MatterManager {
                 }
               }
             );
-
+            console.log("Wall created at", wall_X, "hi", wall_Y);
             environmentBodies.push(wall);
             break;
         }
@@ -597,7 +610,8 @@ class MatterManager {
 
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
-    const groundThickness = groundEnvironment?.thickness * 50;
+    const groundThickness = groundEnvironment?.thickness * scale;
+
     console.log("The thickness is", groundThickness);
     // Setup the world first
     this.setupWorld();
@@ -608,6 +622,9 @@ class MatterManager {
 
     // Set much slower engine timing for realistic physics
     this.engine.timing.timeScale = this.timeScale;
+
+
+
 
     // Create bodies from object data with more realistic properties
     data.objects.forEach((obj: ObjectData) => {

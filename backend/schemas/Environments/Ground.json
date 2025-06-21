@@ -17,11 +17,11 @@
       "minimum": 0,
       "description": "Width of the ground surface"
     },
-    "thickness": {
+    "height": {
       "type": "number",
       "minimum": 0,
       "default": 1,
-      "description": "Vertical thickness of the ground"
+      "description": "Vertical height of the ground"
     },
     "friction": {
       "type": "object",

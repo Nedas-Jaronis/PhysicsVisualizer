@@ -26,7 +26,7 @@ export interface Ground {
     z?: number; // default 0
   };
   width: number;
-  thickness?: number; // default 1
+  height?: number; // default 1
   friction: {
     static?: number;
     kinetic: number;
