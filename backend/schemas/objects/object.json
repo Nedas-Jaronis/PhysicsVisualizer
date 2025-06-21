@@ -24,6 +24,10 @@
       "required": ["x", "y"],
       "description": "Starting position"
     },
+    "onCliff":{
+      "type": "boolean",
+      "description": "true or false whether the object is on a cliff or not."
+    },
     "velocity": {
       "type": "object",
       "properties": {

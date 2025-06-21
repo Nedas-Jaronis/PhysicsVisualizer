@@ -19,4 +19,5 @@ export interface Object {
     angular_velocity: number;
     width?: number;
     height?: number;
+    onCliff?: boolean;
 }

@@ -71,6 +71,11 @@ class MatterManager {
   private animationData: AnimationData | null = null;
   private scale: number = 1;
   private groundHeight: number = 20;
+  private cliffTopX?: number;
+  private cliffTopY?: number;
+  private cliffHeight?: number;
+  private cliffEdge?: "left" | "right" | "center"; // if you’re using this for logic
+
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -325,6 +330,11 @@ class MatterManager {
             );
 
             environmentBodies.push(cliff);
+
+            this.cliffTopX = cliffX - (cliffWidth);
+            this.cliffTopY = cliffY + (cliffHeight / 2);
+            this.cliffHeight = cliffHeight;
+
             break;
 
           case "wall":
@@ -434,11 +444,22 @@ class MatterManager {
   const canvasWidth = this.canvas.clientWidth;
   const canvasHeight = this.canvas.clientHeight;
 
+
+
   data.objects.forEach((obj: ObjectData) => {
-    const x = (obj.position?.x ?? 0) * scale;
-    const y = ((obj.position?.y ?? 0) * scale) +( groundHeight / 2);
+    let x = (obj.position?.x ?? 0) * scale;
+    let y = ((obj.position?.y ?? 0) * scale) +( groundHeight / 2);
     const width = (obj.width ?? 50) * scale;
     const height = (obj.height ?? 50) * scale;
+
+    const cliffCheck = obj.onCliff;
+
+    if (cliffCheck && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
+      x = this.cliffTopX;
+
+      // Position the object directly on the top of the cliff
+      y = this.cliffTopY - height / 2;
+    }
 
     const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
 
