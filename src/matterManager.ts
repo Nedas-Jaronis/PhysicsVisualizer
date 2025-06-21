@@ -119,7 +119,7 @@ class MatterManager {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
-    const scale = 57;
+    const scale = 20;
 
 
     if (!data) {
@@ -200,16 +200,31 @@ class MatterManager {
 
           case "cliff":
             const cliffX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const cliffY = (environment.position?.y ?? canvasHeight - 150) * scale;
+
 
             const cliffWidth = (environment.width ?? 150) * scale;
             const cliffHeight = (environment.height ?? 150) * scale;
 
-            const centerY = cliffY + cliffHeight / 2;
+            let cliffY: number;
+            
+            const groundCliff = data.environments?.find(env => env.type === "ground");
+            if(groundCliff){
+              const groundH = (groundCliff?.height ?? 20) * scale;
+              const groundYCliff = (groundCliff?.position?.y ?? 0) * scale;
+              
+              const groundTopYCoord = groundYCliff + groundH / 2;
+              cliffY = groundTopYCoord + cliffHeight / 2;
+            } else{
+              cliffY = (environment.position?.y ?? canvasHeight - 150) * scale;
+            }
+
+            const { x: cliff_X, y: cliff_Y} = toCanvasCoords (cliffX, cliffY, canvasWidth, canvasHeight);
+
+
 
             const cliff = Matter.Bodies.rectangle(
-              cliffX,
-              centerY,
+              cliff_X,
+              cliff_Y,
               cliffWidth,
               cliffHeight,
               {
