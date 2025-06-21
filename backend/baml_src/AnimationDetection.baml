@@ -160,7 +160,7 @@ Given structured animation data in JSON format, your task is to fill in realisti
 11. Use y=0 as the table or ground level unless the problem states otherwise.
 12. For horizontal motion problems, initialize objects’ y positions at zero (on the surface), and set x positions distinctively.
 13. For inclined planes or vertical setups, position coordinates must respect geometry implied by the angle and physical constraints.
-14. Update environments as needed to make the animation correctly stuctured.
+14. Update environments as needed to make the animation correctly stuctured, if more then one environment type is needed then use it.
 15. If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
 
 

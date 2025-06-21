@@ -36,6 +36,11 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the wall reflects motion (for collision response)"
+    },
+    "edge": {
+      "type": "string", 
+      "enum": ["right", "left"],
+      "description": "Whether the wall is on the right edge or left edge"
     }
   },
   "required": ["id", "position", "height", "width"]

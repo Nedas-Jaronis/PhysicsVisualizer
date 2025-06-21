@@ -45,13 +45,15 @@ interface AnimationData {
 
 function toCanvasCoords(x: number, y: number, canvasWidth: number, canvasHeight: number) {
     const CenterWidth = canvasWidth / 2;
-    const CenterHeight = canvasHeight * 0.90;
+    const CenterHeight = canvasHeight /2;
   return {
     
     x: (CenterWidth + x),
     y:  (CenterHeight - y)
   };
 }
+
+
 
 class MatterManager {
   private canvas: HTMLCanvasElement;
@@ -66,6 +68,7 @@ class MatterManager {
   private forceUpdateHandler: (() => void) | null = null;
   private renderContext: CanvasRenderingContext2D | null = null;
   private animationData: AnimationData | null = null;
+  private scale: number = 1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -114,12 +117,14 @@ class MatterManager {
       this.drawObjectLabels();
     });
   }
+  
 
+  
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
-    const scale = 20;
+    const scale = this.scale;
 
 
     if (!data) {
@@ -242,26 +247,35 @@ class MatterManager {
             break;
 
           case "wall":
-            const wallX = (environment.position?.x ?? canvasWidth) * scale;
+          
+          
+          
+          const wallWidth = (environment.width ?? 50) * scale;
+          const wallHeight = (environment.height ?? 200) * scale;
+          const wallThickness = (environment.thickness ?? 0.5) * scale;
+          
+          let wallY: number;
+          //Wall Properties
+          const ground_ = data.environments?.find(env => env.type === "ground");
+          if(ground_){
+            const groundHeight = (ground_?.height ?? 20) * scale;
+            const groundYCoord = (ground_?.position?.y ?? 0) * scale;
             
-            const wallWidth = (environment.width ?? 50) * scale;
-            const wallHeight = (environment.height ?? 200) * scale;
-            const wallThickness = (environment.thickness ?? 0.5) * scale;
-            
-            let wallY: number;
-            //Wall Properties
-            const ground_ = data.environments?.find(env => env.type === "ground");
-            if(ground_){
-              const groundHeight = (ground_?.height ?? 20) * scale;
-              const groundYCoord = (ground_?.position?.y ?? 0) * scale;
-  
-              const groundTopY = groundYCoord + groundHeight / 2;
-              wallY = groundTopY + wallHeight / 2;
-            } else{
-              wallY = (environment.position?.y ?? canvasHeight / 2) * scale
-            }
-            
-
+            const groundTopY = groundYCoord + groundHeight / 2;
+            wallY = groundTopY + wallHeight / 2;
+          } else{
+            wallY = (environment.position?.y ?? canvasHeight / 2) * scale
+          }
+          let wallX: number;
+          const edge = environment.edge ?? "right";
+          const groundW = (ground_.width ?? 0);
+          if(edge == "right"){
+            wallX = (groundW / 2) * scale;
+          } else if (edge == "left"){
+            wallX = -(groundW / 2) * scale
+          } else{
+            wallX = (environment.position?.x ?? canvasWidth) * scale;
+          }
             
             const { x: wall_X, y: wall_Y } = toCanvasCoords (wallX, wallY, canvasWidth, canvasHeight);
 
@@ -324,6 +338,7 @@ class MatterManager {
 
   Matter.World.add(this.world, [leftWall, rightWall]);
   }
+  
 
   private drawForceArrows(): void {
     if (!this.renderContext || !this.animationData) return;
@@ -613,6 +628,40 @@ class MatterManager {
     return forceMap;
   }
 
+  private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeight: number): number {
+  let maxX = 0;
+  let maxY = 0;
+  
+  const objects = data.objects ?? [];
+  const environments = data.environments ?? [];
+
+  objects.forEach(obj => {
+    const x = obj.position?.x ?? 0;
+    const y = obj.position?.y ?? 0;
+    const width = obj.width ?? 0;
+    const height = obj.height ?? 0;
+
+    maxX = Math.max(maxX, Math.abs(x) + width / 2);
+    maxY = Math.max(maxY, Math.abs(y) + height / 2);
+  });
+
+  environments.forEach( env => {
+    const x = env.position?.x ?? 0;
+    const y = env.potsition?.y ?? 0;
+    const width = env.width ?? 0;
+    const height = env.width ?? 0;
+
+    maxX = Math.max(maxX, Math.abs(x) + width / 2);
+    maxY = Math.max(maxY, Math.abs(y) + height / 2);
+  });
+
+  const margin = 100; //Buffer pixels
+  const scaleX = (canvasWidth - margin) / (2*maxX);
+  const scaleY = (canvasHeight - margin) / (2 * maxY);
+
+  return Math.min(scaleX, scaleY);
+}
+
   public startAnimation(): void {
     this.resetAnimation();
     const data: AnimationData | null = this.animationData;
@@ -621,7 +670,9 @@ class MatterManager {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const environments = this.animationData?.environments ?? [];
-    const scale =57
+    this.scale = this.computeDynamicScale(data, canvasWidth, canvasHeight);
+    console.log("Auto Scale:", this.scale);
+    const scale = this.scale;
 
 
     const groundEnvironment = environments.find(env=> env.type === "ground");

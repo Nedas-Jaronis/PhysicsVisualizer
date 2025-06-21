@@ -61,4 +61,5 @@ export interface Wall {
   thickness?: number; // default 0.5
   material?: string;
   isReflective?: boolean; // default false
+  edge?: string;
 }
