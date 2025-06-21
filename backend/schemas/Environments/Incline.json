@@ -39,7 +39,30 @@
     "material": {
       "type": "string",
       "description": "Optional: material type of the incline surface"
-    }
+    },
+    "thickness":{
+      "type":"number",
+      "description": "Thickness of the incline (in meters)"
+    },
+    "leg": {
+      "type": "object",
+      "description": "Optional support leg for the incline",
+      "properties": {
+        "type": "string",
+        "enum": ["left", "right"],
+        "description": "Side of the incline where the leg is placed"
+      },
+      "thickness": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Thickness of the leg (in meters)"
+      },
+      "material": {
+        "type": "string",
+        "description": "Material of the leg (optional)"
+      }
+    },
+    "required": ["side", "thickness"]
   },
   "required": ["id", "angle", "position", "length", "friction"]
 }

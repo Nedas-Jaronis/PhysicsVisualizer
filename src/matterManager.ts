@@ -45,7 +45,7 @@ interface AnimationData {
 
 function toCanvasCoords(x: number, y: number, canvasWidth: number, canvasHeight: number) {
     const CenterWidth = canvasWidth / 2;
-    const CenterHeight = canvasHeight /2;
+    const CenterHeight = canvasHeight * .7;
   return {
     
     x: (CenterWidth + x),
@@ -169,7 +169,7 @@ class MatterManager {
 
           case "incline":
             const angleDegrees = environment.angle ?? 30;
-            const angleRadians = angleDegrees * (Math.PI / 100);
+            const angleRadians = angleDegrees * (Math.PI / 180);
 
             const inclineX = (environment.position?.x ?? 0) * scale;
             const inclineY = (environment.position?.y ?? 0) * scale;
@@ -177,7 +177,7 @@ class MatterManager {
 
 
             const length = (environment.length ?? 200)*scale;
-            const width = (environment.width ?? 30) * scale;
+            const width = (environment.thickness ?? 30) * scale;
 
             const frictionKinetic = environment.friction?.kinetic?? 0;
             const frictionStatic = environment.friction?.static ?? 0;
@@ -201,6 +201,40 @@ class MatterManager {
             );
 
             environmentBodies.push(incline);
+            
+
+            if(environment.leg) {
+              const legThickness = (environment.leg.thickness ?? 10) * scale;
+              const legSide = environment.leg.side ?? "left";
+
+              const legHeight = (Math.sin(angleRadians) * length);
+              const legWidth = legThickness;
+
+              let legX = InclineX;
+              if(legSide === "left") legX -= (length / 2) * Math.cos(angleRadians);
+              else if (legSide === "right") legX += (length / 2) * Math.cos(angleRadians);
+
+              const legY = InclineY + (legHeight/2);
+
+              const leg = Matter.Bodies.rectangle(
+                legX,
+                legY,
+                legWidth,
+                legHeight,
+                {
+                  isStatic: true,
+                  angle: 0,
+                  render: {
+                    fillStyle: '#444444',
+                    strokeStyle: '#222222',
+                    lineWidth: 2,
+                  }
+                }
+              );
+
+              environmentBodies.push(leg);
+            }
+
             break;
 
           case "cliff":
