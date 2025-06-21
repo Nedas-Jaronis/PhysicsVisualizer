@@ -123,6 +123,7 @@ class MatterManager {
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
+    const groundBodies: Matter.Body[] = [];
     const data = this.animationData
     const scale = this.scale;
 
@@ -164,7 +165,7 @@ class MatterManager {
             );
             console.log("Ground created at:", x, y, "with width", groundWidth, "and thickness", groundHeight_);
 
-            environmentBodies.push(ground);
+            groundBodies.push(ground);
             break;
 
           case "incline":
@@ -276,7 +277,7 @@ class MatterManager {
             
             const groundCliff = data.environments?.find(env => env.type === "ground");
             if(groundCliff){
-              const groundH = (groundCliff?.height ?? 20) * scale;
+              const groundH = 20;
               const groundYCliff = (groundCliff?.position?.y ?? 0) * scale;
               
               const groundTopYCoord = groundYCliff + groundH / 2;
@@ -413,7 +414,12 @@ class MatterManager {
     }
   );
 
-  Matter.World.add(this.world, [leftWall, rightWall]);
+  if(environmentBodies.length > 0 || groundBodies.length >0){
+    Matter.World.add(this.world, [...environmentBodies, ...groundBodies]);
+  }
+
+
+  // Matter.World.add(this.world, [leftWall, rightWall]);
   }
   
 
