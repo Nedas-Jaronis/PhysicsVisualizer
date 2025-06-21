@@ -785,27 +785,28 @@ class MatterManager {
 }
 
   public startAnimation(): void {
-    this.resetAnimation();
-    this.setupWorld();
-    this.setupObjects();
-
+    
+    
     // Disable gravity for horizontal frictionless surface
     this.engine.world.gravity.y = 0;
     this.engine.world.gravity.x = 0;
-
+    
     // Set much slower engine timing for realistic physics
     this.engine.timing.timeScale = this.timeScale;
-
+    
     const data: AnimationData | null = this.animationData;
     if (!data || !Array.isArray(data.objects)) return;
-
+    
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const environments = this.animationData?.environments ?? [];
     this.scale = this.computeDynamicScale(data, canvasWidth, canvasHeight);
     console.log("Auto Scale:", this.scale);
     const scale = this.scale;
-
+    
+    this.resetAnimation();
+    this.setupWorld();
+    this.setupObjects();
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
     const groundThickness = (groundEnvironment?.thickness ?? 20) * scale;
