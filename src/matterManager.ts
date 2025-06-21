@@ -119,7 +119,7 @@ class MatterManager {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const data = this.animationData
-    const scale = 50;
+    const scale = 57;
 
 
     if (!data) {
@@ -227,7 +227,7 @@ class MatterManager {
             break;
 
           case "wall":
-            const wallX = (environment.position?.x ?? canvasWidth / 2) * scale;
+            const wallX = (environment.position?.x ?? canvasWidth) * scale;
             
             const wallWidth = (environment.width ?? 50) * scale;
             const wallHeight = (environment.height ?? 200) * scale;
@@ -606,7 +606,7 @@ class MatterManager {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
     const environments = this.animationData?.environments ?? [];
-    const scale =50
+    const scale =57
 
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
