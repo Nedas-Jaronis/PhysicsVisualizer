@@ -204,8 +204,6 @@ class MatterManager {
             break;
 
           case "cliff":
-            const cliffX = (environment.position?.x ?? canvasWidth / 2) * scale;
-
 
             const cliffWidth = (environment.width ?? 150) * scale;
             const cliffHeight = (environment.height ?? 150) * scale;
@@ -222,6 +220,21 @@ class MatterManager {
             } else{
               cliffY = (environment.position?.y ?? canvasHeight - 150) * scale;
             }
+            
+            let cliffX: number;
+            cliffX = (environment.position?.x ?? canvasWidth / 2) * scale;
+
+
+            const edgeCliff = environment.edge ?? "right";
+            const groundWCliff = (groundCliff.width ?? 0);
+            if(edgeCliff == "right"){
+              cliffX = ((groundWCliff / 2) - environment.width / 2) * scale;
+            } else if (edgeCliff == "left"){
+              cliffX = -((groundWCliff / 2) - environment.width / 2) * scale
+            } else{
+              cliffX = (environment.position?.x ?? canvasWidth) * scale;
+            }
+
 
             const { x: cliff_X, y: cliff_Y} = toCanvasCoords (cliffX, cliffY, canvasWidth, canvasHeight);
 

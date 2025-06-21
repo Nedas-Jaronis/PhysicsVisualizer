@@ -46,6 +46,7 @@ export interface Cliff {
   width: number;
   edgeType?: "sharp" | "rounded";
   material?: string;
+  edge?: string;
 }
 
 export interface Wall {
