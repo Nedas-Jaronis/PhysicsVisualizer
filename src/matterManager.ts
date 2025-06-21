@@ -435,52 +435,68 @@ class MatterManager {
   // Matter.World.add(this.world, [leftWall, rightWall]);
   }
 
-  public setupObjects(): void {
+public setupObjects(): void {
   const data = this.animationData;
   if (!data || !Array.isArray(data.objects)) return;
-  const groundHeight = this.groundHeight;
 
   const scale = this.scale;
   const canvasWidth = this.canvas.clientWidth;
   const canvasHeight = this.canvas.clientHeight;
+  const groundHeight = this.groundHeight;
 
-
+  // Define a minimum visual size in pixels to prevent tiny objects
+  const minVisualSizePx = 20;
 
   data.objects.forEach((obj: ObjectData) => {
     let x = (obj.position?.x ?? 0) * scale;
-    let y = ((obj.position?.y ?? 0) * scale) +( groundHeight / 2);
-    const width = (obj.width ?? 50) * scale;
-    const height = (obj.height ?? 50) * scale;
+    let y = ((obj.position?.y ?? 0) * scale) + (groundHeight / 2);
 
-    const cliffCheck = obj.onCliff;
+    // Convert object size in meters → pixels using scale
+    let width = (obj.width ?? 0.5) * scale;
+    let height = (obj.height ?? 0.5) * scale;
 
-    if (cliffCheck && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
+    // Enforce a minimum visible size
+    width = Math.max(width, minVisualSizePx);
+    height = Math.max(height, minVisualSizePx);
+
+    // If the object is placed on a cliff, override its position
+    const onCliff = obj.onCliff;
+    if (onCliff && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
       x = this.cliffTopX;
-
-      // Position the object directly on the top of the cliff
       y = this.cliffTopY - height / 2;
     }
 
+    // Convert to canvas coordinates
     const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
 
-    const body = Matter.Bodies.rectangle(xCanvas, yCanvas, width, height, {
-      mass: obj.mass ?? 1,
-      friction: 0,
-      restitution: 0,
-      frictionAir: 0.002,
-      render: {
-        fillStyle: "#4ECDC4",
-        strokeStyle: "#333",
-        lineWidth: 2,
-      },
-    });
+    const body = Matter.Bodies.rectangle(
+      xCanvas,
+      yCanvas,
+      width,
+      height,
+      {
+        mass: obj.mass ?? 1,
+        isStatic: true,
+        friction: 0,
+        restitution: 0,
+        frictionAir: 0.002,
+        render: {
+          fillStyle: "#4ECDC4",
+          strokeStyle: "#333",
+          lineWidth: 2,
+        },
+      }
+    );
 
     Matter.World.add(this.world, body);
 
-    // Track bodies by ID for later
+    // Track by ID so you can access it later for forces or animation
     if (obj.id) this.bodies.set(obj.id, body);
   });
 }
+//Later access with this Matter.Body.setStatic(m1Body, false); to make it move
+// apply forces like, Matter.Body.applyForce(m1Body, m1Body.position, { x: 0.05, y: 0 });
+
 
 
   private drawForceArrows(): void {
