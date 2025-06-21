@@ -168,23 +168,54 @@ class MatterManager {
             break;
 
           case "incline":
-            const angleDegrees = environment.angle ?? 30;
-            const angleRadians = angleDegrees * (Math.PI / 180);
+            const groundIncline = data.environments?.find(env => env.type === "ground");
+            const legSide = environment.leg.type ?? "left";
 
+            let angleDegrees: number;
+            angleDegrees = environment.angle ?? 30;
+            
+            if(legSide === "left"){
+              angleDegrees = angleDegrees;
+            } else if (legSide === "right"){
+              angleDegrees = 180 - angleDegrees;
+            }
+            const angleRadians = angleDegrees * (Math.PI / 180);
+            
             const inclineX = (environment.position?.x ?? 0) * scale;
             const inclineY = (environment.position?.y ?? 0) * scale;
             const { x: InclineX, y: InclineY } = toCanvasCoords(inclineX, inclineY, canvasWidth, canvasHeight);
 
-
-            const length = (environment.length ?? 200)*scale;
+            const length = (environment.length ?? 200) * scale;
             const width = (environment.thickness ?? 30) * scale;
 
-            const frictionKinetic = environment.friction?.kinetic?? 0;
+            const frictionKinetic = environment.friction?.kinetic ?? 0;
             const frictionStatic = environment.friction?.static ?? 0;
+
+            // Calculate ground top Y:
+            let groundTopY = null;
+            if (groundIncline) {
+              const groundY = (groundIncline.position?.y ?? 0) * scale;
+              const groundHeight = (groundIncline.height ?? 20) * scale;
+              const { y: groundCanvasY } = toCanvasCoords(0, groundY, canvasWidth, canvasHeight);
+              groundTopY = groundCanvasY - groundHeight / 2;
+            }
+
+            // Calculate bottom of incline:
+            const bottomOffsetY = (length / 2) * Math.sin(angleRadians) - 7;
+            const bottomY = InclineY + bottomOffsetY;
+
+            // Calculate vertical shift needed:
+            let verticalShift = 0;
+            if (groundTopY !== null) {
+              verticalShift = groundTopY - bottomY +(width/1.9);
+            }
+
+            // Shift incline Y by verticalShift:
+            const shiftedInclineY = InclineY + verticalShift;
 
             const incline = Matter.Bodies.rectangle(
               InclineX,
-              InclineY,
+              shiftedInclineY,
               length,
               width,
               {
@@ -201,24 +232,23 @@ class MatterManager {
             );
 
             environmentBodies.push(incline);
-            
 
-            if(environment.leg) {
+            if (environment.leg) {
               const legThickness = (environment.leg.thickness ?? 10) * scale;
-              const legSide = environment.leg.side ?? "left";
 
-              const legHeight = (Math.sin(angleRadians) * length);
+
+              const legHeight = Math.sin(angleRadians) * length;
               const legWidth = legThickness;
 
-              let legX = InclineX;
-              if(legSide === "left") legX -= (length / 2) * Math.cos(angleRadians);
-              else if (legSide === "right") legX += (length / 2) * Math.cos(angleRadians);
+              let legX = InclineX - (legWidth / 5);
+              if (legSide === "left") legX -= (length / 2) * Math.cos(angleRadians);
+              else if (legSide === "right") legX -= (length / 2) * Math.cos(angleRadians);
 
-              const legY = InclineY + (legHeight/2);
+              const correctedInclineY = shiftedInclineY  - (width/2);
 
               const leg = Matter.Bodies.rectangle(
                 legX,
-                legY,
+                correctedInclineY,
                 legWidth,
                 legHeight,
                 {
