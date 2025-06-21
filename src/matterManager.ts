@@ -270,9 +270,9 @@ class MatterManager {
           const edge = environment.edge ?? "right";
           const groundW = (ground_.width ?? 0);
           if(edge == "right"){
-            wallX = (groundW / 2) * scale;
+            wallX = ((groundW / 2) - environment.width / 2) * scale;
           } else if (edge == "left"){
-            wallX = -(groundW / 2) * scale
+            wallX = -((groundW / 2) - environment.width / 2) * scale
           } else{
             wallX = (environment.position?.x ?? canvasWidth) * scale;
           }
