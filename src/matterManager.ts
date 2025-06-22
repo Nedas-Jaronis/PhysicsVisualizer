@@ -8,6 +8,7 @@ import { env } from "process";
 import { Object as PhysicsObject } from "./types/objectInterface";
 import { getEnvironmentData } from "worker_threads";
 import { createTypeReferenceDirectiveResolutionCache } from "typescript";
+import { Console } from "console";
 // import * as environmentInterface from "./types/environmentInterface";
 
 // Color mapping
@@ -73,8 +74,11 @@ class MatterManager {
   private groundHeight: number = 20;
   private cliffTopX?: number;
   private cliffTopY?: number;
-  private cliffHeight?: number;
-  private cliffEdge?: "left" | "right" | "center"; // if you’re using this for logic
+  private angleRadians?: number;
+  private InclineX?: number;
+  private InclineY?: number;
+  private InclineLength?: number;
+  private InclineWidth?: number;
 
 
   constructor(canvas: HTMLCanvasElement) {
@@ -197,8 +201,8 @@ class MatterManager {
             const length = (environment.length ?? 200) * scale;
             const width = (environment.thickness ?? 30) * scale;
 
-            const frictionKinetic = environment.friction?.kinetic ?? 0;
-            const frictionStatic = environment.friction?.static ?? 0;
+            // const frictionKinetic = environment.friction?.kinetic ?? 0;
+            // const frictionStatic = environment.friction?.static ?? 0;
 
             // Calculate ground top Y:
             let groundTopY = null;
@@ -230,8 +234,8 @@ class MatterManager {
               {
                 isStatic: true,
                 angle: angleRadians,
-                friction: frictionKinetic,
-                frictionStatic: frictionStatic,
+                friction: 0,
+                frictionStatic: 0,
                 render: {
                   fillStyle: '#999999',
                   strokeStyle: '#666666',
@@ -273,6 +277,13 @@ class MatterManager {
 
               environmentBodies.push(leg);
             }
+
+            this.angleRadians = angleRadians;
+            this.InclineX = environment.position?.x ?? 0;
+            this.InclineY = environment.position?.y ?? 0;
+            this.InclineLength = environment.length ?? 200;
+            this.InclineWidth = environment.width ?? 30;
+
 
             break;
 
@@ -333,7 +344,6 @@ class MatterManager {
 
             this.cliffTopX = cliffX - (cliffWidth);
             this.cliffTopY = cliffY + (cliffHeight / 2);
-            this.cliffHeight = cliffHeight;
 
             break;
 
@@ -342,9 +352,7 @@ class MatterManager {
           
           
           const wallWidth = (environment.width ?? 50) * scale;
-          const wallHeight = (environment.height ?? 200) * scale;
-          const wallThickness = (environment.thickness ?? 0.5) * scale;
-          
+          const wallHeight = (environment.height ?? 200) * scale;          
           let wallY: number;
           //Wall Properties
           const ground_ = data.environments?.find(env => env.type === "ground");
@@ -448,27 +456,128 @@ public setupObjects(): void {
   const minVisualSizePx = 20;
 
   data.objects.forEach((obj: ObjectData) => {
+    // Step 1: Calculate initial position in world coordinates
     let x = (obj.position?.x ?? 0) * scale;
     let y = ((obj.position?.y ?? 0) * scale) + (groundHeight / 2);
 
-    // Convert object size in meters → pixels using scale
+    // Step 2: Calculate object dimensions
     let width = (obj.width ?? 0.5) * scale;
     let height = (obj.height ?? 0.5) * scale;
 
-    // Enforce a minimum visible size
+    // Enforce minimum visible size
     width = Math.max(width, minVisualSizePx);
     height = Math.max(height, minVisualSizePx);
 
-    // If the object is placed on a cliff, override its position
-    const onCliff = obj.onCliff;
-    if (onCliff && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
+    // Step 3: Handle special positioning (cliff, incline, etc.)
+    let bodyAngle = 0; // Default angle
+
+    // Handle cliff positioning
+    if (obj.onCliff && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
       x = this.cliffTopX;
       y = this.cliffTopY - height / 2;
     }
+    
+    // Handle incline positioning
+    else if (obj.onIncline) {
+      if (
+        typeof this.InclineLength !== "number" || 
+        typeof this.angleRadians !== "number" || 
+        typeof this.InclineX !== "number" || 
+        typeof this.InclineY !== "number" ||
+        typeof this.InclineWidth !== "number"
+      ) {
+        console.warn("Incline parameters not set properly, skipping incline positioning");
+      } else if (typeof obj.inclinePositionRatio === "number") {
+        const ratio = obj.inclinePositionRatio;
+        
+        // Convert stored world coordinates to canvas coordinates first
+        const inclineWorldX = this.InclineX * scale;
+        const inclineWorldY = this.InclineY * scale;
+        const { x: inclineCanvasX, y: inclineCanvasY } = toCanvasCoords(inclineWorldX, inclineWorldY, canvasWidth, canvasHeight);
+        
+        const halfLength = (this.InclineLength * scale) / 2;
 
-    // Convert to canvas coordinates
+        // Calculate the two ends of the incline
+        const leftX = inclineCanvasX - halfLength * Math.cos(this.angleRadians);
+        const leftY = inclineCanvasY - halfLength * Math.sin(this.angleRadians);
+        const rightX = inclineCanvasX + halfLength * Math.cos(this.angleRadians);
+        const rightY = inclineCanvasY + halfLength * Math.sin(this.angleRadians);
+
+        // Determine which end is "top" (higher up on screen = smaller Y value)
+        let topX, topY, bottomX, bottomY;
+        if (leftY < rightY) {
+          // Left end is higher (top), right end is lower (bottom)
+          topX = leftX;
+          topY = leftY;
+          bottomX = rightX;
+          bottomY = rightY;
+        } else {
+          // Right end is higher (top), left end is lower (bottom)
+          topX = rightX;
+          topY = rightY;
+          bottomX = leftX;
+          bottomY = leftY;
+        }
+
+        // ratio 1 = top, ratio 0 = bottom
+        x = topX + (1 - ratio) * (bottomX - topX);
+        y = topY + (1 - ratio) * (bottomY - topY);
+        
+        // Adjust to place object ON TOP of the incline surface
+        // Move perpendicular to incline surface by half the incline width
+        // For top-left coordinate system, we need to move "up" (negative Y direction) from incline center
+        const perpOffsetX = -(this.InclineWidth * scale / 2) * Math.sin(this.angleRadians);
+        const perpOffsetY = (this.InclineWidth * scale / 2) * Math.cos(this.angleRadians);
+        
+        x += perpOffsetX;
+        y += perpOffsetY;
+        
+        // Adjust for object's center point (so bottom of object sits on incline)
+        const objOffsetX = -(height / 2) * Math.sin(this.angleRadians);
+        const objOffsetY = (height / 2) * Math.cos(this.angleRadians);
+        
+        x += objOffsetX;
+        y += objOffsetY;
+        
+        // Set the body angle to match incline
+        bodyAngle = this.angleRadians;
+        
+        // Create the physics body (already in canvas coordinates)
+        const body = Matter.Bodies.rectangle(
+          x,
+          y,
+          width,
+          height,
+          {
+            mass: obj.mass ?? 1,
+            isStatic: false,
+            friction: 0,
+            restitution: 0,
+            frictionAir: 0.002,
+            render: {
+              fillStyle: "#4ECDC4",
+              strokeStyle: "#333",
+              lineWidth: 2,
+            },
+          }
+        );
+
+        // Apply rotation
+        if (bodyAngle !== 0) {
+          Matter.Body.setAngle(body, bodyAngle);
+        }
+
+        // Add to world and track
+        Matter.World.add(this.world, body);
+        if (obj.id) this.bodies.set(obj.id, body);
+        return; // Early return to skip the normal coordinate conversion below
+      }
+    }
+
+    // Step 4: Convert to canvas coordinates (for non-incline objects)
     const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
-
+    
+    // Step 5: Create the physics body
     const body = Matter.Bodies.rectangle(
       xCanvas,
       yCanvas,
@@ -476,7 +585,7 @@ public setupObjects(): void {
       height,
       {
         mass: obj.mass ?? 1,
-        isStatic: true,
+        isStatic: false,
         friction: 0,
         restitution: 0,
         frictionAir: 0.002,
@@ -488,9 +597,15 @@ public setupObjects(): void {
       }
     );
 
+    // Step 6: Apply rotation if needed
+    if (bodyAngle !== 0) {
+      Matter.Body.setAngle(body, bodyAngle);
+    }
+
+    // Step 7: Add to world and track
     Matter.World.add(this.world, body);
 
-    // Track by ID so you can access it later for forces or animation
+    // Track by ID for later access
     if (obj.id) this.bodies.set(obj.id, body);
   });
 }

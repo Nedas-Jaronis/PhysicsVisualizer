@@ -20,4 +20,6 @@ export interface Object {
     width?: number;
     height?: number;
     onCliff?: boolean;
+    onIncline?: boolean;
+    inclinePositionRatio?: number;
 }

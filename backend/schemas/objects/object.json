@@ -28,6 +28,16 @@
       "type": "boolean",
       "description": "true or false whether the object is on a cliff or not."
     },
+    "onIncline": {
+      "type": "boolean",
+      "description": "true or false whether the object is on an incline or not."
+    },
+    "inclinePositionRatio": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Ratio (0 to 1) representing the position along the incline from bottom (0) to top (1)"
+    },
     "velocity": {
       "type": "object",
       "properties": {
