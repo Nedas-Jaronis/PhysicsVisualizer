@@ -178,6 +178,7 @@ class MatterManager {
             console.log("Ground created at:", x, y, "with width", groundWidth, "and thickness", groundHeight_);
 
             groundBodies.push(ground);
+            console.log("This is the middle", x, "the y: ", y)
             break;
 
           case "incline":
@@ -279,10 +280,10 @@ class MatterManager {
             }
 
             this.angleRadians = angleRadians;
-            this.InclineX = environment.position?.x ?? 0;
-            this.InclineY = environment.position?.y ?? 0;
-            this.InclineLength = environment.length ?? 200;
-            this.InclineWidth = environment.width ?? 30;
+            this.InclineX = (environment.position?.x ?? 0) * scale;
+            this.InclineY = (environment.position?.y ?? 0) * scale;
+            this.InclineLength = (environment.length ?? 200) * scale;
+            this.InclineWidth = (environment.width ?? 30) * scale;
 
 
             break;
@@ -478,101 +479,101 @@ public setupObjects(): void {
     }
     
     // Handle incline positioning
-    else if (obj.onIncline) {
-      if (
-        typeof this.InclineLength !== "number" || 
-        typeof this.angleRadians !== "number" || 
-        typeof this.InclineX !== "number" || 
-        typeof this.InclineY !== "number" ||
-        typeof this.InclineWidth !== "number"
-      ) {
-        console.warn("Incline parameters not set properly, skipping incline positioning");
-      } else if (typeof obj.inclinePositionRatio === "number") {
-        const ratio = obj.inclinePositionRatio;
-        
-        // Convert stored world coordinates to canvas coordinates first
-        const inclineWorldX = this.InclineX * scale;
-        const inclineWorldY = this.InclineY * scale;
-        const { x: inclineCanvasX, y: inclineCanvasY } = toCanvasCoords(inclineWorldX, inclineWorldY, canvasWidth, canvasHeight);
-        
-        const halfLength = (this.InclineLength * scale) / 2;
+else if (obj.onIncline) {
+  if (
+    typeof this.InclineLength !== "number" ||
+    typeof this.angleRadians !== "number" ||
+    typeof this.InclineX !== "number" ||
+    typeof this.InclineY !== "number" ||
+    typeof this.InclineWidth !== "number"
+  ) {
+    console.warn("Incline parameters not set properly, skipping incline positioning");
+  } else if (typeof obj.inclinePositionRatio === "number") {
+    const ratio = obj.inclinePositionRatio;
 
-        // Calculate the two ends of the incline
-        const leftX = inclineCanvasX - halfLength * Math.cos(this.angleRadians);
-        const leftY = inclineCanvasY - halfLength * Math.sin(this.angleRadians);
-        const rightX = inclineCanvasX + halfLength * Math.cos(this.angleRadians);
-        const rightY = inclineCanvasY + halfLength * Math.sin(this.angleRadians);
+    const inclineHalfLength = this.InclineLength / 2;
+    const inclineCenterX = this.InclineX;
+    const inclineCenterY = this.InclineY;
 
-        // Determine which end is "top" (higher up on screen = smaller Y value)
-        let topX, topY, bottomX, bottomY;
-        if (leftY < rightY) {
-          // Left end is higher (top), right end is lower (bottom)
-          topX = leftX;
-          topY = leftY;
-          bottomX = rightX;
-          bottomY = rightY;
-        } else {
-          // Right end is higher (top), left end is lower (bottom)
-          topX = rightX;
-          topY = rightY;
-          bottomX = leftX;
-          bottomY = leftY;
-        }
+    console.log("Incline Length", this.InclineLength, "This is the half: ", inclineHalfLength)
 
-        // ratio 1 = top, ratio 0 = bottom
-        x = topX + (1 - ratio) * (bottomX - topX);
-        y = topY + (1 - ratio) * (bottomY - topY);
-        
-        // Adjust to place object ON TOP of the incline surface
-        // Move perpendicular to incline surface by half the incline width
-        // For top-left coordinate system, we need to move "up" (negative Y direction) from incline center
-        const perpOffsetX = -(this.InclineWidth * scale / 2) * Math.sin(this.angleRadians);
-        const perpOffsetY = (this.InclineWidth * scale / 2) * Math.cos(this.angleRadians);
-        
-        x += perpOffsetX;
-        y += perpOffsetY;
-        
-        // Adjust for object's center point (so bottom of object sits on incline)
-        const objOffsetX = -(height / 2) * Math.sin(this.angleRadians);
-        const objOffsetY = (height / 2) * Math.cos(this.angleRadians);
-        
-        x += objOffsetX;
-        y += objOffsetY;
-        
-        // Set the body angle to match incline
-        bodyAngle = this.angleRadians;
-        
-        // Create the physics body (already in canvas coordinates)
-        const body = Matter.Bodies.rectangle(
-          x,
-          y,
-          width,
-          height,
-          {
-            mass: obj.mass ?? 1,
-            isStatic: false,
-            friction: 0,
-            restitution: 0,
-            frictionAir: 0.002,
-            render: {
-              fillStyle: "#4ECDC4",
-              strokeStyle: "#333",
-              lineWidth: 2,
-            },
-          }
-        );
+    console.log(inclineCenterX, "...",inclineCenterY);
+    const calculation = inclineHalfLength * Math.cos(this.angleRadians);
+    console.log("calculation: ", calculation, "Radians", this.angleRadians);
 
-        // Apply rotation
-        if (bodyAngle !== 0) {
-          Matter.Body.setAngle(body, bodyAngle);
-        }
+    const leftX = inclineCenterX - ((this.InclineLength * Math.cos(this.angleRadians))/2);
+    const leftY = inclineCenterY - (inclineHalfLength * Math.sin(this.angleRadians));
+    const rightX = inclineCenterX + (inclineHalfLength * Math.cos(this.angleRadians));
+    const rightY = inclineCenterY + (inclineHalfLength * Math.sin(this.angleRadians));
+    // Determine top and bottom ends
+    let topX, topY, bottomX, bottomY;
+if (leftY < rightY) {
+  topX = leftX;
+  topY = leftY;
+  bottomX = rightX;
+  bottomY = rightY;
+} else {
+  topX = rightX;
+  topY = rightY;
+  bottomX = leftX;
+  bottomY = leftY;
+}
+  console.log("LeftY = ", leftY, "leftX = ", leftX);
+  console.log("RightX = ", rightX, "RightY = ", rightY);
 
-        // Add to world and track
-        Matter.World.add(this.world, body);
-        if (obj.id) this.bodies.set(obj.id, body);
-        return; // Early return to skip the normal coordinate conversion below
+    console.log("TX=",topX, "TY=", topY, "BY=",bottomY, "BX=",bottomX)
+
+    // Object world position along the incline
+    x = bottomX + ratio * (topX - bottomX);
+    y = bottomY + ratio * (bottomY - topY);
+    console.log(x,"...",y)
+
+    // Width and height (scaled once)
+    const width = (obj.width ?? 50) * scale;
+    const height = (obj.height ?? 50) * scale;
+
+    // Offset upward perpendicular to incline by half width
+    const perpOffsetX = (width / 2) * Math.sin(this.angleRadians);
+    const perpOffsetY = (width / 2) * Math.cos(this.angleRadians);
+
+    // Offset upward again by object's height (to rest it *on* the surface)
+    const objOffsetX = (height / 2) * Math.sin(this.angleRadians);
+    const objOffsetY = (height / 2) * Math.cos(this.angleRadians);
+
+    // Apply total offset
+    x += perpOffsetX + objOffsetX;
+    y += perpOffsetY + objOffsetY;
+
+    // Convert final position to canvas
+    const { x: canvasX, y: canvasY } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
+    console.log("Canvas X: ", canvasX, "CanvasY", canvasY)
+
+    const body = Matter.Bodies.rectangle(
+      canvasX,
+      canvasY,
+      width,
+      height,
+      {
+        mass: obj.mass ?? 1,
+        isStatic: false,
+        friction: 0,
+        restitution: 0,
+        frictionAir: 0.002,
+        render: {
+          fillStyle: "#4ECDC4",
+          strokeStyle: "#333",
+          lineWidth: 2,
+        },
       }
-    }
+    );
+
+    Matter.Body.setAngle(body, this.angleRadians);
+    Matter.World.add(this.world, body);
+    if (obj.id) this.bodies.set(obj.id, body);
+    return; // Skip default handling
+  }
+}
+
 
     // Step 4: Convert to canvas coordinates (for non-incline objects)
     const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
