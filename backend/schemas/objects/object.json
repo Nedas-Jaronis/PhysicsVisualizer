@@ -34,7 +34,7 @@
     },
     "inclinePositionRatio": {
       "type": "number",
-      "minimum": 0,
+      "minimum": 0.2,
       "maximum": 1,
       "description": "Ratio (0.2 to 1) representing the position along the incline from bottom (0.2) to top (1)"
     },
