@@ -164,6 +164,10 @@ Given structured animation data in JSON format, your task is to fill in realisti
 14. Update environments as needed to make the animation correctly stuctured, if more then one environment type is needed then use it.
 15. If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
 16. Objects are not environments! Do not use any of the Environment names as an object these include: "Cliff", "Ground", "Incline", "Wall".
+17. Incline Orientation Rule:
+If a problem states that the incline "rises to the right", then the lower leg is on the right, so set "type": "right".
+If it "rises to the left", then the lower leg is on the left, so set "type": "left".
+Always ensure this "type" value correctly reflects the incline's visual orientation. Be consistent.
 
 
 
