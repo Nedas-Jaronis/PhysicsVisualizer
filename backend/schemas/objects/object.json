@@ -7,12 +7,12 @@
     "width" : {
       "type": "number",
       "minimum": 0,
-      "description": "Width of the object in world units"
+      "description": "Width of the object in pixels units"
     },
     "height": {
       "type": "number",
       "minimum": 0,
-      "description": "Height of the object in world units"
+      "description": "Height of the object in pixels units"
     },
     "position": {
       "type": "object",
@@ -36,7 +36,8 @@
       "type": "number",
       "minimum": 0.2,
       "maximum": 1,
-      "description": "Ratio (0.2 to 1) representing the position along the incline from bottom (0.2) to top (1)"
+      "description": "Ratio (0.2 to 1) representing the position along the incline from bottom (0.2) to top (1)",
+      "default": 1
     },
     "velocity": {
       "type": "object",

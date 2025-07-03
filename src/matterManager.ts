@@ -258,7 +258,7 @@ class MatterManager {
               if (legSide === "left") legX -= (length / 2) * Math.cos(angleRadians);
               else if (legSide === "right") legX -= (length / 2) * Math.cos(angleRadians);
 
-              const correctedInclineY = shiftedInclineY  - (width/2);
+              const correctedInclineY = shiftedInclineY  - (width/2.7);
 
               const leg = Matter.Bodies.rectangle(
                 legX,
@@ -502,9 +502,9 @@ else if (obj.onIncline) {
     console.log("calculation: ", calculation, "Radians", this.angleRadians);
 
     const leftX = inclineCenterX - ((this.InclineLength * Math.cos(this.angleRadians))/2);
-    const leftY = inclineCenterY - (inclineHalfLength * Math.sin(this.angleRadians));
-    const rightX = inclineCenterX + (inclineHalfLength * Math.cos(this.angleRadians));
-    const rightY = inclineCenterY + (inclineHalfLength * Math.sin(this.angleRadians));
+    const leftY = inclineCenterY - ((this.InclineLength * Math.sin(this.angleRadians))/2);
+    const rightX = inclineCenterX + ((this.InclineLength * Math.cos(this.angleRadians))/2);
+    const rightY = inclineCenterY + ((this.InclineLength * Math.sin(this.angleRadians))/2);
     // Determine top and bottom ends
     let topX, topY, bottomX, bottomY;
 if (leftY < rightY) {
@@ -525,7 +525,7 @@ if (leftY < rightY) {
 
     // Object world position along the incline
     x = bottomX + ratio * (topX - bottomX);
-    y = bottomY + ratio * (bottomY - topY);
+    y =  ratio * (bottomY - topY);
     console.log(x,"...",y)
 
     // Width and height (scaled once)
