@@ -7,7 +7,7 @@ client<llm> DeepseekChatClient {
     base_url "https://api.deepseek.com/v1"
     api_key "sk-40bc61c061c14be1a62008a4405f2207"
   }
-}
+} 
 
 client DeepseekR1Client {
   provider openai-generic
