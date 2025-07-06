@@ -80,6 +80,7 @@ class MatterManager {
   private InclineLength?: number;
   private InclineWidth?: number;
   private InclineLeg?: string;
+  private cliffWidth?: number;
 
 
   constructor(canvas: HTMLCanvasElement) {
@@ -347,6 +348,7 @@ class MatterManager {
 
             this.cliffTopX = cliffX - (cliffWidth);
             this.cliffTopY = cliffY + (cliffHeight / 2);
+            this.cliffWidth = cliffWidth;
 
             break;
 
@@ -474,10 +476,13 @@ public setupObjects(): void {
     // Step 3: Handle special positioning (cliff, incline, etc.)
     let bodyAngle = 0; // Default angle
 
+    const cliffW = this.cliffWidth ?? 1;
+    const objWidth = obj.width ?? 1;
+    const maxOffSet = Math.max(objWidth, cliffW); 
     // Handle cliff positioning
     if (obj.onCliff && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
-      x = this.cliffTopX;
-      y = this.cliffTopY - height / 2;
+      x = this.cliffTopX - maxOffSet;
+      y = this.cliffTopY + height / 2;
     }
     
     // Handle incline positioning
@@ -916,7 +921,16 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
   let maxY = 0;
 
   const objects = data.objects ?? [];
+  const environments = data.environments ?? [];
 
+  // Determine minimum scale based on environment types
+  const hasWideBaseEnv = environments.some(env =>
+    env.type === "ground" || env.type === "incline"
+  );
+  const MIN_SCALE = hasWideBaseEnv ? 0 : 64;
+  const MAX_SCALE = 100;
+
+  // Objects
   objects.forEach(obj => {
     const x = obj.position?.x ?? 0;
     const y = obj.position?.y ?? 0;
@@ -927,10 +941,19 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
     maxY = Math.max(maxY, Math.abs(y) + height / 2);
   });
 
-  const margin = 100;
+  // Environments
+  environments.forEach(env => {
+    const x = env.position?.x ?? 0;
+    const y = env.position?.y ?? 0;
+    const width = env.width ?? env.thickness ?? 0;
+    const height = env.height ?? 0;
 
-  // Clamp min size to keep things reasonable
-  const minSceneWidth = 5;  // in meters
+    maxX = Math.max(maxX, Math.abs(x) + width / 2);
+    maxY = Math.max(maxY, Math.abs(y) + height / 2);
+  });
+
+  const margin = 100;
+  const minSceneWidth = 5;
   const minSceneHeight = 5;
 
   const safeX = Math.max(maxX, minSceneWidth);
@@ -939,15 +962,12 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
   const scaleX = (canvasWidth - margin) / (2 * safeX);
   const scaleY = (canvasHeight - margin) / (2 * safeY);
 
-  // Target scale range based on what looks good
-  const MAX_SCALE = 100;
-  const MIN_SCALE = 64;
-
   const scale = Math.max(Math.min(scaleX, scaleY, MAX_SCALE), MIN_SCALE);
 
-  console.log("maxX:", maxX, "maxY:", maxY, "→ scale:", scale);
+  console.log("maxX:", maxX, "maxY:", maxY, "→ scale:", scale, "MIN_SCALE used:", MIN_SCALE);
   return scale;
 }
+
 
 
 
