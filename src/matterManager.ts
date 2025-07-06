@@ -200,8 +200,8 @@ class MatterManager {
             const inclineY = (environment.position?.y ?? 0) * scale;
             const { x: InclineX, y: InclineY } = toCanvasCoords(inclineX, inclineY, canvasWidth, canvasHeight);
 
-            const length = (environment.length ?? 200) * scale;
-            const width = (environment.thickness ?? 30) * scale;
+            const length = (5) * scale;
+            const width = (0.2) * scale;
 
             // const frictionKinetic = environment.friction?.kinetic ?? 0;
             // const frictionStatic = environment.friction?.static ?? 0;
@@ -256,10 +256,10 @@ class MatterManager {
               const legWidth = legThickness;
 
               let legX = InclineX - (legWidth / 5);
-              if (legSide === "left") legX -= (length / 1.96) * Math.cos(angleRadians);
-              else if (legSide === "right") legX -= (length / 1.96) * Math.cos(angleRadians);
+              if (legSide === "left") legX -= ((length / 1.96) * Math.cos(angleRadians));
+              else if (legSide === "right") legX -= (length / 1.9) * Math.cos(angleRadians);
 
-              const correctedInclineY = shiftedInclineY  - (width/2.18);
+              const correctedInclineY = shiftedInclineY  - (legWidth/2);
 
               const leg = Matter.Bodies.rectangle(
                 legX,

@@ -21,7 +21,8 @@
     "length": {
       "type": "number",
       "minimum": 0,
-      "description": "Length of the incline surface"
+      "maximum": 5,
+      "description": "Length of the incline surface, if not stated default to 5"
     },
     "width": {
       "type": "number",
@@ -42,7 +43,9 @@
     },
     "thickness":{
       "type":"number",
-      "description": "Thickness of the incline (in meters)"
+      "minimum": 0,
+      "maximum": 0.2,
+      "description": "Thickness of the incline (in meters), if not stated default to 0.2"
     },
     "leg": {
       "type": "object",
@@ -55,7 +58,8 @@
       "thickness": {
         "type": "number",
         "minimum": 0,
-        "description": "Thickness of the leg (in meters)"
+        "maximum": 0.2,
+        "description": "Thickness of the leg (in meters), if not stated default at 0.2"
       },
       "material": {
         "type": "string",
