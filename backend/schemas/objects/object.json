@@ -2,7 +2,7 @@
   "type": "object",
   "properties": {
     "id": { "type": "string", "description": "Unique identifier" },
-    "type": { "type": "string", "enum": ["particle", "rigid_body"], "default": "particle" },
+    "type": { "type": "string", "enum": ["circle", "polygon", "rectangle", "trapezoid", "fromvertices"], "default": "rectangle" },
     "mass": { "type": "number", "minimum": 0, "description": "Mass in kilograms" },
     "width" : {
       "type": "number",

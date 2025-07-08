@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import { Bodies, Body, Vector } from 'matter-js'
 import { env } from "process";
 // import * as fieldsInterface from "./types/fieldInterface";
 // import * as forcesInterface from "./types/forceInterface";
@@ -591,6 +592,7 @@ public setupObjects(): void {
     // Step 4: Convert to canvas coordinates (for non-incline objects)
     const { x: xCanvas, y: yCanvas } = toCanvasCoords(x, y, canvasWidth, canvasHeight);
     
+    
     // Step 5: Create the physics body
     const body = Matter.Bodies.rectangle(
       xCanvas,
@@ -968,6 +970,57 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
   return scale;
 }
 
+private ChooseBody(
+  x: number,
+  y: number,
+  shape: 'circle' | 'polygon' | 'rectangle' | 'trapezoid' | 'fromvertices',
+  radius?: number,
+  sides?: number,
+  width?: number,
+  height?: number,
+  slope?: number,
+  vertexSet?: Vector[]
+): Body | null {
+  let body: Body | null = null;
+
+  switch (shape.toLowerCase()) {
+    case 'circle':
+      if (radius) {
+        body = Bodies.circle(x, y, radius);
+      }
+      break;
+
+    case 'polygon':
+      if (sides && radius) {
+        body = Bodies.polygon(x, y, sides, radius);
+      }
+      break;
+
+    case 'rectangle':
+      if (width && height) {
+        body = Bodies.rectangle(x, y, width, height);
+      }
+      break;
+
+    case 'trapezoid':
+      if (width && height && slope !== undefined) {
+        body = Bodies.trapezoid(x, y, width, height, slope);
+      }
+      break;
+
+    case 'fromvertices':
+      if (vertexSet && vertexSet.length > 0) {
+        body = Bodies.fromVertices(x, y, [vertexSet], { isStatic: false }) as Body;
+      }
+      break;
+
+    default:
+      console.warn('Unknown body type:', shape);
+      break;
+  }
+
+  return body;
+}
 
 
 
