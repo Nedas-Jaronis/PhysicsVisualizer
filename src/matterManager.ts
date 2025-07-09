@@ -263,6 +263,7 @@ class MatterManager {
 
               const correctedInclineY = shiftedInclineY  - (legWidth/2);
 
+
               const leg = Matter.Bodies.rectangle(
                 legX,
                 correctedInclineY,
@@ -979,7 +980,8 @@ private ChooseBody(
   width?: number,
   height?: number,
   slope?: number,
-  vertexSet?: Vector[]
+  vertexSet?: Vector[],
+  optionalData?: Vector[],
 ): Body | null {
   let body: Body | null = null;
 
