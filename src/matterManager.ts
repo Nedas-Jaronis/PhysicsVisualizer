@@ -481,6 +481,8 @@ public setupObjects(): void {
     const cliffW = this.cliffWidth ?? 1;
     const objWidth = obj.width ?? 1;
     const maxOffSet = Math.max(objWidth, cliffW);
+    const radius = (obj.radius ?? 0.5) * scale;
+    
 
     // Cliff positioning
     if (obj.onCliff && this.cliffTopX !== undefined && this.cliffTopY !== undefined) {
@@ -504,6 +506,7 @@ public setupObjects(): void {
         const inclineHalfLength = this.InclineLength / 2;
         const inclineCenterX = this.InclineX;
         const inclineCenterY = this.InclineY;
+        
 
         const leftX = inclineCenterX - ((this.InclineLength * Math.cos(this.angleRadians)) / 2);
         const leftY = inclineCenterY - ((this.InclineLength * Math.sin(this.angleRadians)) / 2);
@@ -558,7 +561,7 @@ public setupObjects(): void {
       xCanvas,
       yCanvas,
       obj.type ?? "rectangle",
-      obj.radius,
+      radius,
       obj.sides,
       width,
       height,
