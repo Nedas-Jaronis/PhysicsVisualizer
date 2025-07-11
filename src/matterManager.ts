@@ -971,6 +971,11 @@ private ChooseBody(
       if (sides && radius) {
         body = Bodies.polygon(x, y, sides, radius, options);
       }
+      if(angle){
+        angle += Math.PI / 2
+      } else{
+        angle = Math.PI/2 
+      }
       break;
 
     case 'rectangle':
