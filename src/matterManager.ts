@@ -560,6 +560,7 @@ public setupObjects(): void {
     const body = this.ChooseBody(
       xCanvas,
       yCanvas,
+      scale,
       obj.type ?? "rectangle",
       radius,
       obj.sides,
@@ -947,6 +948,7 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
 private ChooseBody(
   x: number,
   y: number,
+  scale: number,
   shape: string,
   radius?: number,
   sides?: number,
@@ -991,10 +993,24 @@ private ChooseBody(
       break;
 
     case 'fromvertices':
-      if (vertexSet && vertexSet.length > 0) {
-        body = Bodies.fromVertices(x, y, [vertexSet],options) as Body;
-      }
-      break;
+  if (vertexSet && vertexSet.length > 0) {
+    // Scale and flip each vertex for canvas coordinates
+    const transformedVertices = vertexSet.map(v => {
+      const scaledX = v.x * scale;
+      const scaledY = v.y * scale;
+      
+      // Since we're passing relative vertices, we just need to scale — not fully translate
+      // So return relative-to-body-center coordinates
+      return {
+        x: scaledX,
+        y: scaledY
+      };
+    });
+
+    body = Bodies.fromVertices(x, y, [transformedVertices], options) as Body;
+  }
+  break;
+
 
     default:
       console.warn('Unknown body type:', shape);

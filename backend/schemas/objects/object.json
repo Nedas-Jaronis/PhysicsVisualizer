@@ -77,6 +77,12 @@
       "type": "number",
       "description": "Radius of the object, particular for circles. In pixels!"
     },
+    "slope" :{
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 1,
+      "description": "Slope of the trapezoid sides. Only used for trapezoid objects."
+    },
     "options": {
       "type": "object",
       "properties": {
@@ -87,11 +93,23 @@
         "render": {
           "type": "object",
           "properties": {
-            "fillStyle": {"type": "string"},
-            "strokeStyle": {"type": "string"},
+            "fillStyle": {"type": "string", "description": "No dark colors, only vibrant"},
+            "strokeStyle": {"type": "string", "description": "No dark colors, only vibrant"},
             "lineWidth": {"type": "number", "minimum": 0}
           }
         }
+      }
+    },
+    "vertexSet":{
+      "type": "array",
+      "description": "Array of vertices for a custom polygon shape. Used with 'fromvertices' type.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "x": { "type": "number"},
+          "y": { "type": "number" }
+        },
+        "required": ["x","y"]
       }
     }
   },
