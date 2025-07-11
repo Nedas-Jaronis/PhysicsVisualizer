@@ -68,7 +68,32 @@
       "type": "number",
       "default": 0,
       "description": "Angular velocity (for rigid bodies)"
+    },
+    "sides": {
+      "type": "number",
+      "description": "Number of sides of the object (for objects with many verticies)"
+    },
+    "radius":{
+      "type": "number",
+      "description": "Radius of the object, particular for circles. In pixels!"
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "isStatic": {"type": "boolean"},
+        "friction": { "type": "number", "minimum": 0},
+        "restitution": { "type": "number", "minimum": 0},
+        "angle": {"type": "number"},
+        "render": {
+          "type": "object",
+          "properties": {
+            "fillStyle": {"type": "string"},
+            "strokeStyle": {"type": "string"},
+            "lineWidth": {"type": "number", "minimum": 0}
+          }
+        }
+      }
     }
   },
-  "required": ["id", "mass", "position"]
+  "required": ["id", "mass", "position", "options"]
 }
