@@ -588,6 +588,10 @@ public setupObjects(): void {
     // Step 7: Add body to the physics world and track by ID
     Matter.World.add(this.world, body);
     if (obj.id) this.bodies.set(obj.id, body);
+
+  
+
+
   });
 }
 
