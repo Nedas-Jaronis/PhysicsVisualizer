@@ -5,7 +5,7 @@ import { Bodies, Body, Vector } from 'matter-js'
 // import * as forcesInterface from "./types/forceInterface";
 // import * as interactionsInterface from "./types/interactionInterface";
 // import * as materialsInterface from "./types/materialsInterface";
-// import * as motionsInterface from "./types/motionInterface";
+import * as motionsInterface from "./types/motionInterface";
 import { Object as PhysicsObject } from "./types/objectInterface";
 // import { getEnvironmentData } from "worker_threads";
 // import { createTypeReferenceDirectiveResolutionCache } from "typescript";
@@ -589,7 +589,7 @@ public setupObjects(): void {
     Matter.World.add(this.world, body);
     if (obj.id) this.bodies.set(obj.id, body);
 
-  
+  this.HandleMotions()
 
 
   });
@@ -1027,6 +1027,67 @@ private ChooseBody(
   return body;
 }
 
+private HandleMotions(): void {
+  const data = this.animationData;
+  if (!data || !Array.isArray(data.objects) || !Array.isArray(data.motions)) return;
+  
+
+  data.objects.forEach((obj: ObjectData) => {
+    const objectId = obj.id;
+    const body = this.bodies.get(objectId);
+    if(!body) return;
+
+
+    data.motions?.forEach((motion: motionsInterface.LinearMotion | motionsInterface.RotationalMotion | motionsInterface.CombinedTransRotMotion | motionsInterface.DampedOscillation | motionsInterface.ProjectileMotion2D | motionsInterface.ProjectileMotion3D | motionsInterface.RelativeMotion | motionsInterface.ResistiveMotion | motionsInterface.SimpleHarmonicMotion| motionsInterface.UniformCircularMotion) => {
+      
+      switch(motion.type){
+        case "combined_trans_rot_motion":
+          ///////
+
+          break;
+
+        case "dampedOscillation":
+          /////
+
+          break
+
+        case "linear":
+
+          ////
+          break
+
+        case "projectileMotion2D":
+
+          ///
+          break
+        
+        case "projectileMotion3D":
+          ///
+          break
+        
+        case "resistive":
+          ///
+          break
+
+        case "rotational":
+          ///
+          break
+
+        case "simpleHarmonic":
+          ///
+          break
+        
+        case "uniformCircular":
+          ///
+          break 
+      }
+
+    })
+  })
+
+
+
+}
 
 
   public startAnimation(): void {

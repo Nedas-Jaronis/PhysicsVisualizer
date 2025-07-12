@@ -28,7 +28,7 @@ export interface CombinedTransRotMotion {
 
 export interface DampedOscillation {
     type: "dampedOscillation";
-    objectId: string;
+    objectID: string;
     mass: number;
     springConstant: number;
     dampingCoefficient: number;
@@ -44,7 +44,7 @@ export interface LinearMotion {
     initialVelocity: Vector;
     acceleration: Vector;
     time: number;
-    id?: string;
+    objectID?: string;
 }
 
 export interface ProjectileMotion2D {
@@ -65,7 +65,7 @@ export interface ProjectileMotion3D {
 
 export interface RelativeMotion {
     type: "relative";
-    objectId: string;
+    objectID: string;
     referenceFrameId: string;
     objectVelocity: Vector;
     referenceFrameVelocity: Vector;
@@ -75,7 +75,7 @@ export interface RelativeMotion {
 
 export interface ResistiveMotion {
     type: "resistive";
-    objectId: string;
+    objectID: string;
     initialVelocity: Vector;
     mass: number;
     resistanceCoefficient: number;
@@ -86,7 +86,7 @@ export interface ResistiveMotion {
 
 export interface RotationalMotion {
     type: "rotational";
-    objectId: string;
+    objectID: string;
     axis: string;
     angularVelocity: number;
     duration: number;
@@ -98,7 +98,7 @@ export interface RotationalMotion {
 
 export interface SimpleHarmonicMotion {
     type: "simpleHarmonic";
-    objectId: string;
+    objectID: string;
     amplitude: number;
     angularFrequency: number;
     phase: number;
@@ -109,7 +109,7 @@ export interface SimpleHarmonicMotion {
 
 export interface UniformCircularMotion {
     type: "uniformCircular";
-    objectId: string;
+    objectID: string;
     radius: number;
     angularaVelocity: number;
     center: Vector;
