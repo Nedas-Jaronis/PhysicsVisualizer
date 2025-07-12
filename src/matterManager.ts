@@ -25,7 +25,6 @@ import { Object as PhysicsObject } from "./types/objectInterface";
 //   PINK: "#FFC0CB",
 //   TEAL: "#008080",
 // };
-
 interface ForceData {
   type: string;
   magnitude?: number;
@@ -130,9 +129,18 @@ class MatterManager {
       this.drawForceArrows();
       this.drawObjectLabels();
     });
+
+    Matter.Events.on(this.engine, 'beforeUpdate', () => {
+      this.applyDampedOscillations();
+    });
   }
   
-
+  private dampedOscillators: Map<string, {
+    mass: number;
+    springConstant: number;
+    dampingCoefficient: number;
+    equilibriumY: number;
+  }> = new Map();
   
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
@@ -588,11 +596,10 @@ public setupObjects(): void {
     // Step 7: Add body to the physics world and track by ID
     Matter.World.add(this.world, body);
     if (obj.id) this.bodies.set(obj.id, body);
-
-  this.HandleMotions()
-
-
   });
+
+  this.HandleMotions();
+  
 }
 
 //Later access with this Matter.Body.setStatic(m1Body, false); to make it move
@@ -1040,25 +1047,59 @@ private HandleMotions(): void {
 
     data.motions?.forEach((motion: motionsInterface.LinearMotion | motionsInterface.RotationalMotion | motionsInterface.CombinedTransRotMotion | motionsInterface.DampedOscillation | motionsInterface.ProjectileMotion2D | motionsInterface.ProjectileMotion3D | motionsInterface.RelativeMotion | motionsInterface.ResistiveMotion | motionsInterface.SimpleHarmonicMotion| motionsInterface.UniformCircularMotion) => {
       
+      const motionObjectId = (motion as any).objectId ?? (motion as any).id;
+      if (motionObjectId !== objectId) return;
+
       switch(motion.type){
         case "combined_trans_rot_motion":
-          ///////
+          Matter.Body.setVelocity(body, {x: motion.translation.initialVelocity.x, y: -motion.translation.initialVelocity.y });
+          
+          Matter.Body.setAngularVelocity(body, motion.rotation.initialAngularVelocity);
 
           break;
 
         case "dampedOscillation":
-          /////
+          Matter.Body.setVelocity(body, { x: motion.initialVelocity.x, y: -motion.initialVelocity.y});
+
+          this.dampedOscillators.set(objectId, {
+            mass: motion.mass,
+            springConstant: motion.springConstant,
+            dampingCoefficient: motion.dampingCoefficient,
+            equilibriumY: body.position.y - motion.initialDisplacement
+          });
 
           break
 
         case "linear":
+          const tLinear = motion.time;
+          
+          const newLinearX = motion.initialPosition.x + motion.initialVelocity.x * tLinear + 0.5 * motion.acceleration.x *tLinear * tLinear;
+          const newLinearY = motion.initialPosition.y - (motion.initialVelocity.y * tLinear + 0.5 * motion.acceleration.y * tLinear * tLinear);
 
-          ////
+          const newLinearVx = motion.initialVelocity.x + motion.acceleration.x *tLinear;
+          const newLinearVy = -(motion.initialVelocity.y + motion.acceleration.y *tLinear);
+
+          Matter.Body.setPosition(body, { x: newLinearX, y: newLinearY });
+          Matter.Body.setVelocity(body, { x: newLinearVx, y: newLinearVy });
+          
           break
 
         case "projectileMotion2D":
 
-          ///
+          const tProj2D = motion.time;
+
+          const newProj2DX = motion.initialPosition.x + motion.initialVelocity.x * tProj2D + 0.5 * motion.acceleration.x * tProj2D * tProj2D;
+
+          const newProj2DY = motion.initialPosition.y -(motion.initialVelocity.y * tProj2D + 0.5 * motion.acceleration.y * tProj2D * tProj2D);
+
+          const newProj2DVx = motion.initialVelocity.x + motion.acceleration.x * tProj2D;
+          const newProj2DVy = -(motion.initialVelocity.y + motion.acceleration.y * tProj2D);
+
+          Matter.Body.setPosition(body, { x: newProj2DX, y: newProj2DY});
+          Matter.Body.setVelocity(body, { x: newProj2DVx, y: newProj2DVy});
+
+           
+          
           break
         
         case "projectileMotion3D":
@@ -1088,6 +1129,25 @@ private HandleMotions(): void {
 
 
 }
+
+private applyDampedOscillations(): void {
+  this.dampedOscillators.forEach((osc, id) => {
+    const body = this.bodies.get(id);
+    if (!body) return;
+
+    const displacement = body.position.y - osc.equilibriumY;
+    const velocity = body.velocity.y;
+
+    const springForce = -osc.springConstant * displacement;
+    const dampingForce = -osc.dampingCoefficient * velocity;
+
+    const netForce = springForce + dampingForce;
+    const acceleration = netForce / osc.mass;
+
+    Matter.Body.applyForce(body, body.position, { x: 0, y: acceleration * osc.mass });
+  });
+}
+
 
 
   public startAnimation(): void {

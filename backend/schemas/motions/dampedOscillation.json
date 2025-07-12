@@ -18,6 +18,11 @@
       "minimum": 0,
       "description": "Spring constant (N/m)"
     },
+    "direction": {
+      "type": "string",
+      "enum": ["x", "y"],
+      "description": "Direction of oscillation axis"
+    },
     "dampingCoefficient": {
       "type": "number",
       "minimum": 0,
@@ -34,7 +39,7 @@
         "y": { "type": "number" },
         "z": { "type": "number" }
       },
-      "required": ["x", "y", "z"],
+      "required": ["x", "y"],
       "description": "Initial velocity vector at t=0 (m/s)"
     },
     "startTime": {
@@ -53,7 +58,8 @@
     "springConstant",
     "dampingCoefficient",
     "initialDisplacement",
-    "initialVelocity"
+    "initialVelocity",
+    "direction"
   ],
   "additionalProperties": false
 }

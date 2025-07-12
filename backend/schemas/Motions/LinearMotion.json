@@ -4,7 +4,7 @@
   "type": "object",
   "properties": {
     "type": { "const": "linear"},
-    "id": {
+    "objectId": {
       "type": "string",
       "description": "ID corresponding to object ID"},
     "initialPosition": {
@@ -36,5 +36,5 @@
     },
     "time": { "type": "number", "minimum": 0 }
   },
-  "required": ["type", "initialPosition", "initialVelocity", "acceleration", "time"]
+  "required": ["type", "initialPosition", "initialVelocity", "acceleration", "time", "objectId"]
 }
