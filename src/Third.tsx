@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePhysics } from "./PhysicsContent";
 import MatterManager from "./matterManager";
+import { setUpdateCallback } from "./matterManager"; // adjust path
 import "./Third.css";
 
 declare global {
@@ -23,12 +24,24 @@ const Third: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [physicsData, setPhysicsData] = useState({
     height: 0,
-    velocity: 0,
+    velocity: 1,
     time: 0,
     phase: 1,
     timeScale: 1.0,
     isPaused: false
   });
+
+  useEffect(() => {
+    // Register the callback ONCE after component mounts
+    setUpdateCallback((data) => {
+      setPhysicsData((prev) => ({
+        ...prev,
+        velocity: Math.sqrt(data.vx ** 2 + data.vy ** 2),
+        height: data.y,
+        time: data.time,
+      }));
+    });
+  }, []);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const matterManagerRef = useRef<MatterManager | null>(null);

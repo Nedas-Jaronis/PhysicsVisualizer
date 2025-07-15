@@ -26,8 +26,8 @@
     "acceleration": {
       "type": "object",
       "properties": {
-        "ax": { "type": "number", "default": 0 },
-        "ay": { "type": "number" }
+        "x": { "type": "number", "default": 0 },
+        "y": { "type": "number" }
       },
       "required": ["ax", "ay"]
     },

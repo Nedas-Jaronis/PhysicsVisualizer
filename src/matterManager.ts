@@ -33,6 +33,19 @@ interface ForceData {
   applied_to: string;
 }
 
+let onUpdateCallback: null | ((data: {
+  vx: number;
+  vy: number;
+  x: number;
+  y: number;
+  time: number;
+}) => void) = null;
+
+export function setUpdateCallback(cb: typeof onUpdateCallback) {
+  onUpdateCallback = cb;
+}
+
+
 type ObjectData = PhysicsObject;
 
 interface AnimationData {
@@ -92,7 +105,7 @@ class MatterManager {
     this.world = this.engine.world;
 
     // Set appropriate gravity (can be adjusted based on simulation type)
-    this.engine.world.gravity.y = 0.8;
+    this.engine.world.gravity.y = 9.8;
 
     // Create renderer
     this.render = Matter.Render.create({
@@ -977,6 +990,7 @@ private ChooseBody(
     case 'circle':
       if (radius) {
         body = Bodies.circle(x, y, radius * scale, options);
+        console.log("Here is the x and y coordinate", x, "...", y, "!")
       }
       break;
 
@@ -1077,22 +1091,30 @@ private HandleMotions(): void {
           const newLinearVy = -(motion.initialVelocity.y + motion.acceleration.y *tLinear);
 
           Matter.Body.setVelocity(body, { x: newLinearVx, y: newLinearVy });
-          
           break
 
         case "projectileMotion2D":
 
           const tProj2D = motion.time;
 
-          const newProj2DX = motion.initialPosition.x + motion.initialVelocity.x * tProj2D + 0.5 * motion.acceleration.x * tProj2D * tProj2D;
-
-          const newProj2DY = motion.initialPosition.y -(motion.initialVelocity.y * tProj2D + 0.5 * motion.acceleration.y * tProj2D * tProj2D);
-
           const newProj2DVx = motion.initialVelocity.x + motion.acceleration.x * tProj2D;
           const newProj2DVy = -(motion.initialVelocity.y + motion.acceleration.y * tProj2D);
-
-          Matter.Body.setPosition(body, { x: newProj2DX, y: newProj2DY});
+          console.log(motion.initialVelocity.x, motion.initialVelocity.y, tProj2D ,motion.acceleration.y)
+          console.log(newProj2DVx, "...Velocity...", newProj2DVy)
+          const x = motion.initialPosition.x
+          const y = motion.initialPosition.y
           Matter.Body.setVelocity(body, { x: newProj2DVx, y: newProj2DVy});
+          console.log(newProj2DVx, "...Velocity...", newProj2DVy) 
+
+          if (onUpdateCallback) {
+              onUpdateCallback({
+                vx: newProj2DVx,
+                vy: newProj2DVy,
+                x,
+                y,
+                time: tProj2D
+              });
+            }
 
            
           
