@@ -94,6 +94,7 @@ class MatterManager {
   private InclineWidth?: number;
   private InclineLeg?: string;
   private cliffWidth?: number;
+  private simulationStartTime: number = 0;
 
 
   constructor(canvas: HTMLCanvasElement) {
@@ -1106,16 +1107,6 @@ private HandleMotions(): void {
           Matter.Body.setVelocity(body, { x: newProj2DVx, y: newProj2DVy});
           console.log(newProj2DVx, "...Velocity...", newProj2DVy) 
 
-          if (onUpdateCallback) {
-              onUpdateCallback({
-                vx: newProj2DVx,
-                vy: newProj2DVy,
-                x,
-                y,
-                time: tProj2D
-              });
-            }
-
            
           
           break
@@ -1169,6 +1160,7 @@ private applyDampedOscillations(): void {
 
 
   public startAnimation(): void {
+    this.simulationStartTime=this.engine.timing.timestamp;
     
     
     // Disable gravity for horizontal frictionless surface
