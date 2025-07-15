@@ -976,7 +976,7 @@ private ChooseBody(
   switch (shape.toLowerCase()) {
     case 'circle':
       if (radius) {
-        body = Bodies.circle(x, y, radius, options);
+        body = Bodies.circle(x, y, radius * scale, options);
       }
       break;
 
@@ -1072,14 +1072,10 @@ private HandleMotions(): void {
 
         case "linear":
           const tLinear = motion.time;
-          
-          const newLinearX = motion.initialPosition.x + motion.initialVelocity.x * tLinear + 0.5 * motion.acceleration.x *tLinear * tLinear;
-          const newLinearY = motion.initialPosition.y - (motion.initialVelocity.y * tLinear + 0.5 * motion.acceleration.y * tLinear * tLinear);
 
           const newLinearVx = motion.initialVelocity.x + motion.acceleration.x *tLinear;
           const newLinearVy = -(motion.initialVelocity.y + motion.acceleration.y *tLinear);
 
-          Matter.Body.setPosition(body, { x: newLinearX, y: newLinearY });
           Matter.Body.setVelocity(body, { x: newLinearVx, y: newLinearVy });
           
           break
