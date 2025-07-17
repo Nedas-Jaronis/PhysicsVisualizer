@@ -68,7 +68,11 @@ export interface normalForce {
 export interface springForce {
     type: "spring_force";
     objectA: string;
-    objectB: string;
+    objectB?: string;
+    vertex?: {
+        x: number;
+        y:number;
+    };
     springConstant: number;
     restLength: number;
     dampingCoefficient?: number;

@@ -6,6 +6,14 @@
     "type": { "const": "spring_force" },
     "objectA": { "type": "string" },
     "objectB": { "type": "string" },
+    "Vertex" : {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number"},
+        "y": { "type": "number"}
+      },
+      "description": "A vertex option if body B is not given for the connecting point."
+  },
     "springConstant": {
       "type": "number",
       "minimum": 0,

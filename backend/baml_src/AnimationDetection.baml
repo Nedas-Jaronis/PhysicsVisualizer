@@ -109,7 +109,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
 
   forces: ["AirResistance", "AppliedForce", "BuoyantForce", "CentripetalForce", "FrictionForce", "GravitationalForce", "NetForce", "SpringForce", "TensionForce", "Torque", "NormalForce"]
   
-  interactions: ["Buoyancy", "Collision", "Friction", "Tension"]
+  interactions: ["Buoyancy", "Collision", "Friction", "Tension", "SpringForce"]
   
   
   motions: ["DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]

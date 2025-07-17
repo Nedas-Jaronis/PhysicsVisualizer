@@ -1,12 +1,13 @@
 import Matter, { IChamferableBodyDefinition } from "matter-js";
-import { Bodies, Body, Vector } from 'matter-js'
+import { Bodies, Body, Vector, Constraint, World} from 'matter-js'
 // import { env } from "process";
 // import * as fieldsInterface from "./types/fieldInterface";
 // import * as forcesInterface from "./types/forceInterface";
-// import * as interactionsInterface from "./types/interactionInterface";
+import * as interactionsInterface from "./types/interactionInterface";
 // import * as materialsInterface from "./types/materialsInterface";
 import * as motionsInterface from "./types/motionInterface";
 import { Object as PhysicsObject } from "./types/objectInterface";
+import { NONAME } from "dns";
 // import { getEnvironmentData } from "worker_threads";
 // import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 // import { Console, error } from "console";
@@ -616,9 +617,6 @@ public setupObjects(): void {
   
 }
 
-//Later access with this Matter.Body.setStatic(m1Body, false); to make it move
-// apply forces like, Matter.Body.applyForce(m1Body, m1Body.position, { x: 0.05, y: 0 });
-
 
 
   private drawForceArrows(): void {
@@ -1049,6 +1047,31 @@ private ChooseBody(
   return body;
 }
 
+private CreateConstraint(
+  bodyA: Body,
+  anchorOrBodyB: Body | Vector,
+  stiffness: number = 0.05,
+  length: number = 100,
+  damping: number = 0
+): Constraint {
+  const isBody = (obj: any): obj is Body => "position" in obj && "mass" in obj;
+
+  const constraintOptions = {
+    bodyA,
+    stiffness,
+    length,
+    damping,
+    ...(isBody(anchorOrBodyB)
+      ? { bodyB: anchorOrBodyB }
+      : { pointB: anchorOrBodyB })
+  };
+
+  const constraint = Constraint.create(constraintOptions);
+  World.add(this.engine.world, constraint);
+
+  return constraint;
+}
+
 private HandleMotions(): void {
   const data = this.animationData;
   if (!data || !Array.isArray(data.objects) || !Array.isArray(data.motions)) return;
@@ -1135,6 +1158,42 @@ private HandleMotions(): void {
     })
   })
 
+
+
+}
+
+private applyInteractions() : void {
+  const data = this.animationData;
+  if(!data || !Array.isArray(data.interactions)) return;
+
+  data.interactions.forEach((inter: interactionsInterface.buoyancy | interactionsInterface.collision | interactionsInterface.dragForce | interactionsInterface.electroStatic | interactionsInterface.friction | interactionsInterface.gravity | interactionsInterface.magneticForce | interactionsInterface.normalForce | interactionsInterface.springForce | interactionsInterface.tension) => {
+
+    switch(inter.type){
+      case "spring_force":
+        const bodyA = this.bodies.get(inter.objectA);
+        const bodyB = inter.objectB ? this.bodies.get(inter.objectB) : null;
+
+        if(!bodyA) {
+          console.warn(`Spring interaction skipped - objectA not found: ${inter.objectA}`);
+          return;
+        }
+        if(!bodyB && !inter.vertex){
+          console.warn(`Spring interaction skipped - neither objectB nor vertex provided`);
+          return;
+        }
+
+        this.CreateConstraint(
+          bodyA,
+          bodyB ?? inter.vertex!,
+          inter.stiffness,
+          inter.restLength,
+          inter.dampingCoefficient
+        )
+        
+        
+
+    }
+  }); 
 
 
 }
