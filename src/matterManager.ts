@@ -614,6 +614,7 @@ public setupObjects(): void {
   });
 
   this.HandleMotions();
+  this.applyInteractions();
   
 }
 
@@ -1075,7 +1076,6 @@ private CreateConstraint(
 private HandleMotions(): void {
   const data = this.animationData;
   if (!data || !Array.isArray(data.objects) || !Array.isArray(data.motions)) return;
-  
 
   data.objects.forEach((obj: ObjectData) => {
     const objectId = obj.id;
@@ -1168,6 +1168,8 @@ private applyInteractions() : void {
 
   data.interactions.forEach((inter: interactionsInterface.buoyancy | interactionsInterface.collision | interactionsInterface.dragForce | interactionsInterface.electroStatic | interactionsInterface.friction | interactionsInterface.gravity | interactionsInterface.magneticForce | interactionsInterface.normalForce | interactionsInterface.springForce | interactionsInterface.tension) => {
 
+    console.log("Hello")
+
     switch(inter.type){
       case "spring_force":
         const bodyA = this.bodies.get(inter.objectA);
@@ -1189,7 +1191,11 @@ private applyInteractions() : void {
           inter.restLength,
           inter.dampingCoefficient
         )
-        
+
+        console.log("Created the spring constraint")
+      
+      break;
+
         
 
     }

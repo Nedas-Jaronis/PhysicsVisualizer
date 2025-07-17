@@ -91,7 +91,7 @@ class Objects(str, Enum):
     Object = "Object"
 
 # #########################################################################
-# Generated classes (3)
+# Generated classes (2)
 # #########################################################################
 
 class AnimationData(BaseModel):
@@ -106,12 +106,6 @@ class ProblemData(BaseModel):
     stepByStep: str
     formulas: str
     solution: str
-
-class Resume(BaseModel):
-    name: str
-    email: str
-    experience: typing.List[str]
-    skills: typing.List[str]
 
 # #########################################################################
 # Generated type aliases (0)

@@ -132,6 +132,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - Use environments to create the animation, if there is a Cliff, Ground, Incline or Wall in the animation, include it.
   - If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
   - Objects are not environments! Do not use any of the Environment names as an object these include: "Cliff", "Ground", "Incline", "Wall".
+  - A force can also be an interaction, if so include both! If it is an interaction between two things, then list it as an interaction!
 
 
     ## Problem:

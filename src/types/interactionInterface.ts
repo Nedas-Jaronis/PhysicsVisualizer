@@ -76,6 +76,7 @@ export interface springForce {
     springConstant: number;
     restLength: number;
     dampingCoefficient?: number;
+    stiffness: number;
 }
 
 export interface tension {

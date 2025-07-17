@@ -22,9 +22,6 @@ type_map = {
     "types.ProblemData": types.ProblemData,
     "stream_types.ProblemData": stream_types.ProblemData,
 
-    "types.Resume": types.Resume,
-    "stream_types.Resume": stream_types.Resume,
-
 
     "types.Environments": types.Environments,
 

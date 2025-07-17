@@ -28,8 +28,14 @@
       "type": "number",
       "minimum": 0,
       "description": "Optional damping constant"
+    },
+    "stiffness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Stiffness of the constraint, 1 acts like a perfectly rigid body, a stiffness of 0.05 makes a loose stretchy spring."
     }
   },
-  "required": ["type", "objectA", "objectB", "springConstant", "restLength"],
+  "required": ["type", "objectA", "objectB", "springConstant", "restLength", "stiffness"],
   "additionalProperties": false
 }
