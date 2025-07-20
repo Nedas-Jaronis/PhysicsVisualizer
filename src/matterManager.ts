@@ -1070,6 +1070,8 @@ private HandleMotions(): void {
   const data = this.animationData;
   if (!data || !Array.isArray(data.objects) || !Array.isArray(data.motions)) return;
 
+   const keyframes: { objectId: string, time: number, position: { x: number, y: number }, velocity: { x: number, y: number } }[] = [];
+
   data.objects.forEach((obj: ObjectData) => {
     const objectId = obj.id;
     const body = this.bodies.get(objectId);
@@ -1131,21 +1133,159 @@ private HandleMotions(): void {
           ///
           break
         
-        case "resistive":
-          ///
-          break
+         case "resistive": {
+          // Resistive motion calculations and application
+          const {
+            objectId,
+            initialVelocity,
+            mass,
+            resistanceCoefficient,
+            externalForce = 0,
+            direction,
+            duration,
+          } = motion;
 
-        case "rotational":
-          ///
-          break
+          const body = this.bodies.get(objectId);
+          if (!body) break;
 
-        case "simpleHarmonic":
-          ///
-          break
+          const isPositive = direction === "positive" ? 1 : -1;
+          const v0 = initialVelocity.x * isPositive; // 1D motion along x-axis
+          const b = resistanceCoefficient;
+          const m = mass;
+          const F = externalForce * isPositive;
+          const tFinal = duration;
+
+          const timeStep = 0.05;
+          let t = 0;
+
+          // Calculate velocity and displacement over time and update the body's velocity
+          const initialX = body.position.x;
+          const initialY = body.position.y;
+
+          while (t <= tFinal) {
+            const v = (v0 - F / b) * Math.exp(-b * t / m) + F / b;
+            const displacement = ((v0 - F / b) * (-m / b) * (Math.exp(-b * t / m) - 1)) + (F / b) * t;
+            const x = initialX + displacement * isPositive;
+
+            // Apply velocity to the body
+            Matter.Body.setVelocity(body, { x: v * isPositive, y: 0 });
+
+            t += timeStep;
+          }
+          break;
+        }
+
+        case "rotational": {
+          const {
+            objectId,
+            axis,
+            angularVelocity,
+            duration,
+            initialAngle = 0,  // Default to 0 if not provided
+            momentOfInertia = 1,  // Default to 1 if not provided
+            torque = 0,  // Default to 0 if not provided
+          } = motion;
+
+          const body = this.bodies.get(objectId);
+          if (!body) break;
+
+          const timeStep = 0.05;
+          let t = 0;
+          let angle = initialAngle; // Starting angle
+
+          // Calculate angular acceleration: α = τ / I
+          const angularAcceleration = torque / momentOfInertia;
+          let currentAngularVelocity = angularVelocity
+          while (t <= duration) {
+            // Update angular velocity using the angular acceleration
+            currentAngularVelocity += angularAcceleration * t;
+
+            // Update angular position (angle) based on angular velocity
+            angle += currentAngularVelocity * t;
+
+            // Apply the updated angular velocity
+            Matter.Body.setAngularVelocity(body, currentAngularVelocity);
+
+            // Apply the updated position (angle) as well (optional)
+            // You can use this for visualization purposes, although the Matter.js engine handles angular position internally.
+            body.angle = angle;
+
+            t += timeStep;
+          }
+          break;
+        }
+
+
+
+        case "simpleHarmonic": {
+          const {
+            objectId,
+            amplitude,
+            angularFrequency,
+            phase = 0,  // Default phase to 0 if not provided
+            duration,
+          } = motion;
+
+          const body = this.bodies.get(objectId);
+          if (!body) break;
+
+          const timeStep = 0.05;
+          let t = 0;
+
+          // Calculate displacement and velocity using SHM equations
+          while (t <= duration) {
+            // Displacement: x(t) = A * cos(ω * t + φ)
+            const displacement = amplitude * Math.cos(angularFrequency * t + phase);
+
+            // Velocity: v(t) = -A * ω * sin(ω * t + φ)
+            const velocity = -amplitude * angularFrequency * Math.sin(angularFrequency * t + phase);
+
+            // Apply position (displacement) to the body (this will move the body along the y-axis)
+            Matter.Body.setPosition(body, { x: body.position.x, y: body.position.y + displacement });
+
+            // Apply velocity to the body (this will update the body's velocity)
+            Matter.Body.setVelocity(body, { x: velocity, y: 0 });
+
+            t += timeStep;
+          }
+          break;
+        }
+
         
-        case "uniformCircular":
-          ///
-          break 
+        case "uniformCircular": {
+          const {
+            objectId,
+            radius,
+            angularVelocity,
+            initialAngle = 0,  // Default initial angle to 0 if not provided
+            duration,
+          } = motion;
+
+          const body = this.bodies.get(objectId);
+          if (!body) break;
+
+          const timeStep = 0.05;
+          let t = 0;
+
+          // Calculate angular position (θ) = ω * t + initialAngle
+          let angle = initialAngle;
+
+          while (t <= duration) {
+            // Update angular position based on angular velocity and time
+            angle = (angularVelocity * t + initialAngle) % (2 * Math.PI); // Keep angle within 0 to 2π
+
+            // Convert from polar to Cartesian coordinates for position
+            const x = body.position.x + radius * Math.cos(angle);
+            const y = body.position.y + radius * Math.sin(angle);
+
+            // Apply the new position to the body
+            Matter.Body.setPosition(body, { x, y });
+
+            t += timeStep;
+          }
+          break;
+        }
+
       }
 
     })

@@ -112,7 +112,7 @@ export interface UniformCircularMotion {
     type: "uniformCircular";
     objectId: string;
     radius: number;
-    angularaVelocity: number;
+    angularVelocity: number;
     center: Vector;
     duration: number;
     repeat?: boolean;
