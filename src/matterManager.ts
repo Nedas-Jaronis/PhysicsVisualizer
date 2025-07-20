@@ -160,9 +160,6 @@ class MatterManager {
   private setupWorld(): void {
     const canvasWidth: number = this.canvas.clientWidth;
     const canvasHeight: number = this.canvas.clientHeight;
-    const PIXELS_PER_METER = Math.min(
-      canvasWidth
-    );
 
     const groundBodies: Matter.Body[] = [];
     const data = this.animationData
