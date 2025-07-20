@@ -915,20 +915,11 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
   const objects = data.objects ?? [];
   const environments = data.environments ?? [];
 
-  // Determine minimum scale based on environment types
-  const hasWideBaseEnv = environments.some(env =>
-    env.type === "ground" || env.type === "incline"
-  );
-  const MIN_SCALE = hasWideBaseEnv ? 0 : 64;
-  const MAX_SCALE = 100;
-
   // Objects
   objects.forEach(obj => {
     const x = obj.position?.x ?? 0;
     const y = obj.position?.y ?? 0;
 
-    // Determine effective half-width and half-height for scaling
-    // For circles/polygons, use radius; for rectangles/trapezoids, use width/height
     const halfWidth = obj.radius !== undefined
       ? obj.radius
       : (obj.width !== undefined ? obj.width / 2 : 0);
@@ -952,21 +943,22 @@ private computeDynamicScale(data: AnimationData, canvasWidth: number, canvasHeig
     maxY = Math.max(maxY, Math.abs(y) + height / 2);
   });
 
-  const margin = 100;
-  const minSceneWidth = 5;
-  const minSceneHeight = 5;
-
-  const safeX = Math.max(maxX, minSceneWidth);
-  const safeY = Math.max(maxY, minSceneHeight);
+  const margin = 100; // Margin around scene
+  const minSceneSize = 10; // Minimum total width/height (world units)
+  const MAX_SCALE = 100;
+  const MIN_SCALE = 50; // Prevents oversized object
+  const safeX = Math.max(maxX, minSceneSize);
+  const safeY = Math.max(maxY, minSceneSize);
 
   const scaleX = (canvasWidth - margin) / (2 * safeX);
   const scaleY = (canvasHeight - margin) / (2 * safeY);
 
   const scale = Math.max(Math.min(scaleX, scaleY, MAX_SCALE), MIN_SCALE);
 
-  console.log("maxX:", maxX, "maxY:", maxY, "→ scale:", scale, "MIN_SCALE used:", MIN_SCALE);
+  console.log("maxX:", maxX, "maxY:", maxY, "→ scale:", scale);
   return scale;
 }
+
 
 
 private ChooseBody(
@@ -989,7 +981,7 @@ private ChooseBody(
   switch (shape.toLowerCase()) {
     case 'circle':
       if (radius) {
-        body = Bodies.circle(x, y, radius * scale, options);
+        body = Bodies.circle(x, y, radius, options);
         console.log("Here is the x and y coordinate", x, "...", y, "!")
       }
       break;
