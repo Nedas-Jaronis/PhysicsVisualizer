@@ -17,8 +17,9 @@
     },
     "direction": {
       "type": "string",
-      "enum": ["attractive"],
-      "description": "Direction of gravitational force; always attractive"
+      "enum": ["x", "-x", "y", "-y"],
+      "description": "Direction of gravitational force",
+      "default": "-y"
     },
     "magnitude": {
       "type": "number",

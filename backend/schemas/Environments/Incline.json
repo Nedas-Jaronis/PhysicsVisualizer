@@ -20,9 +20,10 @@
     },
     "length": {
       "type": "number",
-      "minimum": 0,
+      "minimum": 3,
       "maximum": 5,
-      "description": "Length of the incline surface, if not stated default to 5"
+      "description": "Length of the incline surface, only pick numbers 3 to 5, nothing below 3, if not stated default to 5",
+      "default": 5
     },
     "width": {
       "type": "number",

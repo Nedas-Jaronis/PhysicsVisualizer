@@ -635,17 +635,9 @@ public setupObjects(): void {
       const body: Matter.Body | undefined = this.bodies.get(objectId);
       if (!body) return;
       forces.forEach((force: ForceData, index: number) => {
-        
-        
-        //Not working Here Fix this, specifically with the gravitational force, right where print hi is  
-        
-        
-        if (force && force.type === "applied") {
-          console.log("hi")
-
           console.log("here is the force:", forces)
           this.drawForceArrow(ctx, body, force, index, objectId);
-        }
+        
       });
     });
 
@@ -661,9 +653,11 @@ public setupObjects(): void {
     objectId: string
   ): void {
     const magnitude: number = force.magnitude ?? 0;
-    const direction: string = force.direction;
+    let direction: string = force.direction;
     const source: string = force.source || "unknown";
     const appliedTo: string = force.applied_to || objectId;
+
+    if(magnitude == 0) return
     
     // Scale arrow length based on magnitude (more realistic scaling)
     const baseArrowLength: number = 50;
@@ -675,6 +669,13 @@ public setupObjects(): void {
     let startY: number = body.position.y;
     let endX: number = startX;
     let endY: number = startY;
+    if(force.type = "gravitational"){
+      if(direction == "y"){
+        direction = "-y"
+      } else if(direction == "-y"){
+        direction = "y"
+      }
+    }
     
     // Offset start position to edge of object based on direction
     switch (direction) {
