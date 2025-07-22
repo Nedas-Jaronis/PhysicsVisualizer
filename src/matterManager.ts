@@ -226,8 +226,16 @@ class MatterManager {
             const inclineY = (environment.position?.y ?? 0) * scale;
             const { x: InclineX, y: InclineY } = toCanvasCoords(inclineX, inclineY, canvasWidth, canvasHeight);
 
-            const length = (environment.length ?? 5) * scale;
-            const width = (environment.thickness ?? 0.2) * scale;
+            let length = (environment.length ?? 5);
+            let width = (environment.thickness ?? 0.2);
+            if(length < 3){
+              length = 3
+            }
+            if(width < 0.2){
+              width = 0.2
+            }
+            length *= scale;
+            width *= scale;
 
             // const frictionKinetic = environment.friction?.kinetic ?? 0;
             // const frictionStatic = environment.friction?.static ?? 0;
@@ -262,8 +270,8 @@ class MatterManager {
               {
                 isStatic: true,
                 angle: angleRadians,
-                friction: 0,
-                frictionStatic: 0,
+                friction: 0.0000001,
+                frictionStatic: 0.0000001,
                 render: {
                   fillStyle: '#999999',
                   strokeStyle: '#666666',
@@ -985,6 +993,9 @@ private ChooseBody(
   options?: IChamferableBodyDefinition,
 ): Body | null {
   let body: Body | null = null;
+
+    if(!options) options = {};
+    options.chamfer = {radius: 5};
   
 
   switch (shape.toLowerCase()) {
