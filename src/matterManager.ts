@@ -1021,6 +1021,7 @@ private ChooseBody(
       if (width && height) {
         body = Bodies.rectangle(x, y, width, height, options);
       }
+      
       break;
 
     case 'trapezoid':
