@@ -628,15 +628,22 @@ public setupObjects(): void {
     const data: AnimationData = this.animationData;
     
     if (!data.forces) return;
-
+    
     const forceMap: Map<string, ForceData[]> = this.buildForceMap(data.forces, data.objects || []);
-
+    
     forceMap.forEach((forces: ForceData[], objectId: string) => {
       const body: Matter.Body | undefined = this.bodies.get(objectId);
       if (!body) return;
-
       forces.forEach((force: ForceData, index: number) => {
+        
+        
+        //Not working Here Fix this, specifically with the gravitational force, right where print hi is  
+        
+        
         if (force && force.type === "applied") {
+          console.log("hi")
+
+          console.log("here is the force:", forces)
           this.drawForceArrow(ctx, body, force, index, objectId);
         }
       });

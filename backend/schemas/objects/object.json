@@ -86,7 +86,7 @@
     "options": {
       "type": "object",
       "properties": {
-        "isStatic": {"type": "boolean"},
+        "isStatic": {"type": "boolean", "description": "Boolean value for whether the object is static or not, True if it does not move at all, False if it should move."},
         "friction": { "type": "number", "minimum": 0},
         "restitution": { "type": "number", "minimum": 0},
         "angle": {"type": "number"},
