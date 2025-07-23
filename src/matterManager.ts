@@ -503,43 +503,38 @@ class MatterManager {
             if (!Array.isArray(environment.constraints)) break;
 
             for (const c of environment.constraints) {
-              // Retrieve Matter.Body instances by IDs
-              const bodies: Matter.Body[] = [];
-              let validConstraint = true;
+              const connectedBodies: Matter.Body[] = [];
 
               for (const bodyId of c.bodies) {
-                const body = this.bodies.get(bodyId);
+                const body: Matter.Body | undefined = this.bodies.get(bodyId);
+                console.log(body, "...", bodyId)
                 if (!body) {
                   console.warn(`Constraint ${c.id} references unknown body ID: ${bodyId}`);
-                  validConstraint = false;
-                  break;
+                  continue;
                 }
-                bodies.push(body);
+                connectedBodies.push(body);
               }
 
-              if (!validConstraint) continue;
+              // Only apply if at least 2 valid bodies
+              for (let i = 0; i < connectedBodies.length - 1; i++) {
+                const bodyA = connectedBodies[i];
+                const bodyB = connectedBodies[i + 1];
 
-              // Create one or more Matter.Constraint instances to link the bodies
-              // For multiple bodies, create constraints between each consecutive pair
-              for (let i = 0; i < bodies.length - 1; i++) {
-                const bodyA = bodies[i];
-                const bodyB = bodies[i + 1];
-
-                const matterConstraint = Matter.Constraint.create({
+                const constraint = Matter.Constraint.create({
                   bodyA,
                   bodyB,
                   length: c.length,
                   stiffness: c.stiffness,
                   damping: c.damping ?? 0,
-                  label: c.id
+                  label: c.id,
                 });
 
-                Matter.World.add(this.world, matterConstraint);
+                Matter.World.add(this.world, constraint);
               }
             }
 
             break;
-          
+                    
           }
         }
       });
@@ -753,7 +748,6 @@ public setupObjects(): void {
       const body: Matter.Body | undefined = this.bodies.get(objectId);
       if (!body) return;
       forces.forEach((force: ForceData, index: number) => {
-          console.log("here is the force:", forces)
           this.drawForceArrow(ctx, body, force, index, objectId);
         
       });
@@ -1509,8 +1503,8 @@ private applyDampedOscillations(): void {
     const scale = this.scale;
     
     this.resetAnimation();
-    this.setupWorld();
     this.setupObjects();
+    this.setupWorld();
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
     const groundThickness = (groundEnvironment?.thickness ?? 20) * scale;

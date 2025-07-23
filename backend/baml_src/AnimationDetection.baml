@@ -77,6 +77,7 @@ enum Environments {
   Incline
   Wall
   PulleySystem
+  Constraint
 }
 
 // --- AnimationData schema ---
@@ -135,6 +136,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - Objects are not environments! Do not use any of the Environment names as an object these include: "Cliff", "Ground", "Incline", "Wall".
   - A force can also be an interaction, if so include both! If it is an interaction between two things, then list it as an interaction!
   - If blocks need a constraint, (like a rope or string) apply it as an environment!
+  - If it is a pulley system and the blocks are going down and there is no need for the ground environment then do not apply the ground environment!
 
 
     ## Problem:
@@ -171,6 +173,8 @@ Given structured animation data in JSON format, your task is to fill in realisti
 If a problem states that the incline "rises to the right", then the lower leg is on the right, so set "type": "right".
 If it "rises to the left", then the lower leg is on the left, so set "type": "left".
 Always ensure this "type" value correctly reflects the incline's visual orientation. Be consistent.
+18. If blocks need a constraint, (like a rope or string) apply it as an environment, apply that constraint!!!
+19. If it is a pulley system and the blocks are going down do not apply the ground environment unless specified!
 
 
 
