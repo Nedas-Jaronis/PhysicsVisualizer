@@ -64,3 +64,67 @@ export interface Wall {
   isReflective?: boolean; // default false
   edge?: string;
 }
+
+
+export interface PulleySystem {
+  id: string;
+  type: "pulley";
+
+  position: {
+    x: number;
+    y: number;
+    z?: number;
+  };
+
+  radius: number;
+
+  masslessString?: boolean;
+  frictionlessPulley?: boolean;
+
+  blocks: Block[];
+
+  stringLength?: number;
+
+  supports?: Support[];
+}
+
+export interface Block {
+  id: string;
+  mass: number;
+  position: {
+    x: number;
+    y: number;
+  };
+  initialVelocity?: number;
+  color?: string;
+}
+
+export interface Support {
+  position: {
+    x: number;
+    y: number;
+  };
+  length: number;
+  thickness?: number;
+  material?: string;
+}
+
+
+
+export interface ConstraintEnvironment {
+  type: "constraint";
+  constraints: Constraint[];
+}
+
+export interface Constraint {
+  id: string;
+  bodies: string[];
+  constraintType: "rope" | "spring" | "pulleyRope" | "rod";
+  massless: boolean;
+  length: number;
+  stiffness: number;
+  damping?: number;
+  pulleyId?: string | null;
+  breakForce?: number | null;
+  description?: string;
+}

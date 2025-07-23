@@ -1,0 +1,66 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "description": "Unique identifier for the pulley system" },
+    "type": { "type": "string", "enum": ["pulley"], "default": "pulley" },
+
+    "position": {
+      "type": "object",
+      "description": "Coordinates of the pulley (center of the wheel)",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "z": { "type": "number", "default": 0 }
+      },
+      "required": ["x", "y"]
+    },
+
+    "radius": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.1,
+      "description": "Radius of the pulley wheel (in meters)"
+    },
+
+    "frictionlessPulley": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the pulley is frictionless (ideal)"
+    },
+
+    "supports": {
+        "type": "array",
+        "description": "Optional visual or structural supports for the pulley",
+        "items": {
+            "type": "object",
+            "properties": {
+            "position": {
+                "type": "object",
+                "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+                },
+                "required": ["x", "y"]
+            },
+            "length": {
+                "type": "number",
+                "minimum": 0.01,
+                "description": "Length (height) of the vertical support in meters"
+            },
+            "thickness": {
+                "type": "number",
+                "default": 0.1,
+                "description": "Thickness of the support"
+            },
+            "material": {
+                "type": "string",
+                "description": "Material type (optional)"
+            }
+            },
+            "required": ["position", "length"]
+        }
+        }
+  },
+  "required": ["id", "position", "radius"]
+}

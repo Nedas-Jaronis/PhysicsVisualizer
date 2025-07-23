@@ -76,6 +76,7 @@ enum Environments {
   Ground
   Incline
   Wall
+  PulleySystem
 }
 
 // --- AnimationData schema ---
@@ -116,7 +117,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   
   objects: ["Object"]
 
-  environments: ["Cliff", "Ground", "Incline", "Wall"]
+  environments: ["Cliff", "Ground", "Incline", "Wall", "PulleySystem", "Constraint"]
 
   ## Instructions:
   - For each detected category (force, motion, etc.), return a complete stub matching the full schema structure of that type, including all required keys (even with placeholder/default values).
@@ -133,6 +134,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - If an incline needs to lay on the ground make the ground environment under it, this goes for all environments if they need the ground environment under it place it.
   - Objects are not environments! Do not use any of the Environment names as an object these include: "Cliff", "Ground", "Incline", "Wall".
   - A force can also be an interaction, if so include both! If it is an interaction between two things, then list it as an interaction!
+  - If blocks need a constraint, (like a rope or string) apply it as an environment!
 
 
     ## Problem:

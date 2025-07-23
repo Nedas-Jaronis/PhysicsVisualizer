@@ -162,6 +162,7 @@ class MatterManager {
     const canvasHeight: number = this.canvas.clientHeight;
 
     const groundBodies: Matter.Body[] = [];
+    const pulleyBodies: Matter.Body[] = [];
     const data = this.animationData
     const scale = this.scale;
     const heightGround = this.groundHeight;
@@ -436,8 +437,117 @@ class MatterManager {
             console.log("Wall created at", wall_X, "hi", wall_Y);
             environmentBodies.push(wall);
             break;
+            
+
+          case "pulley": {
+
+            const pulleyX = (environment.position?.x ?? canvasWidth / 2) * scale;
+            const pulleyY = (environment.position?.y ?? canvasHeight / 2) * scale;
+            const pulleyRadius = (environment.radius ?? 0.1) * scale;
+
+
+            // Add supports if any
+            if (Array.isArray(environment.supports)) {
+              for (const support of environment.supports) {
+                const supportX = (support.position?.x ?? pulleyX) * scale;
+                const supportY = (support.position?.y ?? 0) * scale;
+                const length = (support.length ?? 1) * scale;
+                const thickness = (support.thickness ?? 0.1) * scale;
+
+                const { x: canvasSupportX, y: canvasSupportY } = toCanvasCoords(supportX, supportY + length / 2, canvasWidth, canvasHeight);
+
+                const supportRect = Matter.Bodies.rectangle(
+                  canvasSupportX,
+                  canvasSupportY,
+                  thickness,
+                  length,
+                  {
+                    isStatic: true,
+                    render: {
+                      fillStyle: '#AAAAAA',
+                      strokeStyle: '#333333',
+                      lineWidth: 2
+                    }
+                  }
+                );
+
+                pulleyBodies.push(supportRect);
+              }
+
+
+
+            const { x: canvasPulleyX, y: canvasPulleyY } = toCanvasCoords(pulleyX, pulleyY, canvasWidth, canvasHeight);
+
+            // Pulley wheel (circular body just for rendering or anchor)
+            const pulley = Matter.Bodies.circle(
+              canvasPulleyX,
+              canvasPulleyY,
+              pulleyRadius,
+              {
+                isStatic: true,
+                render: {
+                  fillStyle: '#BBBBBB',
+                  strokeStyle: '#444444',
+                  lineWidth: 2
+                }
+              }
+            );
+
+            pulleyBodies.push(pulley);
+            }
+
+            break; 
+          }
+
+          case "constraint": {
+            if (!Array.isArray(environment.constraints)) break;
+
+            for (const c of environment.constraints) {
+              // Retrieve Matter.Body instances by IDs
+              const bodies: Matter.Body[] = [];
+              let validConstraint = true;
+
+              for (const bodyId of c.bodies) {
+                const body = this.bodies.get(bodyId);
+                if (!body) {
+                  console.warn(`Constraint ${c.id} references unknown body ID: ${bodyId}`);
+                  validConstraint = false;
+                  break;
+                }
+                bodies.push(body);
+              }
+
+              if (!validConstraint) continue;
+
+              // Create one or more Matter.Constraint instances to link the bodies
+              // For multiple bodies, create constraints between each consecutive pair
+              for (let i = 0; i < bodies.length - 1; i++) {
+                const bodyA = bodies[i];
+                const bodyB = bodies[i + 1];
+
+                const matterConstraint = Matter.Constraint.create({
+                  bodyA,
+                  bodyB,
+                  length: c.length,
+                  stiffness: c.stiffness,
+                  damping: c.damping ?? 0,
+                  label: c.id
+                });
+
+                Matter.World.add(this.world, matterConstraint);
+              }
+            }
+
+            break;
+          
+          }
         }
       });
+    }
+
+    if (pulleyBodies.length > 0) {
+      Matter.World.add(this.world, pulleyBodies);
+      console.log("Pulley system added to the world with", pulleyBodies.length, "bodies.");
     }
 
     if(environmentBodies.length > 0) {

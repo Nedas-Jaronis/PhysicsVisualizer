@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["constraint"],
+      "default": "constraint",
+      "description": "Type of environment object"
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Array of constraints to be applied",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the constraint"
+          },
+          "bodies": {
+            "type": "array",
+            "description": "Array of body IDs connected by this constraint",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2
+          },
+          "constraintType": {
+            "type": "string",
+            "description": "Type of constraint (e.g. rope, spring, pulleyRope, rod)",
+            "enum": ["rope", "spring", "pulleyRope", "rod"]
+          },
+          "massless": {
+            "type": "boolean",
+            "description": "Whether the connecting element is massless",
+            "default": true
+          },
+          "length": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Rest or fixed length of the constraint in meters"
+          },
+          "stiffness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Elasticity coefficient of the constraint"
+          },
+          "damping": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Optional damping coefficient",
+            "default": 0
+          },
+          "pulleyId": {
+            "type": ["string", "null"],
+            "description": "Pulley identifier if this constraint involves a pulley",
+            "default": null
+          },
+          "breakForce": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "Optional maximum force before constraint breaks",
+            "default": null
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional human-readable description",
+            "default": ""
+          }
+        },
+        "required": ["id", "bodies", "constraintType", "massless", "length", "stiffness"]
+      }
+    }
+  },
+  "required": ["type", "constraints"]
+}
