@@ -129,3 +129,37 @@ export interface Constraint {
   description?: string;
   solid?: boolean;
 }
+
+
+export interface Pendulum {
+  id: string; // Unique identifier for the pendulum
+  type: "pendulum";
+
+  pivot: {
+    x: number;
+    y: number;
+    z?: number; // Optional for 3D applications
+  };
+
+  arm: {
+    length: number; // In meters
+    thickness?: number; // Optional width of rod or string
+    flexible?: boolean; // Whether it's a rigid rod or flexible string
+    material?: string; // Optional material name
+  };
+
+  bob: {
+    mass: number; // In kilograms
+    radius?: number; // For rendering the bob
+    color?: string;
+  };
+
+  initialAngle?: number; // In radians, from vertical downward
+  damping?: number; // Optional damping coefficient
+  gravity?: number; // Local gravity override (m/s^2)
+
+  constraints?: {
+    maxSwingAngle?: number; // Optional swing limits
+    fixedLength?: boolean; // If true, pendulum length doesn't change
+  };
+}

@@ -8,6 +8,7 @@ import * as interactionsInterface from "./types/interactionInterface";
 import * as motionsInterface from "./types/motionInterface";
 import { Object as PhysicsObject } from "./types/objectInterface";
 import { NONAME } from "dns";
+import { Pendulum } from "./types/environmentInterface";
 // import { getEnvironmentData } from "worker_threads";
 // import { createTypeReferenceDirectiveResolutionCache } from "typescript";
 // import { Console, error } from "console";
@@ -615,6 +616,65 @@ class MatterManager {
 
             break;
           }
+
+          case "pendulum": {
+            const pendulum = environment as Pendulum;
+
+            const pivotX = (pendulum.pivot.x ?? canvasWidth / 2) * scale;
+            const pivotY = (pendulum.pivot.y ?? 0) * scale;
+
+            const armLength = (pendulum.arm.length ?? 2) * scale;
+            const bobMass = pendulum.bob.mass ?? 1;
+            const bobRadius = (pendulum.bob.radius ?? 0.2) * scale;
+
+            // Convert to canvas coordinates
+            const { x: canvasPivotX, y: canvasPivotY } = toCanvasCoords(pivotX, pivotY, canvasWidth, canvasHeight);
+
+            // Calculate bob initial position based on angle
+            const angle = pendulum.initialAngle ?? 0;
+            const bobX = canvasPivotX + armLength * Math.sin(angle);
+            const bobY = canvasPivotY + armLength * Math.cos(angle);
+
+            const bob = Matter.Bodies.circle(
+              bobX,
+              bobY,
+              bobRadius,
+              {
+                mass: bobMass,
+                frictionAir: pendulum.damping ?? 0.001,
+                render: {
+                  fillStyle: pendulum.bob.color ?? "#cc0000",
+                  strokeStyle: "#000000",
+                  lineWidth: 1
+                }
+              }
+            );
+
+            // Create a constraint between pivot and bob
+            const rod = Matter.Constraint.create({
+              pointA: { x: canvasPivotX, y: canvasPivotY },
+              bodyB: bob,
+              length: armLength,
+              stiffness: 1,
+              damping: pendulum.damping ?? 0.0
+            });
+
+            // Optional pivot visual marker
+            const pivotCircle = Matter.Bodies.circle(canvasPivotX, canvasPivotY, 5, {
+              isStatic: true,
+              render: {
+                fillStyle: "#333333"
+              },
+              collisionFilter: {
+                group: -1,
+                mask: 0
+              }
+            });
+
+            Matter.World.add(this.world, [bob, rod, pivotCircle]);
+            break;
+          }
+
         }
       });
     }

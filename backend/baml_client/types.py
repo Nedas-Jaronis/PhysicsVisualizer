@@ -47,6 +47,7 @@ class Environments(str, Enum):
     Wall = "Wall"
     PulleySystem = "PulleySystem"
     Constraint = "Constraint"
+    Pendulum = "Pendulum"
 
 class Forces(str, Enum):
     AirResistance = "AirResistance"

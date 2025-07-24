@@ -70,7 +70,7 @@ class EnvironmentsAst:
     def __init__(self, tb: type_builder.TypeBuilder):
         _tb = tb._tb # type: ignore (we know how to use this private attribute)
         self._bldr = _tb.enum("Environments")
-        self._values: typing.Set[str] = set([  "Cliff",  "Ground",  "Incline",  "Wall",  "PulleySystem",  "Constraint",  ])
+        self._values: typing.Set[str] = set([  "Cliff",  "Ground",  "Incline",  "Wall",  "PulleySystem",  "Constraint",  "Pendulum",  ])
         self._vals = EnvironmentsValues(self._bldr, self._values)
 
     def type(self) -> baml_py.FieldType:
@@ -120,6 +120,10 @@ class EnvironmentsValues:
     @property
     def Constraint(self) -> type_builder.EnumValueViewer:
         return type_builder.EnumValueViewer(self.__bldr.value("Constraint"))
+    
+    @property
+    def Pendulum(self) -> type_builder.EnumValueViewer:
+        return type_builder.EnumValueViewer(self.__bldr.value("Pendulum"))
     
     
 

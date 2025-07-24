@@ -78,6 +78,7 @@ enum Environments {
   Wall
   PulleySystem
   Constraint
+  Pendulum
 }
 
 // --- AnimationData schema ---
@@ -118,7 +119,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   
   objects: ["Object"]
 
-  environments: ["Cliff", "Ground", "Incline", "Wall", "PulleySystem", "Constraint"]
+  environments: ["Cliff", "Ground", "Incline", "Wall", "PulleySystem", "Constraint", "Pendulum"]
 
   ## Instructions:
   - For each detected category (force, motion, etc.), return a complete stub matching the full schema structure of that type, including all required keys (even with placeholder/default values).
