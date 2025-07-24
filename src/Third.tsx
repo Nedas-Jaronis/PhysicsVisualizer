@@ -316,6 +316,7 @@ const Third: React.FC = () => {
         <button className="backbutton" onClick={() => navigate("/second-page")}>
           Go back
         </button>
+        <button className="NextButton" onClick={()=> navigate("/test-page")}>Go Final Page</button>
       </div>
     </div>
   );
