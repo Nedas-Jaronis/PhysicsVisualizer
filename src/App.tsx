@@ -16,7 +16,7 @@ function App() {
           <Route path="/second-page" element={<Second />} />
           <Route path = "/third-page" element={<Third />} />
           <Route path ="/formula-page" element ={<Formula />} />
-          <Route path ="/test-page" element = {<Test />} />
+          <Route path ="/'test-page" element = {<Test />} />
         </Routes>
       </div>
     </Router>

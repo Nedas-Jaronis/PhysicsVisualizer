@@ -1,30 +1,18 @@
-import React, { useEffect, useRef } from 'react';
-import { MatterManager } from './matter';
+import { useNavigate } from "react-router-dom";
 
-const AirFriction: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const matterRef = useRef<MatterManager | null>(null);
 
-  useEffect(() => {
-    if (containerRef.current) {
-      matterRef.current = new MatterManager(containerRef.current);
-    }
+const Test: React.FC = () => {
+    const navigate = useNavigate();
 
-    return () => {
-      matterRef.current?.destroy();
-    };
-  }, []);
+    return (
+        <div className="background">
+            <div className="container">
+                  <div className="button-container">
+                        <button onClick={() => navigate("/third-page")}>Go to Previous Page</button>
+                    </div>
+            </div>
+        </div>
+    )
+}
 
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        width: '800px',
-        height: '600px',
-        border: '1px solid black', // optional, helps visualize container
-      }}
-    />
-  );
-};
-
-export default AirFriction;
+export default Test;
