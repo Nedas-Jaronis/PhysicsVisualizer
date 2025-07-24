@@ -701,7 +701,7 @@ class MatterManager {
                 render: {
                   fillStyle: environment.material === "wood" ? "#A0522D" : "#888888",
                   strokeStyle: "#654321",
-                  lineWidth: 2,
+                  lineWidth: 2
                 }
               }
             );
