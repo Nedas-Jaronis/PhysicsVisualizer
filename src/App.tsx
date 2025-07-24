@@ -4,7 +4,7 @@ import First from "./first.tsx"
 import Second from "./Second.tsx";
 import Third from "./Third.tsx" 
 import Formula from "./FormulasPage.tsx"
-import Test from "./testpage.tsx"
+import Interactive from "./InteractivePage.tsx"
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
           <Route path="/second-page" element={<Second />} />
           <Route path = "/third-page" element={<Third />} />
           <Route path ="/formula-page" element ={<Formula />} />
-          <Route path ="/'test-page" element = {<Test />} />
+          <Route path ="/Interactive-page" element = {<Interactive />} />
         </Routes>
       </div>
     </Router>

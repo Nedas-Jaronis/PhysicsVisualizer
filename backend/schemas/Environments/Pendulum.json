@@ -2,24 +2,23 @@
   "id": "pendulum1",
   "type": "pendulum",
   "pivot": {
-    "x": 0,
-    "y": 0,
-    "z": 0
+    "x": "number",
+    "y": "number",
+    "z": "number"
   },
   "bob": {
-    "mass": 1.0,
-    "radius": 0.1,
-    "initialAngle": 45,
-    "color": "#ff0000"
+    "mass": "number",
+    "radius": "number",
+    "initialAngle": "number",
+    "color": "string"
   },
   "string": {
-    "length": 2.0,
-    "tension": null,
-    "damping": 0.05,
-    "stiffness": 1.0,
-    "mass": 0.0
+    "length": "number",
+    "tension": "number",
+    "damping": "number",
+    "stiffness": "number",
+    "mass": "number"
   },
-  "gravity": 9.81,
-  "frictionAir": 0.01,
-  "motionType": "simple" 
+  "gravity": "number",
+  "frictionAir": "number"
 }

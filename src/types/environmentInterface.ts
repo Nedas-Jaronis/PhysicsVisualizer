@@ -163,3 +163,19 @@ export interface Pendulum {
     fixedLength?: boolean; // If true, pendulum length doesn't change
   };
 }
+
+export interface Table {
+  id: string;
+  type: "table";
+  position: {
+    x: number;
+    y: number;
+  };
+  dimensions: {
+    width: number;
+    height: number;
+    thickness: number;
+  };
+  material?: string;
+}
+

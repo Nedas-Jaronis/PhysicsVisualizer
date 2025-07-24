@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "type": { "type": "string", "enum": ["table"], "default": "table" },
+    "position": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      },
+      "required": ["x", "y"]
+    },
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "width": { "type": "number", "minimum": 0 },
+        "height": { "type": "number", "minimum": 0 },
+        "thickness": { "type": "number", "minimum": 0 }
+      },
+      "required": ["width", "height", "thickness"]
+    },
+    "material": { "type": "string" }
+  },
+  "required": ["id", "type", "position", "dimensions"]
+}

@@ -7,7 +7,6 @@ import * as interactionsInterface from "./types/interactionInterface";
 // import * as materialsInterface from "./types/materialsInterface";
 import * as motionsInterface from "./types/motionInterface";
 import { Object as PhysicsObject } from "./types/objectInterface";
-import { NONAME } from "dns";
 import { Pendulum } from "./types/environmentInterface";
 // import { getEnvironmentData } from "worker_threads";
 // import { createTypeReferenceDirectiveResolutionCache } from "typescript";
@@ -183,7 +182,7 @@ class MatterManager {
         switch (environment.type) {
           case "ground":
             const groundX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const groundWidth =( environment.width ?? canvasWidth) * scale;
+            const groundWidth =canvasWidth * scale;
             const groundHeight_ = heightGround;
             const groundY = (environment.position?.y ?? 0) * scale;
 
@@ -675,6 +674,42 @@ class MatterManager {
             break;
           }
 
+          case "table": {
+            // Use position and dimensions directly on environment, not environment.top
+            const groundH = this.groundHeight;
+            const pos = environment.position;
+            const dims = environment.dimensions;
+
+            if (!pos || !dims) break;
+
+            const tableWidth = dims.width * scale;
+            const tableHeight = dims.height * scale;
+            const tableX = (pos.x ?? canvasWidth / 2) * scale;
+            const tableY = ((pos.y ?? 0)) * scale;
+            // thickness ignored for physics, but you can use it visually if needed
+
+            const { x, y: baseY } = toCanvasCoords(tableX, tableY, canvasWidth, canvasHeight);
+            const y = baseY - (tableHeight / 2) - groundH/2;
+
+            const tableBody = Matter.Bodies.rectangle(
+              x,
+              y,
+              tableWidth,
+              tableHeight,
+              {
+                isStatic: true,
+                render: {
+                  fillStyle: environment.material === "wood" ? "#A0522D" : "#888888",
+                  strokeStyle: "#654321",
+                  lineWidth: 2,
+                }
+              }
+            );
+
+            environmentBodies.push(tableBody);
+
+            break;
+          }
         }
       });
     }
@@ -1379,13 +1414,13 @@ private HandleMotions(): void {
 
           const tProj2D = motion.time;
 
-          const newProj2DVx = motion.initialVelocity.x + motion.acceleration.x * tProj2D;
-          const newProj2DVy = -(motion.initialVelocity.y + motion.acceleration.y * tProj2D);
+          const newProj2DVx = motion.initialVelocity.x
+          const newProj2DVy = -motion.initialVelocity.y
           console.log(motion.initialVelocity.x, motion.initialVelocity.y, tProj2D ,motion.acceleration.y)
           console.log(newProj2DVx, "...Velocity...", newProj2DVy)
           const x = motion.initialPosition.x
           const y = motion.initialPosition.y
-          Matter.Body.setVelocity(body, { x: newProj2DVx, y: newProj2DVy});
+          Matter.Body.setVelocity(body, { x: 5, y: 0});
           console.log(newProj2DVx, "...Velocity...", newProj2DVy) 
 
            

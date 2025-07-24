@@ -30,6 +30,7 @@ const Third: React.FC = () => {
     timeScale: 1.0,
     isPaused: false
   });
+  
 
   useEffect(() => {
     // Register the callback ONCE after component mounts
@@ -314,12 +315,13 @@ const Third: React.FC = () => {
       
       <div className="button-container">
         <button className="backbutton" onClick={() => navigate("/second-page")}>
-          Go back
+          Previous Page
         </button>
-        <button className="NextButton" onClick={()=> navigate("/test-page")}>Go Final Page</button>
+        <button className="NextButton" onClick={()=> navigate("/Interactive-page")}>Matter-JS Interactive Page</button>
       </div>
     </div>
   );
 };
+
 
 export default Third;

@@ -1,0 +1,13 @@
+.button-container2 {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+#button1 {
+    padding: 12px 24px;
+    font-size: 16px;
+    cursor: pointer;
+}
