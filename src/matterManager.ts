@@ -445,9 +445,10 @@ class MatterManager {
             const pulleyY = (environment.position?.y ?? canvasHeight / 2) * scale;
             const pulleyRadius = (environment.radius ?? 0.1) * scale;
 
-
             // Add supports if any
+
             if (Array.isArray(environment.supports)) {
+              
               for (const support of environment.supports) {
                 const supportX = (support.position?.x ?? pulleyX) * scale;
                 const supportY = (support.position?.y ?? 0) * scale;
@@ -474,9 +475,11 @@ class MatterManager {
                 pulleyBodies.push(supportRect);
               }
 
+            }
 
+            
 
-            const { x: canvasPulleyX, y: canvasPulleyY } = toCanvasCoords(pulleyX, pulleyY, canvasWidth, canvasHeight);
+            const { x: canvasPulleyX, y: canvasPulleyY } = toCanvasCoords(pulleyX, -1, canvasWidth, canvasHeight);
 
             // Pulley wheel (circular body just for rendering or anchor)
             const pulley = Matter.Bodies.circle(
@@ -485,6 +488,7 @@ class MatterManager {
               pulleyRadius,
               {
                 isStatic: true,
+                collisionFilter: { group: 0},
                 render: {
                   fillStyle: '#BBBBBB',
                   strokeStyle: '#444444',
@@ -494,7 +498,7 @@ class MatterManager {
             );
 
             pulleyBodies.push(pulley);
-            }
+            
 
             break; 
           }
@@ -503,38 +507,113 @@ class MatterManager {
             if (!Array.isArray(environment.constraints)) break;
 
             for (const c of environment.constraints) {
-              const connectedBodies: Matter.Body[] = [];
+              if (c.bodies.length < 2) continue;
 
-              for (const bodyId of c.bodies) {
-                const body: Matter.Body | undefined = this.bodies.get(bodyId);
-                console.log(body, "...", bodyId)
-                if (!body) {
-                  console.warn(`Constraint ${c.id} references unknown body ID: ${bodyId}`);
-                  continue;
-                }
-                connectedBodies.push(body);
+              const bodyA = this.bodies.get(c.bodies[0]);
+              const bodyB = this.bodies.get(c.bodies[1]);
+
+              if (!bodyA || !bodyB) {
+                console.warn(`Constraint ${c.id} references unknown body ID(s)`);
+                continue;
               }
 
-              // Only apply if at least 2 valid bodies
-              for (let i = 0; i < connectedBodies.length - 1; i++) {
-                const bodyA = connectedBodies[i];
-                const bodyB = connectedBodies[i + 1];
+              const startPos = bodyA.position;
+              const endPos = bodyB.position;
 
-                const constraint = Matter.Constraint.create({
+              const dx = endPos.x - startPos.x;
+              const dy = endPos.y - startPos.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              const angle = Math.atan2(dy, dx);
+              const stiffness = c.stiffness ?? 1;
+              const damping = c.damping ?? 0.1;
+
+              if (c.solid) {
+                // Create rigid segmented rope/rod
+                const segmentCount = Math.floor(distance / 10); // adjustable
+                const segmentLength = (distance / segmentCount);
+                const gap = 2;
+                const thickness = (c.thickness ?? 0.1) * scale;
+
+                const segments: Matter.Body[] = [];
+
+                for (let i = 0; i < segmentCount; i++) {
+                  const t = i / segmentCount;
+                  const x = startPos.x + dx * t;
+                  const y = startPos.y + dy * t;
+
+                  const segment = Matter.Bodies.rectangle(
+                    x,
+                    y,
+                    segmentLength - gap,
+                    thickness,
+                    {
+                      angle: angle,
+                      collisionFilter: { group: Matter.Body.nextGroup(true) },
+                      isStatic: false,
+                      density: c.massless ? 0 : 0.002,
+                      frictionAir: 0.02,
+                      render: {
+                        fillStyle: '#888',
+                      },
+                    }
+                  );
+
+                  segments.push(segment);
+                }
+
+                this.world && Matter.World.add(this.world, segments);
+
+                // Connect segments
+                for (let i = 0; i < segments.length - 1; i++) {
+                  const link = Matter.Constraint.create({
+                    bodyA: segments[i],
+                    bodyB: segments[i + 1],
+                    length: gap,
+                    stiffness,
+                    damping,
+                    label: `${c.id}_segment_${i}`
+                  });
+                  this.world && Matter.World.add(this.world, link);
+                }
+
+                // Anchor to endpoints
+                const startLink = Matter.Constraint.create({
                   bodyA,
-                  bodyB,
-                  length: c.length,
-                  stiffness: c.stiffness,
-                  damping: c.damping ?? 0,
-                  label: c.id,
+                  bodyB: segments[0],
+                  length: 0,
+                  stiffness,
+                  damping,
+                  label: `${c.id}_start`
                 });
 
-                Matter.World.add(this.world, constraint);
+                const endLink = Matter.Constraint.create({
+                  bodyA: bodyB,
+                  bodyB: segments[segments.length - 1],
+                  length: 0,
+                  stiffness,
+                  damping,
+                  label: `${c.id}_end`
+                });
+
+                this.world && Matter.World.add(this.world, [startLink, endLink]);
+                console.log(`Solid constraint '${c.id}' added with ${segmentCount} segments.`);
+              } else {
+                // Just add a simple constraint (massless)
+                const rope = Matter.Constraint.create({
+                  bodyA,
+                  bodyB,
+                  length: c.length * scale,
+                  stiffness,
+                  damping,
+                  label: `${c.id}_simple`
+                });
+
+                this.world && Matter.World.add(this.world, rope);
+                console.log(`Massless constraint '${c.id}' added.`);
               }
             }
 
             break;
-                    
           }
         }
       });

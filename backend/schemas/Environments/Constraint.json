@@ -63,6 +63,10 @@
             "description": "Optional maximum force before constraint breaks",
             "default": null
           },
+          "solid" : {
+            "type": "boolean",
+            "description": "Whether or not the constraint should be solid or not.","default": false
+          },
           "description": {
             "type": "string",
             "description": "Optional human-readable description",

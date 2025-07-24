@@ -127,4 +127,5 @@ export interface Constraint {
   pulleyId?: string | null;
   breakForce?: number | null;
   description?: string;
+  solid?: boolean;
 }
