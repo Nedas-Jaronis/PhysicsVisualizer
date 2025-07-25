@@ -219,7 +219,7 @@ const Third: React.FC = () => {
   };
 
   return (
-    <div className="background">
+    <div className="background_third">
       <div className="main-container">
         <div className="First-Box">
           {isLoading ? (

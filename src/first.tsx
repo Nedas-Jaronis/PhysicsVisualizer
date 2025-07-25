@@ -6,7 +6,7 @@ const First: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="background">
+    <div className="background_first">
       <div className="container">
   <div className="query-section">
     <QueryBox />

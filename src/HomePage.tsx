@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./HomePage.css";
+import QueryBox from "./Query";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,8 +21,14 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
+      <div className="container">
+        <div className="query-section">
+          <QueryBox />
+        </div>
+      </div>
+
       <div className="start-now-button">
-        <button id="start-button" onClick={() => navigate("/first-page")}>
+        <button id="start-button" onClick={() => navigate("/second-page")}>
           Start Now
         </button>
       </div>

@@ -1,11 +1,10 @@
-.background {
-  background-color: black;
+.background_first {
+  background-color: rgb(20,21,32);
   min-height: 100vh;
   color: white;
   justify-content: center;
   align-items: center;
   display: flex;
-  background: linear-gradient(15deg, rgb(0, 0, 0), rgb(1, 1, 107));
 }
 
 
@@ -13,7 +12,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: black;
+  background-color: rgb(20,21,32);
   color: white;
 }
 
@@ -77,31 +76,7 @@ button {
 
 }
 
-.button-hyperlinks {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
 
-#formulas{
-border: 1px, solid white;
-background: transparent;
-color: white;
-}
-#formulas:hover{
-  background-color: rgb(13, 20, 58);
-}
-#solution{
-  border: 1px, solid white;
-  background: transparent;
-  color: white;
-}
-#solution:hover{
-  background-color: rgb(13, 20, 58);
-  
-}
 #SBS{
   border: 1px, solid white;
   background: transparent;

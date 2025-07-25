@@ -23,7 +23,7 @@ useEffect(() => {
 
 
   return (
-    <div className="background">
+    <div className="background_second">
       <div className="main-container">
         <div className="Formulas">
           <h2 id="Ftitle">Formulas:</h2>
@@ -67,7 +67,7 @@ useEffect(() => {
         </div>
       </div>
       <div className="button-container">
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
+        <button className="backbutton" onClick={() => navigate("/")}>
           Go back
         </button>
         <button

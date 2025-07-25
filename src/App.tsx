@@ -12,7 +12,7 @@ function App() {
       <div>
         <Routes>
           <Route path="/" element = {<HomePage />} />
-          <Route path="/first-page" element={<First />} />
+          {/* <Route path="/first-page" element={<First />} /> */}
           <Route path="/second-page" element={<Second />} />
           <Route path = "/third-page" element={<Third />} />
           <Route path ="/formula-page" element ={<Formula />} />
