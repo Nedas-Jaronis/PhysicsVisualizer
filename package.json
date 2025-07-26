@@ -10,10 +10,13 @@
   },
   "dependencies": {
     "@boundaryml/baml": "^0.89.0",
+    "@react-three/drei": "^10.6.1",
+    "@react-three/fiber": "^9.2.0",
     "matter-js": "^0.20.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.3",
+    "three": "^0.178.0",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {

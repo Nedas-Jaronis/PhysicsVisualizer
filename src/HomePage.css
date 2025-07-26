@@ -1,4 +1,4 @@
-.home {
+/* .home {
     background-color: rgb(20,21,32);
     min-height: 100vh;
     color: white;
@@ -7,7 +7,7 @@
     padding: 40px 20px;
     font-family: 'Segoe UI', sans-serif;
     
-  }
+  } */
   
   .section {
     width: 100%;
@@ -127,4 +127,30 @@ html, body {
   color: white;
   height: 100%;
   width: 100%;
+}
+
+
+.home-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.background-canvas {
+  position: absolute !important;
+  top: 20;
+  left: 20;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 0;
+  pointer-events: auto; /* allow mouse to interact */
+}
+
+.home {
+  position: relative;
+  z-index: 1;
+  color: white;
+  text-align: center;
+  padding: 2rem;
 }
