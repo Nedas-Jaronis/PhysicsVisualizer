@@ -12,24 +12,13 @@ const Second: React.FC = () => {
       <h2 id="Ftitle">Formulas:</h2>
       <div className="formula-buttons">
         <a className="PHY2048" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2048 - Physics w/ Calc 1</a>
-        <button className="PHY 2049" onClick={() => navigate("/first-page")}>
-        <p>PHY 2049 - Physics w/ Calc 2</p>
-        </button>
-        <button className="PHY 2053" onClick={() => navigate("/first-page")}>
-        <p>PHY 2053 - Gen Physics 1</p>
-        </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 2054 - Gen Physics 2</p>
-        </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 3221 - Mechanics 1</p>
-        </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 3513 - Thermal Physics 1</p>
-        </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 4222 - Mechanics 2</p>
-        </button>
+        <a className="PHY2049" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2049 - Physics w/ Calc 2</a>
+        <a className="PHY2053" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2053 - Gen Physics 1</a>
+        <a className="PHY2054" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2054 - Gen Physics 2</a>
+        <a className="PHY3221" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 3221 - Mechanics 1</a>
+        <a className="PHY3513" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 3513 - Thermal Physics 1</a>
+        <a className="PHY4222" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 4222 - Mechanics 2</a>
+        <a className="PHY3323" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 3323 - Electromagnetism 1</a>
         <button className="backbutton" onClick={() => navigate("/first-page")}>
         <p>PHY 3323- Electromagnetism 1</p>
         </button>
