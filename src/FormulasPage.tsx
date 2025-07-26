@@ -11,11 +11,11 @@ const Second: React.FC = () => {
     <div className="Formulas">
       <h2 id="Ftitle">Formulas:</h2>
       <div className="formula-buttons">
-        <a className="backbutton" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2048 - Physics w/ Calc 1</a>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
+        <a className="PHY2048" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 2048 - Physics w/ Calc 1</a>
+        <button className="PHY 2049" onClick={() => navigate("/first-page")}>
         <p>PHY 2049 - Physics w/ Calc 2</p>
         </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
+        <button className="PHY 2053" onClick={() => navigate("/first-page")}>
         <p>PHY 2053 - Gen Physics 1</p>
         </button>
         <button className="backbutton" onClick={() => navigate("/first-page")}>

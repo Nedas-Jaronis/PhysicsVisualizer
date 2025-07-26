@@ -11,7 +11,7 @@ const HomePage: React.FC = () => {
       <BackgroundCanvas /> {/* ← Behind everything */}
 
       <div className="home">
-        <div className="section title">
+        <div className="title">
           <h1>Physics Vis</h1>
         </div>
 

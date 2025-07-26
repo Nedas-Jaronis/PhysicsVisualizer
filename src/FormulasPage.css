@@ -38,9 +38,11 @@
     width: auto;
   }
   .formula-buttons a{
-    color: black;
+    color:white;
     width: auto;
+    background-color: black;
   }
   #Ftitle{
     cursor: default;
   }
+

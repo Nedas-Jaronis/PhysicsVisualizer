@@ -1,13 +1,8 @@
-/* .home {
-    background-color: rgb(20,21,32);
+.home {
     min-height: 100vh;
     color: white;
-    position: relative;
-    display: block;
-    padding: 40px 20px;
     font-family: 'Segoe UI', sans-serif;
-    
-  } */
+  }
   
   .section {
     width: 100%;
@@ -16,13 +11,14 @@
     margin: 40px auto;
     position: relative;
   }
+
   
   .title {
     margin-top: 0;
   }
   
   .hook {
-    margin-top: 190px; 
+    margin-top: 140px; 
   }
   
   .summary {
@@ -30,7 +26,8 @@
   }
   
   .title h1 {
-    font-size: 2rem;
+    font-size: 5rem;
+    margin-top: 0px;
   }
   
   .hook h2 {
@@ -42,12 +39,17 @@
     line-height: 1.6;
   }
   
-  .start-now-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 200px; 
-  }
+.start-now-button {
+  position: fixed;       /* Fix it relative to viewport */
+  bottom: 20px;          /* Distance from bottom */
+  left: 50%;             /* Center horizontally */
+  transform: translateX(-50%);  /* Center by shifting left half its width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;           /* Make sure it’s above other content */
+}
+
   
   #start-button {
     padding: 7px 20px;
@@ -86,7 +88,6 @@
   height: 80px;
   width: 700px;
   background-color: rgb(13, 20, 58);
-
 }
 
 .query-box {
@@ -152,5 +153,26 @@ html, body {
   z-index: 1;
   color: white;
   text-align: center;
-  padding: 2rem;
+  padding: 5rem;
 }
+/*
+.home-wrapper::before {
+  content: "";
+  position: fixed; /* or absolute if .home-wrapper is relative 
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(2px 2px at 20px 30px, white, transparent),
+    radial-gradient(1.5px 1.5px at 70px 80px, white, transparent),
+    radial-gradient(2.5px 2.5px at 150px 120px, white, transparent),
+    radial-gradient(1.7px 1.7px at 200px 220px, white, transparent),
+    radial-gradient(2px 2px at 250px 50px, white, transparent),
+    radial-gradient(1.5px 1.5px at 300px 300px, white, transparent);
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  z-index: 0;
+  pointer-events: none;
+}
+*/
