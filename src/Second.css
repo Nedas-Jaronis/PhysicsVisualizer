@@ -80,10 +80,14 @@
 }
 
 .button-container {
+  position: fixed; /* Or use absolute if inside a relatively positioned parent */
+  bottom: 20px;
+  right: 20px;
   display: flex;
-  justify-content: center;
-  margin-top: 2rem;
+  gap: 10px; /* Adds spacing between buttons */
+  z-index: 10; /* Keep it on top */
 }
+
 .error-container {
   color: #ff6b6b;
   padding: 1rem;

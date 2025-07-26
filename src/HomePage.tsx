@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
-      <div className="container">
+      <div className="container_query">
         <div className="query-section">
           <QueryBox />
         </div>
