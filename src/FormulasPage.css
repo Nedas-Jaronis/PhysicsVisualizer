@@ -68,7 +68,7 @@
   display: flex;
   justify-content: center;
 }
-
+/* 
 .backbutton {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -78,5 +78,5 @@
   color: rgb(13, 20, 58);
   font-weight: bold;
   transition: background-color 0.3s ease;
-}
+} */
 

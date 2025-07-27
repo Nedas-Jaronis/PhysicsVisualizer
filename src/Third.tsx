@@ -11,6 +11,8 @@ declare global {
   }
 }
 
+
+
 const Third: React.FC = () => {
   const navigate = useNavigate();
   const { 
@@ -22,6 +24,8 @@ const Third: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isSlowMotion, setIsSlowMotion] = useState(false);
   const [physicsData, setPhysicsData] = useState({
     height: 0,
     velocity: 1,
@@ -178,150 +182,162 @@ const Third: React.FC = () => {
     };
   }, [animation_data]); // Only depends on animation_data
 
-  const handleResetAnimation = () => {
-    if (matterManagerRef.current) {
-      try {
-        matterManagerRef.current.resetAnimation();
-      } catch (error) {
-        console.error("Failed to reset animation:", error);
-      }
-    }
-  };
+  // const handleResetAnimation = () => {
+  //   if (matterManagerRef.current) {
+  //     try {
+  //       matterManagerRef.current.resetAnimation();
+  //     } catch (error) {
+  //       console.error("Failed to reset animation:", error);
+  //     }
+  //   }
+  // };
 
   const handleStartAnimation = () => {
-    if (matterManagerRef.current) {
-      try {
-        matterManagerRef.current.startAnimation();
-      } catch (error) {
-        console.error("Failed to start animation:", error);
-      }
+  if (matterManagerRef.current) {
+    try {
+      matterManagerRef.current.startAnimation();
+
+      // ✅ Reset UI state
+      setIsPaused(false);
+      setIsSlowMotion(false);
+
+    } catch (error) {
+      console.error("Failed to start animation:", error);
     }
-  };
+  }
+};
+
 
   const handleTogglePause = () => {
-    if (matterManagerRef.current) {
-      try {
-        matterManagerRef.current.togglePause();
-      } catch (error) {
-        console.error("Failed to toggle pause:", error);
-      }
+  if (matterManagerRef.current) {
+    try {
+      matterManagerRef.current.togglePause();
+      setIsPaused(prev => !prev); // <-- update React's version
+    } catch (error) {
+      console.error("Failed to toggle pause:", error);
     }
-  };
+  }
+};
+
 
   const handleToggleSlowMotion = () => {
-    if (matterManagerRef.current) {
-      try {
-        matterManagerRef.current.toggleSlowMotion();
-      } catch (error) {
-        console.error("Failed to toggle slow motion:", error);
-      }
+  if (matterManagerRef.current) {
+    try {
+      matterManagerRef.current.toggleSlowMotion();
+      setIsSlowMotion(prev => !prev); // Toggle the UI state
+    } catch (error) {
+      console.error("Failed to toggle slow motion:", error);
     }
-  };
+  }
+};
 
-  return (
-    <div className="background_third">
-      <div className="main-container">
-        <div className="First-Box">
-          {isLoading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <h2>Loading step-by-step explanation...</h2>
-            </div>
-          ) : error ? (
-            <div className="error-container">
-              <h2>Error</h2>
-              <p>{error}</p>
-              <button onClick={() => navigate("/second-page")}>Go Back</button>
-            </div>
-          ) : (
-            <div className="step-by-step-content">
-              <h2>Step-By-Step Explanation</h2>
-              {stepByStep ? (
-                <div dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStep) }} />
-              ) : (
-                <p>No step-by-step explanation available.</p>
-              )}
-            </div>
-          )}
-        </div>
-        
-        <div className="Second-Box">
-          <canvas
-            ref={canvasRef}
-            style={{ width: "100%", height: "100%", display: "block" }}
-          />
-          
-          <div className="physics-display">
-            <div className="physics-row">
-              <span className="label">Height:</span>
-              <span className="value green">{physicsData.height.toFixed(2)} m</span>
-            </div>
-            <div className="physics-row">
-              <span className="label">Velocity:</span>
-              <span className="value blue">{physicsData.velocity.toFixed(2)} m/s</span>
-            </div>
-            <div className="physics-row">
-              <span className="label">Time:</span>
-              <span className="value orange">{physicsData.time.toFixed(2)} s</span>
-            </div>
-            <div className="physics-row">
-              <span className="label">Phase:</span>
-              <span className="value pink">{physicsData.phase}</span>
-            </div>
-            <div className="physics-row">
-              <span className="label">Speed:</span>
-              <span className="value purple">{physicsData.timeScale?.toFixed(1)}x</span>
-            </div>
-            <div className="physics-row">
-              <span className="label">Status:</span>
-              <span className={`value ${physicsData.isPaused ? 'orange-dark' : 'lime'}`}>
-                {physicsData.isPaused ? 'PAUSED' : 'RUNNING'}
-              </span>
-            </div>
+
+return (
+  <div className="background_third">
+    <div className="main-container">
+      <div className="First-Box">
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <h2>Loading step-by-step explanation...</h2>
           </div>
-
-          <div className="animation-controls">
-            <button
-              onClick={handleStartAnimation}
-              className="animation-button start-button"
-            >
-              ▶ Start
-            </button>
-
-            <button
-              onClick={handleTogglePause}
-              className={`animation-button pause-button ${physicsData.isPaused ? 'paused' : ''}`}
-            >
-              {physicsData.isPaused ? '▶ Resume' : '⏸ Pause'}
-            </button>
-
-            <button
-              onClick={handleResetAnimation}
-              className="animation-button reset-button"
-            >
-              🔄 Reset
-            </button>
-
-            <button
-              id="slownormalbutton"
-              onClick={handleToggleSlowMotion}
-              className={`animation-button slownormal-button ${physicsData.timeScale === 1.0 ? 'normal' : 'slow'}`}
-            >
-              {physicsData.timeScale === 1.0 ? '🐌 Slow' : '⚡ Normal'}
-            </button>
+        ) : error ? (
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>{error}</p>
+            <button onClick={() => navigate("/second-page")}>Go Back</button>
           </div>
-        </div>
+        ) : (
+          <div className="step-by-step-content">
+            <h2>Step-By-Step Explanation</h2>
+            {stepByStep ? (
+              <div dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStep) }} />
+            ) : (
+              <p>No step-by-step explanation available.</p>
+            )}
+          </div>
+        )}
       </div>
       
-      <div className="button-container">
-        <button className="backbutton" onClick={() => navigate("/second-page")}>
-          Previous Page
-        </button>
-        <button className="NextButton" onClick={()=> navigate("/Interactive-page")}>Matter-JS Interactive Page</button>
+      <div className="Second-Box">
+        <canvas
+          ref={canvasRef}
+          style={{ width: "100%", height: "100%", display: "block" }}
+        />
+
+        <div className="physics-display">
+          <div className="physics-row">
+            <span className="label">Height:</span>
+            <span className="value green">{physicsData.height.toFixed(2)} m</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Velocity:</span>
+            <span className="value blue">{physicsData.velocity.toFixed(2)} m/s</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Time:</span>
+            <span className="value orange">{physicsData.time.toFixed(2)} s</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Phase:</span>
+            <span className="value pink">{physicsData.phase}</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Speed:</span>
+            <span className="value purple">{physicsData.timeScale?.toFixed(1)}x</span>
+          </div>
+          <div className="physics-row">
+            <span className="label">Status:</span>
+            <span className={`value ${physicsData.isPaused ? 'orange-dark' : 'lime'}`}>
+              {physicsData.isPaused ? 'PAUSED' : 'RUNNING'}
+            </span>
+          </div>
+        </div>
+
+        <div className="animation-controls">
+          <button
+            onClick={handleStartAnimation}
+            className="animation-button start-button"
+          >
+            ▶ Start
+          </button>
+
+          <button
+            onClick={handleTogglePause}
+            className={`animation-button pause-button ${isPaused ? 'resumed' : 'paused'}`}
+          >
+            {isPaused ? '▶ Resume' : '⏸ Pause'}
+          </button>
+
+          {/* <button
+            onClick={handleResetAnimation}
+            className="animation-button reset-button"
+          >
+            🔄 Reset
+          </button> */}
+
+          <button
+            id="slownormalbutton"
+            onClick={handleToggleSlowMotion}
+            className={`animation-button slownormal-button ${isSlowMotion ? 'slow' : 'normal'}`}
+          >
+            {isSlowMotion ? '⚡ Normal' : '🐌 Slow'}
+          </button>
+        </div>
       </div>
     </div>
-  );
-};
+    
+    <div className="button-container">
+      <button className="backbutton" onClick={() => navigate("/second-page")}>
+        Previous Page
+      </button>
+      <button className="NextButton" onClick={() => navigate("/Interactive-page")}>
+        Matter-JS Interactive Page
+      </button>
+    </div>
+  </div>
+);}
+
 
 
 export default Third;

@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./Second.css";
 import { usePhysics } from "./PhysicsContent";
-
-
-
 
 const Second: React.FC = () => {
   const navigate = useNavigate();
   const { solution, formulas } = usePhysics();
-  
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  if (!solution || !formulas) {
-    setError("No solution data available. Submit a question first.");
-  }
-  setIsLoading(false);
-}, [solution, formulas]);
-
-
+  useEffect(() => {
+    if (!solution || !formulas) {
+      setError("No solution data available. Submit a question first.");
+    }
+    setIsLoading(false);
+  }, [solution, formulas]);
 
   return (
     <div className="background_second">
       <div className="main-container">
+        {/* Formulas on the LEFT */}
         <div className="Formulas">
           <h2 id="Ftitle">Formulas:</h2>
           {isLoading ? (
@@ -32,7 +28,10 @@ useEffect(() => {
           ) : error ? (
             <p>Error loading formulas</p>
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: formulas.replace(/\n/g, "<br/>") }} />
+            <div
+              className="formulas-content"
+              dangerouslySetInnerHTML={{ __html: formulas.replace(/\n/g, "<br/>") }}
+            />
           )}
 
           <div className="formula-bottom-button">
@@ -45,6 +44,8 @@ useEffect(() => {
           </div>
         </div>
 
+
+        {/* Solution on the RIGHT */}
         <div className="Solution-Box">
           {isLoading ? (
             <div className="loading-container">
@@ -61,19 +62,19 @@ useEffect(() => {
           ) : (
             <div>
               <h1>Solution</h1>
-              <div dangerouslySetInnerHTML={{ __html: solution.replace(/\n/g, "<br/>") }} />
+              <div
+                dangerouslySetInnerHTML={{ __html: solution.replace(/\n/g, "<br/>") }}
+              />
             </div>
           )}
         </div>
       </div>
+
       <div className="button-container">
         <button className="backbutton" onClick={() => navigate("/")}>
           Go back
         </button>
-        <button
-          className="ForwardButton"
-          onClick={() => navigate("/third-page")}
-        >
+        <button className="ForwardButton" onClick={() => navigate("/third-page")}>
           Go Forward
         </button>
       </div>

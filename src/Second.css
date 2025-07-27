@@ -9,36 +9,48 @@
 
 .main-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* align top */
   justify-content: center;
   gap: 2vw;
+  width: 100%;
+  max-width: 1200px;
+  padding: 1rem;
 }
 
+/* Solution Box styles */
 .Solution-Box {
   border: 1px solid white;
   border-radius: 40px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 50vw;
-  min-height: 50vh;
-  height: auto;
+  flex-direction: column;
+  justify-content: flex-start;
+  top: 0px;
+  align-items: flex-start;
+  width: 60vw;
+  height: 50vh;
   color: white;
   background-color: rgb(0, 0, 0);
-  padding: 2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
   overflow-y: auto;
+  font-size: 1.25rem; /* increased font size */
 }
 
 .Solution-Box h1 {
   color: white;
-  margin-bottom: 1rem;
+  font-size: 3.5rem; /* bigger heading */
+  text-align: center;
+  margin-bottom: 3rem;
+  top: 0px;
 }
 
 .Solution-Box div {
   color: white;
   width: 100%;
+  font-size: 1.25rem;
 }
 
+/* Formulas styles */
 .Formulas {
   position: relative;
   border: 1px solid white;
@@ -46,30 +58,43 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 20vw;
-  max-width: 20vw;
-  min-height: 47vh;
-  height: auto;
-  max-height: 50vh;
+  width: 100%;
+  max-width: 100%;
+  min-height: 60vh;
+  max-height: 60vh;
   background-color: rgb(13, 20, 58);
-  padding: 1rem;
-  text-align: center;
   color: white;
   overflow-y: auto;
-  font-size: 20px;
+  font-size: 1.25rem;
+  padding: 1rem;
+  box-sizing: border-box;
+  text-align: left;
+  justify-content: space-between;
+  overflow-x:hidden;
 }
 
-.Formulas div {
-  color: white;
-  margin-bottom: 1rem;
+.formulas-content {
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  font-size: 1.25rem;
+  white-space: pre-wrap;
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x:hidden;
 }
 
 .formula-bottom-button {
-  position: relative;
+  width: 100%;
+  display: flex;
   justify-content: center;
+  margin-top: 1rem;
+  flex-shrink: 0;
 }
 
-.formula-context-button, .backbutton, .ForwardButton {
+.formula-context-button,
+.backbutton,
+.ForwardButton {
   background-color: #3a80d2;
   color: white;
   border: none;
@@ -79,15 +104,17 @@
   margin: 0.5rem;
 }
 
+/* Fixed button container bottom-right */
 .button-container {
-  position: fixed; /* Or use absolute if inside a relatively positioned parent */
+  position: fixed;
   bottom: 20px;
   right: 20px;
   display: flex;
-  gap: 10px; /* Adds spacing between buttons */
-  z-index: 10; /* Keep it on top */
+  gap: 10px;
+  z-index: 10;
 }
 
+/* Error container */
 .error-container {
   color: #ff6b6b;
   padding: 1rem;
@@ -95,7 +122,8 @@
   text-align: center;
 }
 
+/* Scrollbar for formulas */
 .Formulas::-webkit-scrollbar {
-  width: 6px; /* Horizontal scrollbar thickness */
-  height: 12px; /* Vertical scrollbar height */
+  width: 6px;
+  height: 12px;
 }

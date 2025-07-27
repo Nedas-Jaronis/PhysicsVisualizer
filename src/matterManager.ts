@@ -79,7 +79,7 @@ class MatterManager {
   private runner: Matter.Runner;
   private bodies: Map<string, Matter.Body> = new Map();
   private constraints: Map<string, Matter.Constraint> = new Map();
-  private timeScale: number = 1; // Much slower default speed
+  private timeScale: number = 0.5; // Much slower default speed
   private isPaused: boolean = false;
   private forceUpdateHandler: (() => void) | null = null;
   private renderContext: CanvasRenderingContext2D | null = null;
@@ -1783,7 +1783,7 @@ private applyDampedOscillations(): void {
   }
 
   public toggleSlowMotion(): void {
-    this.timeScale = this.timeScale === 0.5 ? 1 : 0.5; // Toggle between slow and very slow
+    this.timeScale = this.timeScale === 0.05 ? 0.5 : 0.05; // Toggle between slow and very slow
     this.engine.timing.timeScale = this.timeScale;
   }
 

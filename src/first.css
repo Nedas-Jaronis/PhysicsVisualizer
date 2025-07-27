@@ -37,14 +37,14 @@ button {
   /* Removed margin-top since positioning is handled by .button-container */
 }
 
-.backbutton {
+/* .backbutton {
   padding: 10px 20px;
   border-radius: 5px;
   background-color: white;
   color: red;
   border: none;
   cursor: pointer;
-}
+} */
 
 .ForwardButton{
   padding: 10px 20px;
