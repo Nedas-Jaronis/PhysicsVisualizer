@@ -9,7 +9,7 @@ const Second: React.FC = () => {
 <div className="background_formulas">
   <div className="main-container">
     <div className="Formulas">
-      <h2 id="Ftitle">Formulas:</h2>
+      <h2 id="Ftitle">Formula Sheets:</h2>
       <div className="formula-buttons">
         <a className="PHY2048" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer">∫ PHY 2048 - Physics w/ Calc 1</a>
         <a className="PHY2049" href="../data/formulas/PHY2049.pdf" target="_blank" rel="noopener noreferrer">∬ PHY 2049 - Physics w/ Calc 2</a>
