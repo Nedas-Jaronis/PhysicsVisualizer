@@ -1,62 +1,82 @@
-  .background_formulas {
-    background-color: rgb(20,21,32);
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    display: flex;
-  }
-  
-  .main-container {
-    display:flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2vw;
-    position: relative;
-  }
-  
-  .Formulas {
-    border: 1px solid white;
-    border-radius: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 20vw;
-    width: auto;
-    min-height: 47vh;
-    height: auto;
-    color: white;
-    background-color: rgb(13, 20, 58);
-    padding: 1rem;
-    text-align: center;
-  }
-  
-  .formula-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 1rem;
-    width: 100%;
-  }
-  
+.background_formulas {
+  background-color: rgb(20, 21, 32);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-  #formula{
-    justify-content: center;
-  }
-  .formula-buttons p{
-    color: black;
-    width: auto;
-  }
-  .formula-buttons a{
-    color:white;
-    width: auto;
-    padding: 5%;
+.main-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2vw;
+  position: relative;
+}
 
-    border-radius: 30px;
-    border: 3px, solid, yellow,;
-    text-decoration: none;
+.Formulas {
+  border: 1px solid white;
+  border-radius: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: auto;
+  height: auto;
+  color: white;
+  background-color: rgb(13, 20, 58);
+  padding: 3rem 10rem 6rem 10rem; /* top 3rem, sides 10rem, bottom 6rem */
+  text-align: center;
+}
 
-  }
-  #Ftitle{
-    cursor: default;
-  }
+#Ftitle {
+  margin-bottom: 2rem; /* space below the heading */
+  font-size: 2rem;
+  font-weight: bold;
+  cursor: default;
+}
+
+.formula-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 3rem;
+  width: 100%;
+  justify-items: center;
+}
+
+.formula-buttons a {
+  display: block;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 30px;
+  border: 3px solid yellow;
+  text-decoration: none;
+  font-weight: 500;
+  width: 100%;
+  max-width: 180px;
+  text-align: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.formula-buttons a:hover {
+  background-color: yellow;
+  color: rgb(13, 20, 58);
+  font-weight: 600;
+}
+
+.button-container {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.backbutton {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  color: rgb(13, 20, 58);
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
 
