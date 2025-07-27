@@ -6,7 +6,7 @@ import "./Second.css"
 const Second: React.FC = () => {
     const navigate = useNavigate();
     return (
-<div className="background">
+<div className="background_formulas">
   <div className="main-container">
     <div className="Formulas">
       <h2 id="Ftitle">Formulas:</h2>
@@ -19,12 +19,7 @@ const Second: React.FC = () => {
         <a className="PHY3513" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 3513 - Thermal Physics 1</a>
         <a className="PHY4222" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 4222 - Mechanics 2</a>
         <a className="PHY3323" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 3323 - Electromagnetism 1</a>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 3323- Electromagnetism 1</p>
-        </button>
-        <button className="backbutton" onClick={() => navigate("/first-page")}>
-        <p>PHY 4324 - Electromagnetism 2</p>
-        </button>
+        <a className="PHY4324" href="../data/formulas/PHY2048.pdf" target="_blank" rel="noopener noreferrer"> PHY 4324 - Electromagnetism 2</a>
     </div>
     </div>
   </div>
