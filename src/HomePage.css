@@ -18,20 +18,20 @@
   }
   
   .hook {
-    margin-top: 140px; 
+    margin-top: 80px; 
   }
   
   .summary {
-    margin-top: 100px;
+    margin-top: 60px;
   }
   
   .title h1 {
-    font-size: 5rem;
+    font-size: 3rem;
     margin-top: 0px;
   }
   
   .hook h2 {
-    font-size: 4rem;
+    font-size: 2rem;
   }
   
   .summary p {
@@ -52,7 +52,7 @@
 
   
   #start-button {
-    padding: 7px 20px;
+    padding: 1px 10px;
     font-size: 1.4rem;
     font-weight:bolder;
     border: none;
@@ -61,7 +61,7 @@
     background-color: white;
     cursor: pointer;
     transition: background-color 0.3s ease, color 0.3s ease;
-    height: 40px;
+    height: 30px;
     font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     
   }
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 20px;
   border-radius: 5px;
-  height: 80px;
+  height: 60px;
   width: 700px;
   background-color: rgb(13, 20, 58);
 }
@@ -94,6 +94,8 @@
   width: 700px;
   background-color: rgb(13, 20, 58);
   border: 2px solid white;
+  height: 100px;
+  max-height: 100px;
   border-radius: 5px;
   padding: 20px;
 }
@@ -102,7 +104,7 @@
   border: none;
   background: transparent;
   width: 100%;
-  min-height: 80px;
+  min-height: 100px;
   color: white;
   font-size: 20px;
   font-family: inherit;
@@ -153,7 +155,7 @@ html, body {
   z-index: 1;
   color: white;
   text-align: center;
-  padding: 5rem;
+  padding: 3rem;
 }
 /*
 .home-wrapper::before {

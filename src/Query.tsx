@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePhysics } from "./PhysicsContent";
+import './query.css'; // Make sure to import your CSS
 
 function QueryBox() {
     const [question, setQuestion] = useState("");
@@ -17,7 +18,6 @@ function QueryBox() {
 
     const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setQuestion(event.target.value);
-        // Clear error when user starts typing
         if (error) setError(null);
     };
 
@@ -30,11 +30,7 @@ function QueryBox() {
         setIsLoading(true);
         setError(null);
         
-        console.log("🚀 Submitting question:", question);
-
         try {
-            console.log("📡 Making request to backend...");
-            
             const response = await fetch("http://localhost:5000/api/solve", {
                 method: "POST",
                 headers: { 
@@ -44,55 +40,37 @@ function QueryBox() {
                 body: JSON.stringify({ problem: question }),
             });
 
-            console.log("📨 Response status:", response.status);
-
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error("❌ Backend error:", errorText);
                 throw new Error(`Backend error (${response.status}): ${errorText}`);
             }
 
             const data = await response.json();
-            console.log("✅ Received data:", data);
 
-            // Check for success status
             if (data.status !== 'success') {
-                console.error("❌ Backend returned error:", data);
                 throw new Error(data.error || "Backend processing failed");
             }
 
-            // Validate the response data structure
             if (!data.problem_solution || !data.animation_data) {
-                console.error("❌ Invalid response structure:", data);
                 throw new Error("Invalid response from backend - missing required data");
             }
 
             const problemSolution = data.problem_solution;
             const animationData = data.animation_data;
 
-            // Validate problem solution fields based on your BAML structure
             if (!problemSolution.solution || !problemSolution.formulas || !problemSolution.stepByStep || !problemSolution.problem) {
-                console.error("❌ Missing problem solution fields:", problemSolution);
                 throw new Error("Incomplete solution data from backend");
             }
 
-            // Save data to context using the correct field names
-            console.log("💾 Saving to context...");
             setSolution(problemSolution.solution);
             setFormulas(problemSolution.formulas);
             setStepByStep(problemSolution.stepByStep);
             setProblem(problemSolution.problem);
-            
-            // Set animation data - this includes both categories and updated schemas
-            console.log("Here is the log before saving:", animationData)
             setAnimationData(animationData);
-            console.log("post: here is the log after saving:", animationData)
 
-            console.log("🧭 Navigating to second page...");
             navigate("/second-page");
 
         } catch (err) {
-            console.error("❌ Error submitting question:", err);
             setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
@@ -107,7 +85,7 @@ function QueryBox() {
     };
 
     return (
-        <div className="query-box">
+        <div className="query-box" style={{ position: 'relative' }}>
             <textarea
                 value={question}
                 onChange={handleChange}
@@ -117,7 +95,6 @@ function QueryBox() {
                 disabled={isLoading}
             />
 
-            {/* Error display */}
             {error && (
                 <div style={{
                     marginTop: '10px',
@@ -131,18 +108,8 @@ function QueryBox() {
                 </div>
             )}
 
-            {/* Loading indicator */}
             {isLoading && (
-                <div style={{
-                    marginTop: '10px',
-                    padding: '10px',
-                    backgroundColor: '#d1ecf1',
-                    color: '#0c5460',
-                    border: '1px solid #bee5eb',
-                    borderRadius: '4px'
-                }}>
-                    Processing your physics problem...
-                </div>
+                <div className="spin"></div>
             )}
         </div>
     );
