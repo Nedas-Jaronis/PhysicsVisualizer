@@ -331,9 +331,9 @@ return (
       <button className="backbutton" onClick={() => navigate("/second-page")}>
         Previous Page
       </button>
-      <button className="NextButton" onClick={() => navigate("/Interactive-page")}>
+      {/* <button className="NextButton" onClick={() => navigate("/Interactive-page")}>
         Matter-JS Interactive Page
-      </button>
+      </button> */}
     </div>
   </div>
 );}

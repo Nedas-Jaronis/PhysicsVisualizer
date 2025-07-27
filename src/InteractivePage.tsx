@@ -141,11 +141,11 @@ const Interactive: React.FC = () => {
           <button
             id="button1"
             onClick={() => {
-              navigate("/third-page");
-              window.history.replaceState(null, "", "/third-page");
+              navigate("/");
+              window.history.replaceState(null, "", "/");
             }}
           >
-            Go to Previous Page
+            Go to Home Page
           </button>
         </div>
       </div>

@@ -30,8 +30,8 @@ const HomePage: React.FC = () => {
         </div>
 
         <div className="start-now-button">
-          <button id="start-button" onClick={() => navigate("/second-page")}>
-            Start Now
+          <button id="start-button" onClick={() => navigate("/Interactive-page")}>
+            Matter-JS Interactive Page
           </button>
         </div>
       </div>
