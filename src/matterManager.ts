@@ -1089,10 +1089,32 @@ public setupObjects(): void {
     });
   }
 
+  private drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): void {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+
   private drawForceInfoPanel(ctx: CanvasRenderingContext2D, forceMap: Map<string, ForceData[]>): void {
     // Draw force legend/info panel
-    const panelX: number = 10;
-    const panelY: number = 10;
+    const panelX: number = 20;
+    const panelY: number = 20;
     const panelWidth: number = 200;
     let panelHeight: number = 30;
     
@@ -1102,11 +1124,13 @@ public setupObjects(): void {
     panelHeight = Math.max(100, 30 + totalForces * 25);
     
     // Draw panel background
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.strokeStyle = '#333333';
     ctx.lineWidth = 2;
-    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
-    ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+    this.drawRoundedRect(ctx, panelX, panelY, panelWidth, panelHeight, 12); // 12px radius
+    ctx.fill();
+    ctx.stroke();
+
     
     // Draw panel title
     ctx.fillStyle = '#000000';
@@ -1120,7 +1144,7 @@ public setupObjects(): void {
     
     forceMap.forEach((forces: ForceData[], objectId: string) => {
       if (forces.length > 0) {
-        ctx.fillStyle = '#333333';
+        ctx.fillStyle = '#ffffffff';
         ctx.fillText(`Object: ${objectId}`, panelX + 10, panelY + yOffset);
         yOffset += 20;
         
@@ -1130,7 +1154,7 @@ public setupObjects(): void {
           const direction: string = force.direction;
           
           // Color code text based on source
-          let textColor: string = '#FF0000';
+          let textColor: string = '#833f00ff';
           switch (source) {
             case 'gravity': 
               textColor = '#0000FF'; 

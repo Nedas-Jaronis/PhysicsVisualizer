@@ -250,14 +250,6 @@ return (
           >
             {isPaused ? '▶ Resume' : '⏸ Pause'}
           </button>
-
-          {/* <button
-            onClick={handleResetAnimation}
-            className="animation-button reset-button"
-          >
-            🔄 Reset
-          </button> */}
-
           <button
             id="slownormalbutton"
             onClick={handleToggleSlowMotion}
@@ -273,9 +265,6 @@ return (
       <button className="backbutton" onClick={() => navigate("/second-page")}>
         Previous Page
       </button>
-      {/* <button className="NextButton" onClick={() => navigate("/Interactive-page")}>
-        Matter-JS Interactive Page
-      </button> */}
     </div>
   </div>
 );}
