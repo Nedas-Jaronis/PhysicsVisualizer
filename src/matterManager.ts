@@ -1794,11 +1794,24 @@ private applyDampedOscillations(): void {
   }
 
   public resize(): void {
-    this.render.canvas.width = this.canvas.clientWidth;
-    this.render.canvas.height = this.canvas.clientHeight;
-    this.render.options.width = this.canvas.clientWidth;
-    this.render.options.height = this.canvas.clientHeight;
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    // Update the actual <canvas> pixel size
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    // Update Matter.js render size options
+    this.render.options.width = width;
+    this.render.options.height = height;
+
+    // Update the internal render canvas pixel dimensions
+    this.render.canvas.width = width;
+    this.render.canvas.height = height;
+
+    console.log(`Resized canvas to ${width}x${height}`);
   }
+
 
   public cleanup(): void {
     Matter.Runner.stop(this.runner);
