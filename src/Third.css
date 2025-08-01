@@ -16,19 +16,21 @@
 .step-by-step-content {
   height: 80vh;
   max-height: 85vh;
-  width: 30vw;
+  width: 29.5vw;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
-  scrollbar-color: white transparent;
+
   display: block;
   line-height: 30px;
   font-size: 20px;
+  background: transparent;
 }
 .step-by-step-content h2 {
   text-align: center;
   font-size: 30px;
 }
+
 
 .First-Box {
   border: 1px solid white;
@@ -41,8 +43,6 @@
   max-height: 85vh;
   color: white;
   background-color: rgb(13, 20, 58);
-
-
 }
 /* Scrollbar Styling */
 .step-by-step-content::-webkit-scrollbar {
@@ -50,21 +50,8 @@
 }
 
 .step-by-step-content::-webkit-scrollbar-thumb {
-  background: white;
+  background:rgba(255, 255, 255, 0.2);
   border-radius: 5px;
-  margin: 10px 0;
-}
-
-.step-by-step-content::-webkit-scrollbar-track {
-  background: transparent;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.step-by-step-content::-webkit-scrollbar-button {
-  display: none;
-  height: 0;
-  width: 0;
 }
 
 
