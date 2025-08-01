@@ -60,7 +60,7 @@ const Second: React.FC = () => {
               <button onClick={() => window.location.reload()}>Try Again</button>
             </div>
           ) : (
-            <div>
+            <div className="Solution-Content">
               <h1>Solution</h1>
               <div
                 dangerouslySetInnerHTML={{ __html: solution.replace(/\n/g, "<br/>") }}
