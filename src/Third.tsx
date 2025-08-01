@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePhysics } from "./PhysicsContent";
 import MatterManager from "./matterManager";
-import { setUpdateCallback } from "./matterManager"; // adjust path
 import "./Third.css";
 
 declare global {
@@ -26,27 +25,7 @@ const Third: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isSlowMotion, setIsSlowMotion] = useState(false);
-  const [physicsData, setPhysicsData] = useState({
-    height: 0,
-    velocity: 1,
-    time: 0,
-    phase: 1,
-    timeScale: 1.0,
-    isPaused: false
-  });
   
-
-  useEffect(() => {
-    // Register the callback ONCE after component mounts
-    setUpdateCallback((data) => {
-      setPhysicsData((prev) => ({
-        ...prev,
-        velocity: Math.sqrt(data.vx ** 2 + data.vy ** 2),
-        height: data.y,
-        time: data.time,
-      }));
-    });
-  }, []);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const matterManagerRef = useRef<MatterManager | null>(null);
@@ -139,13 +118,6 @@ const Third: React.FC = () => {
       return;
     }
 
-    // Listen for physics updates
-    const handlePhysicsUpdate = (event: CustomEvent) => {
-      setPhysicsData(event.detail);
-    };
-
-    window.addEventListener('physicsUpdate', handlePhysicsUpdate as EventListener);
-
     // Resize handler
     const handleResize = () => {
       if (matterManagerRef.current) {
@@ -175,7 +147,6 @@ const Third: React.FC = () => {
         matterManagerRef.current.cleanup();
       }
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener('physicsUpdate', handlePhysicsUpdate as EventListener);
       
       // Clean up window properties
       delete window.ANIMATION_DATA;
@@ -251,7 +222,7 @@ return (
           <div className="step-by-step-content">
             <h2>Step-By-Step Explanation</h2>
             {stepByStep ? (
-              <div dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStep) }} />
+              <div className="stepFont" dangerouslySetInnerHTML={{ __html: formatStepByStep(stepByStep) }} />
             ) : (
               <p>No step-by-step explanation available.</p>
             )}
@@ -264,35 +235,6 @@ return (
           ref={canvasRef}
           style={{ width: "100%", height: "100%", display: "block" }}
         />
-
-        <div className="physics-display">
-          <div className="physics-row">
-            <span className="label">Height:</span>
-            <span className="value green">{physicsData.height.toFixed(2)} m</span>
-          </div>
-          <div className="physics-row">
-            <span className="label">Velocity:</span>
-            <span className="value blue">{physicsData.velocity.toFixed(2)} m/s</span>
-          </div>
-          <div className="physics-row">
-            <span className="label">Time:</span>
-            <span className="value orange">{physicsData.time.toFixed(2)} s</span>
-          </div>
-          <div className="physics-row">
-            <span className="label">Phase:</span>
-            <span className="value pink">{physicsData.phase}</span>
-          </div>
-          <div className="physics-row">
-            <span className="label">Speed:</span>
-            <span className="value purple">{physicsData.timeScale?.toFixed(1)}x</span>
-          </div>
-          <div className="physics-row">
-            <span className="label">Status:</span>
-            <span className={`value ${physicsData.isPaused ? 'orange-dark' : 'lime'}`}>
-              {physicsData.isPaused ? 'PAUSED' : 'RUNNING'}
-            </span>
-          </div>
-        </div>
 
         <div className="animation-controls">
           <button

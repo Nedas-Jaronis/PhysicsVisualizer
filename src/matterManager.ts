@@ -197,8 +197,8 @@ class MatterManager {
                 isStatic: true,
                 friction: environment.friction?.kinetic ?? 0,
                 render: {
-                  fillStyle: '#FF00FF',
-                  strokeStyle: '#654321',
+                  fillStyle: '#888888ff',
+                  strokeStyle: '#888888ff',
                   lineWidth: 3
                 }
               }
