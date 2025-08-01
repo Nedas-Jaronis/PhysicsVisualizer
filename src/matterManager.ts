@@ -95,7 +95,6 @@ class MatterManager {
   private InclineWidth?: number;
   private InclineLeg?: string;
   private cliffWidth?: number;
-  private simulationStartTime: number = 0;
 
 
   constructor(canvas: HTMLCanvasElement) {
@@ -1680,7 +1679,6 @@ private applyDampedOscillations(): void {
 
 
   public startAnimation(): void {
-    this.simulationStartTime=this.engine.timing.timestamp;
     
     
     // Disable gravity for horizontal frictionless surface
