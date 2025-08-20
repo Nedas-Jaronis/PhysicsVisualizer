@@ -33,7 +33,7 @@ const BackgroundCanvas = () => {
         enablePan={false}
         enableRotate={false}
         autoRotate={true}
-        autoRotateSpeed={0.6}
+        autoRotateSpeed={0.6}   //Speed of background
       />
     </Canvas>
   );
