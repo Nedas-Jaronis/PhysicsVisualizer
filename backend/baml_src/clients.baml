@@ -5,7 +5,7 @@ client<llm> DeepseekChatClient {
   options {
     model "deepseek-chat"
     base_url "https://api.deepseek.com/v1"
-    api_key "sk-40bc61c061c14be1a62008a4405f2207"
+    api_key "---" //Enter API Key Here same as the others
   }
 } 
 
@@ -14,7 +14,7 @@ client DeepseekR1Client {
   options {
     model "deepseek-reasoner"
     base_url "https://api.deepseek.com/v1"
-    api_key "sk-40bc61c061c14be1a62008a4405f2207"
+    api_key "---"
     temperature 0.0
   }
 }
@@ -24,7 +24,7 @@ client<llm> CustomGPT4o {
   provider openai
   options {
     model "gpt-4o"
-    api_key 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
+    api_key "---" 
   }
 }
 
