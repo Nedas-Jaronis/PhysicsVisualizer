@@ -40,7 +40,7 @@ client<llm> CustomGPT4oMini {
 client<llm> CustomSonnet {
   provider anthropic
   options {
-    model "claude-3-5-sonnet-20241022"
+    model "claude-sonnet-4-20250514"
     api_key env.ANTHROPIC_API_KEY
   }
 }

@@ -114,78 +114,74 @@ app.post('/api/solve', async (req: Request, res: Response) => {
 
     console.log(`[PROCESSING] Problem: ${problem}`);
 
-    // Step 1: Extract animation data from problem
-    let animationDict: Record<string, unknown>;
-    try {
+    // Run animation extraction and problem solving in PARALLEL
+    // These are independent and can run simultaneously
+    console.log('[PARALLEL] Starting animation extraction and problem solving simultaneously...');
+
+    const animationPromise = (async () => {
+      // Step 1: Extract animation data from problem
       console.log('[STEP 1] Extracting animation data...');
       const animationData = await b.Extract_animation_data(problem);
-      animationDict = animationData as unknown as Record<string, unknown>;
-      console.log('[OK] Animation data extracted:', animationDict);
-    } catch (e) {
-      console.log(`[ERROR] Animation data extraction failed: ${e}`);
-      res.status(500).json({
-        error: 'Animation data extraction failed',
-        message: String(e)
-      });
-      return;
-    }
+      const animationDict = animationData as unknown as Record<string, unknown>;
+      console.log('[OK] Animation data extracted');
 
-    // Step 2: Load and process schemas
-    let allSchemas: Record<string, unknown[]>;
-    try {
+      // Step 2: Load and process schemas
       console.log('[STEP 2] Loading schemas...');
-      allSchemas = loadAllSchemas(animationDict);
+      const allSchemas = loadAllSchemas(animationDict);
       console.log('[OK] Schemas loaded successfully');
-    } catch (e) {
-      console.log(`[ERROR] Schema loading failed: ${e}`);
-      res.status(500).json({
-        error: 'Schema loading failed',
-        message: String(e)
-      });
-      return;
-    }
 
-    // Step 3: Update animation data with problem-specific values
-    let updatedAnimationData: Record<string, unknown> | null;
-    try {
+      // Step 3: Update animation data with problem-specific values
       console.log('[STEP 3] Updating animation data with problem values...');
       const jsonString = JSON.stringify(allSchemas);
       const updatedAnimationDataRaw = await b.Update_Animation_Data(jsonString, problem);
 
-      console.log(`Raw response from BAML: ${updatedAnimationDataRaw}`);
-      console.log(`Raw response type: ${typeof updatedAnimationDataRaw}`);
-
-      updatedAnimationData = cleanAndParseJson(updatedAnimationDataRaw);
+      let updatedAnimationData = cleanAndParseJson(updatedAnimationDataRaw);
 
       if (updatedAnimationData === null) {
-        console.log('[ERROR] Failed to parse updated animation data, using fallback');
+        console.log('[WARN] Failed to parse updated animation data, using fallback');
         updatedAnimationData = allSchemas;
       } else {
         console.log('[OK] Successfully parsed updated animation data');
-        if (typeof updatedAnimationData === 'object') {
-          console.log(`Parsed data keys: ${Object.keys(updatedAnimationData)}`);
-        }
       }
-    } catch (e) {
-      console.log(`[ERROR] Animation data update failed: ${e}`);
-      updatedAnimationData = allSchemas;
-    }
 
-    // Step 4: Extract problem data (solution steps, formulas, etc.)
-    let problemDict: Record<string, unknown>;
-    try {
+      return updatedAnimationData;
+    })();
+
+    const problemPromise = (async () => {
+      // Step 4: Extract problem data (solution steps, formulas, etc.)
       console.log('[STEP 4] Extracting problem solution data...');
-      const problemData = await b.Extract_ProblemData(problem);
-      problemDict = problemData as unknown as Record<string, unknown>;
-      console.log('[OK] Problem solution data extracted');
+      try {
+        const problemData = await b.Extract_ProblemData(problem);
+        console.log('[OK] Problem solution data extracted');
+        return problemData as unknown as Record<string, unknown>;
+      } catch (e) {
+        console.log(`[WARN] Problem data extraction failed: ${e}`);
+        console.log('[FALLBACK] Using default problem data structure');
+        return {
+          problem: problem,
+          formulas: "See the physics formulas relevant to this problem type.",
+          stepByStep: "- Step 1: Identify the known quantities from the problem\n- Step 2: Determine what needs to be found\n- Step 3: Select appropriate physics equations\n- Step 4: Solve for the unknown values\n- Step 5: Check units and verify the answer makes physical sense",
+          solution: "Please review the step-by-step solution above. The simulation on the next page will visualize this problem."
+        };
+      }
+    })();
+
+    // Wait for both to complete
+    let updatedAnimationData: Record<string, unknown>;
+    let problemDict: Record<string, unknown>;
+
+    try {
+      [updatedAnimationData, problemDict] = await Promise.all([animationPromise, problemPromise]);
     } catch (e) {
-      console.log(`[ERROR] Problem data extraction failed: ${e}`);
+      console.log(`[ERROR] Parallel execution failed: ${e}`);
       res.status(500).json({
-        error: 'Problem data extraction failed',
+        error: 'Problem processing failed',
         message: String(e)
       });
       return;
     }
+
+    console.log('[OK] All parallel tasks completed');
 
     // Ensure we have a proper object for animation_data
     const finalAnimationData = typeof updatedAnimationData === 'object' && updatedAnimationData !== null
