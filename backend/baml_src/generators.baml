@@ -3,7 +3,7 @@
 // Just ensure that the output_dir is different for each generator.
 generator target {
     // Valid values: "python/pydantic", "typescript", "ruby/sorbet", "rest/openapi"
-    output_type "python/pydantic"
+    output_type "typescript"
 
     // Where the generated code will be saved (relative to baml_src/)
     output_dir "../"
@@ -14,5 +14,5 @@ generator target {
 
     // Valid values: "sync", "async"
     // This controls what `b.FunctionName()` will be (sync or async).
-    default_client_mode sync
+    default_client_mode async
 }
