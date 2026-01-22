@@ -6,7 +6,7 @@ class ProblemData {
 }
 
 function Extract_ProblemData(data: string) -> ProblemData {
-    client "DeepseekChatClient"
+    client "CustomSonnet"
     prompt #"""
         Given the physics problem:
 

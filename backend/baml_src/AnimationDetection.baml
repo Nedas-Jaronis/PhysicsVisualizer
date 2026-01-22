@@ -105,7 +105,7 @@ class AnimationData {
 
 // --- Step 1: Extract animation types from problem ---
 function Extract_animation_data(problem: string) -> AnimationData {
-  client "DeepseekChatClient"
+  client "CustomSonnet"
   prompt #"""
     You are a physics expert. Extract relevant animation categories and types from the following problem.
 
@@ -148,7 +148,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
 }
 
 function Update_Animation_Data(data: string, problem: string) -> string {
-  client "DeepseekChatClient"
+  client "CustomSonnet"
   prompt #"""
 You are a physics simulation expert.
 
