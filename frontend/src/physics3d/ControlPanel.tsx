@@ -164,6 +164,7 @@ function Section({ title, children, defaultOpen = true }: SectionProps) {
 interface ControlPanelProps {
   params: PhysicsParams
   onChange: (params: PhysicsParams) => void
+  onReplay: () => void
   onReset: () => void
   onPlay: () => void
   onPause: () => void
@@ -179,6 +180,7 @@ interface ControlPanelProps {
 export function ControlPanel({
   params,
   onChange,
+  onReplay,
   onReset,
   onPlay,
   onPause,
@@ -217,11 +219,69 @@ export function ControlPanel({
         </h2>
       </div>
 
-      {/* Control Buttons */}
+      {/* Replay & Reset Buttons */}
       <div style={{
         display: 'flex',
         gap: '8px',
-        marginBottom: '16px'
+        marginBottom: '12px'
+      }}>
+        <button
+          onClick={onReplay}
+          style={{
+            flex: 1,
+            padding: '12px',
+            background: 'linear-gradient(135deg, rgba(64, 200, 255, 0.4), rgba(64, 128, 255, 0.4))',
+            border: '1px solid rgba(64, 180, 255, 0.6)',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(64, 200, 255, 0.6), rgba(64, 128, 255, 0.6))';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(64, 200, 255, 0.4), rgba(64, 128, 255, 0.4))';
+          }}
+        >
+          Replay
+        </button>
+        <button
+          onClick={onReset}
+          style={{
+            flex: 1,
+            padding: '12px',
+            background: 'rgba(255, 160, 64, 0.3)',
+            border: '1px solid rgba(255, 160, 64, 0.5)',
+            borderRadius: '6px',
+            color: 'white',
+            fontSize: '0.8rem',
+            fontWeight: 500,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 160, 64, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255, 160, 64, 0.3)';
+          }}
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* Play/Pause Button */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '12px'
       }}>
         <button
           onClick={isPaused ? onPlay : onPause}
@@ -241,31 +301,15 @@ export function ControlPanel({
         >
           {isPaused ? 'Play' : 'Pause'}
         </button>
-        <button
-          onClick={onReset}
-          style={{
-            flex: 1,
-            padding: '10px',
-            background: 'rgba(64, 128, 255, 0.3)',
-            border: '1px solid rgba(64, 128, 255, 0.5)',
-            borderRadius: '4px',
-            color: 'white',
-            fontSize: '0.75rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            cursor: 'pointer'
-          }}
-        >
-          Apply & Reset
-        </button>
       </div>
       <p style={{
         fontSize: '0.65rem',
         color: 'rgba(255,255,255,0.4)',
-        margin: '0 0 20px 0',
-        lineHeight: 1.4
+        margin: '0 0 16px 0',
+        lineHeight: 1.5
       }}>
-        Adjust sliders then click "Apply & Reset" to see changes
+        <strong>Replay:</strong> Restart with current settings<br/>
+        <strong>Reset:</strong> Restore original problem values
       </p>
 
       {/* Live Data Display */}
@@ -313,12 +357,15 @@ export function ControlPanel({
         <Slider
           label="Time Scale"
           value={params.timeScale}
-          min={0.1}
+          min={0.25}
           max={2}
-          step={0.1}
+          step={0.25}
           unit="x"
           onChange={(v) => update('timeScale', v)}
         />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', margin: '-8px 0 8px 0' }}>
+          Click Replay to apply new speed
+        </p>
       </Section>
 
       {/* Object Settings */}

@@ -12,7 +12,8 @@ import {
   Ramp,
   Projectile,
   Pendulum,
-  Wall
+  Wall,
+  Cliff
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -290,15 +291,17 @@ const Third: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [key, setKey] = useState(0);
+  const [resetTrigger, setResetTrigger] = useState(0);
+  const [activeTimeScale, setActiveTimeScale] = useState(1); // Only updates on Replay
   const [liveData, setLiveData] = useState<{
     position?: { x: number; y: number; z: number };
     velocity?: { x: number; y: number; z: number };
     time?: number;
   }>({});
 
-  // Check problem text for special keywords
-  const problemOverrides = useMemo(() => {
-    if (!problem) return {};
+  // Check problem text for special keywords and extract values
+  const problemAnalysis = useMemo(() => {
+    if (!problem) return { overrides: {}, hasCliff: false, cliffHeight: 0, isHorizontalThrow: false };
     const lowerProblem = problem.toLowerCase();
     const overrides: Partial<PhysicsParams> = {};
 
@@ -317,8 +320,53 @@ const Third: React.FC = () => {
       overrides.restitution = 0;
     }
 
-    return overrides;
+    // Check for cliff/height scenarios
+    const hasCliff = lowerProblem.includes('cliff') || lowerProblem.includes('building') ||
+                     lowerProblem.includes('tower') || lowerProblem.includes('rooftop') ||
+                     (lowerProblem.includes('high') && lowerProblem.includes('thrown'));
+
+    // Extract height from problem (look for patterns like "20 m high", "50m tall", "height of 30")
+    let cliffHeight = 0;
+    const heightPatterns = [
+      /(\d+(?:\.\d+)?)\s*m(?:eter)?s?\s*(?:high|tall|above|height)/i,
+      /height\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i,
+      /(\d+(?:\.\d+)?)\s*m\s*(?:cliff|building|tower)/i,
+      /from\s*(?:a\s*)?(\d+(?:\.\d+)?)\s*m/i
+    ];
+    for (const pattern of heightPatterns) {
+      const match = problem.match(pattern);
+      if (match) {
+        cliffHeight = parseFloat(match[1]);
+        break;
+      }
+    }
+
+    // Check if thrown horizontally
+    const isHorizontalThrow = lowerProblem.includes('horizontally') ||
+                               lowerProblem.includes('horizontal');
+
+    // If horizontal throw, set vertical velocity to 0
+    if (isHorizontalThrow) {
+      overrides.initialVelocityY = 0;
+    }
+
+    // If we have a cliff height, set initial Y position
+    if (cliffHeight > 0) {
+      overrides.initialPositionY = cliffHeight;
+    }
+
+    // Extract horizontal speed for horizontal throws
+    if (isHorizontalThrow) {
+      const speedMatch = problem.match(/(?:speed|velocity)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i);
+      if (speedMatch) {
+        overrides.initialVelocityX = parseFloat(speedMatch[1]);
+      }
+    }
+
+    return { overrides, hasCliff, cliffHeight, isHorizontalThrow };
   }, [problem]);
+
+  const problemOverrides = problemAnalysis.overrides;
 
   // Extract initial params from animation data
   const initialParams = useMemo(() => {
@@ -344,16 +392,21 @@ const Third: React.FC = () => {
     return () => clearTimeout(timer);
   }, [stepByStep, navigate]);
 
-  const handleReset = useCallback(() => {
-    // Reset gravity and timeScale to defaults, keep other extracted params
-    setParams(prev => ({
-      ...prev,
-      gravity: defaultParams.gravity,
-      timeScale: defaultParams.timeScale
-    }));
-    setKey((k) => k + 1);
+  // Replay: restart animation with current (user-modified) settings (no full reload)
+  const handleReplay = useCallback(() => {
+    setActiveTimeScale(params.timeScale); // Lock in the timeScale for this run
+    setResetTrigger((t) => t + 1);
     setIsPaused(false);
-  }, []);
+  }, [params.timeScale]);
+
+  // Reset: restore all values back to original problem values (full reload)
+  const handleReset = useCallback(() => {
+    const extracted = extractPhysicsParams(animation_data);
+    setParams({ ...defaultParams, ...extracted, ...problemOverrides });
+    setActiveTimeScale(1); // Reset to default time scale
+    setKey((k) => k + 1); // Full reload for reset
+    setIsPaused(false);
+  }, [animation_data, problemOverrides]);
 
   const handlePlay = useCallback(() => setIsPaused(false), []);
   const handlePause = useCallback(() => setIsPaused(true), []);
@@ -370,14 +423,82 @@ const Third: React.FC = () => {
     });
   }, []);
 
+  // Un-scale live data for display (show real physics values, not time-scaled)
+  const displayLiveData = useMemo(() => {
+    if (!liveData.velocity) return liveData;
+    const scale = activeTimeScale || 1;
+    return {
+      position: liveData.position,
+      velocity: liveData.velocity ? {
+        x: liveData.velocity.x / scale,
+        y: liveData.velocity.y / scale,
+        z: liveData.velocity.z / scale
+      } : undefined,
+      time: liveData.time ? liveData.time / scale : undefined
+    };
+  }, [liveData, activeTimeScale]);
+
   const sceneType = useMemo(() => determineSceneType(animation_data), [animation_data]);
+
+  // Calculate camera position based on INITIAL scene requirements only (not live params)
+  // This prevents camera from shifting when user adjusts sliders
+  const cameraSettings = useMemo(() => {
+    const { hasCliff, cliffHeight } = problemAnalysis;
+    // Use initial params for camera calculation, not live params
+    const g = 9.81; // Always use standard gravity for camera calc
+    const vy = initialParams.initialVelocityY || 0;
+    const vx = initialParams.initialVelocityX || 10;
+    const posY = initialParams.initialPositionY || 2;
+
+    if (hasCliff && cliffHeight > 0) {
+      const h = cliffHeight;
+
+      // Time to fall: t = sqrt(2h/g)
+      const fallTime = Math.sqrt((2 * h) / g);
+      // Horizontal distance: x = vx * t
+      const horizontalRange = vx * fallTime;
+
+      // Position camera to see the whole trajectory
+      const maxDimension = Math.max(h, horizontalRange);
+      const cameraDistance = maxDimension * 1.5;
+
+      return {
+        position: [horizontalRange / 2, h / 2 + 5, cameraDistance] as [number, number, number],
+        target: [horizontalRange / 2, h / 2, 0] as [number, number, number]
+      };
+    }
+
+    if (sceneType === 'projectile' || sceneType === 'freefall') {
+      // Max height for vertical throws: h = vy^2 / (2g)
+      const maxHeight = vy > 0 ? (vy * vy) / (2 * g) + posY : posY;
+      // Time of flight: t = 2 * vy / g (for throw and catch at same level)
+      const flightTime = vy > 0 ? (2 * vy) / g : 2;
+      const horizontalRange = Math.abs(vx) * flightTime;
+
+      const maxDimension = Math.max(maxHeight, horizontalRange, 20);
+      const cameraDistance = maxDimension * 1.2;
+
+      return {
+        position: [cameraDistance * 0.7, maxHeight * 0.6 + 5, cameraDistance] as [number, number, number],
+        target: [horizontalRange / 4, maxHeight / 2, 0] as [number, number, number]
+      };
+    }
+
+    // Default camera
+    return {
+      position: [15, 12, 15] as [number, number, number],
+      target: [0, 5, 0] as [number, number, number]
+    };
+  }, [problemAnalysis, initialParams, sceneType]);
 
   // Debug: log animation data
   useEffect(() => {
     console.log("Animation data received:", animation_data);
     console.log("Scene type:", sceneType);
+    console.log("Problem analysis:", problemAnalysis);
     console.log("Current params:", params);
-  }, [animation_data, sceneType, params]);
+    console.log("Camera settings:", cameraSettings);
+  }, [animation_data, sceneType, problemAnalysis, params, cameraSettings]);
 
   return (
     <div style={{
@@ -451,19 +572,40 @@ const Third: React.FC = () => {
         <div style={{ flex: 1, position: 'relative' }}>
           <PhysicsScene
             key={key}
-            gravity={[0, -params.gravity, 0]}
+            gravity={[0, -params.gravity * activeTimeScale * activeTimeScale, 0]}
             paused={isPaused}
+            cameraPosition={cameraSettings.position}
+            cameraTarget={cameraSettings.target}
           >
             <Ground />
+
+            {/* Cliff for cliff-based projectile problems */}
+            {problemAnalysis.hasCliff && problemAnalysis.cliffHeight > 0 && (
+              <Cliff
+                height={problemAnalysis.cliffHeight}
+                width={3}
+                depth={4}
+                position={[0, 0, 0]}
+                color="#3a3a3a"
+              />
+            )}
 
             {/* Projectile / Thrown object */}
             {(sceneType === 'projectile' || sceneType === 'freefall') && (
               <PhysicsSphere
-                key={`sphere-${key}`}
-                position={[params.initialPositionX, params.initialPositionY, params.initialPositionZ]}
-                velocity={[params.initialVelocityX, params.initialVelocityY, params.initialVelocityZ]}
+                resetTrigger={resetTrigger}
+                position={[
+                  problemAnalysis.hasCliff ? 0 : params.initialPositionX,
+                  params.initialPositionY,
+                  params.initialPositionZ
+                ] as [number, number, number]}
+                velocity={[
+                  params.initialVelocityX * activeTimeScale,
+                  params.initialVelocityY * activeTimeScale,
+                  params.initialVelocityZ * activeTimeScale
+                ]}
                 mass={params.mass}
-                radius={0.3}
+                radius={0.5}
                 restitution={params.restitution}
                 friction={params.friction}
                 color="#40ff80"
@@ -505,7 +647,7 @@ const Third: React.FC = () => {
                     restitution={0.05}
                   />
                   <PhysicsBox
-                    key={`box-${key}`}
+                    resetTrigger={resetTrigger}
                     position={[blockX, blockY, blockZ] as [number, number, number]}
                     size={[blockSize, blockSize, blockSize] as [number, number, number]}
                     mass={params.mass}
@@ -522,7 +664,7 @@ const Third: React.FC = () => {
             {sceneType === 'collision' && (
               <>
                 <PhysicsBox
-                  key={`box1-${key}`}
+                  resetTrigger={resetTrigger}
                   position={[-3, 1, 0]}
                   velocity={[params.initialVelocityX || 5, 0, 0]}
                   mass={params.mass}
@@ -530,7 +672,7 @@ const Third: React.FC = () => {
                   color="#4080ff"
                 />
                 <PhysicsBox
-                  key={`box2-${key}`}
+                  resetTrigger={resetTrigger}
                   position={[3, 1, 0]}
                   velocity={[-(params.initialVelocityX || 5), 0, 0]}
                   mass={params.mass}
@@ -557,7 +699,7 @@ const Third: React.FC = () => {
               <>
                 <Wall position={[0, 6, 0]} size={[2, 0.3, 2]} color="#444" />
                 <PhysicsSphere
-                  key={`spring-mass-${key}`}
+                  resetTrigger={resetTrigger}
                   position={[0, 4, 0]}
                   velocity={[0, params.initialVelocityY, 0]}
                   mass={params.mass}
@@ -571,7 +713,7 @@ const Third: React.FC = () => {
             {/* Circular motion - placeholder using sphere */}
             {sceneType === 'circular' && (
               <PhysicsSphere
-                key={`circular-${key}`}
+                resetTrigger={resetTrigger}
                 position={[3, 2, 0]}
                 velocity={[0, 0, 5]}
                 mass={params.mass}
@@ -586,14 +728,14 @@ const Third: React.FC = () => {
               <>
                 <Wall position={[0, 8, 0]} size={[4, 0.3, 1]} color="#444" />
                 <PhysicsBox
-                  key={`pulley-box1-${key}`}
+                  resetTrigger={resetTrigger}
                   position={[-2, 6, 0]}
                   mass={params.mass}
                   color="#4080ff"
                   onUpdate={handleObjectUpdate}
                 />
                 <PhysicsBox
-                  key={`pulley-box2-${key}`}
+                  resetTrigger={resetTrigger}
                   position={[2, 4, 0]}
                   mass={params.mass * 1.5}
                   color="#ff8040"
@@ -604,7 +746,7 @@ const Third: React.FC = () => {
             {/* Default/freefall scene */}
             {(sceneType === 'default' || sceneType === 'rotation') && (
               <PhysicsBox
-                key={`default-${key}`}
+                resetTrigger={resetTrigger}
                 position={[params.initialPositionX, params.initialPositionY, params.initialPositionZ]}
                 velocity={[params.initialVelocityX, params.initialVelocityY, params.initialVelocityZ]}
                 mass={params.mass}
@@ -664,11 +806,12 @@ const Third: React.FC = () => {
         <ControlPanel
           params={params}
           onChange={setParams}
+          onReplay={handleReplay}
           onReset={handleReset}
           onPlay={handlePlay}
           onPause={handlePause}
           isPaused={isPaused}
-          liveData={liveData}
+          liveData={displayLiveData}
         />
       </div>
     </div>

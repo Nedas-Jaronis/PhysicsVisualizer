@@ -16,6 +16,7 @@ interface PhysicsBoxProps {
   friction?: number
   fixed?: boolean
   name?: string
+  resetTrigger?: number
   onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3 }) => void
 }
 
@@ -29,18 +30,43 @@ export function PhysicsBox({
   friction = 0.5,
   fixed = false,
   name,
+  resetTrigger = 0,
   onUpdate
 }: PhysicsBoxProps) {
   const rigidRef = useRef<RapierRigidBody>(null)
-  const velocitySet = useRef(false)
+  const initialMount = useRef(true)
 
-  // Only set initial velocity once on mount
+  // Use refs to always have access to latest values (avoids stale closure)
+  const positionRef = useRef(position)
+  const velocityRef = useRef(velocity)
+  positionRef.current = position
+  velocityRef.current = velocity
+
+  // Set initial velocity on mount
   useEffect(() => {
-    if (rigidRef.current && !velocitySet.current) {
-      rigidRef.current.setLinvel({ x: velocity[0], y: velocity[1], z: velocity[2] }, true)
-      velocitySet.current = true
+    if (rigidRef.current && initialMount.current) {
+      const v = velocityRef.current
+      rigidRef.current.setLinvel({ x: v[0], y: v[1], z: v[2] }, true)
+      initialMount.current = false
     }
-  }, []) // Empty dependency - only run on mount
+  }, [])
+
+  // Reset position and velocity when resetTrigger changes
+  useEffect(() => {
+    if (rigidRef.current && !initialMount.current) {
+      const p = positionRef.current
+      const v = velocityRef.current
+      // Reset position
+      rigidRef.current.setTranslation({ x: p[0], y: p[1], z: p[2] }, true)
+      // Reset rotation
+      rigidRef.current.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
+      // Reset velocities
+      rigidRef.current.setLinvel({ x: v[0], y: v[1], z: v[2] }, true)
+      rigidRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      // Wake up the body
+      rigidRef.current.wakeUp()
+    }
+  }, [resetTrigger])
 
   useFrame(() => {
     if (rigidRef.current && onUpdate) {
@@ -84,6 +110,7 @@ interface PhysicsSphereProps {
   friction?: number
   fixed?: boolean
   name?: string
+  resetTrigger?: number
   onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3 }) => void
 }
 
@@ -97,18 +124,43 @@ export function PhysicsSphere({
   friction = 0.3,
   fixed = false,
   name,
+  resetTrigger = 0,
   onUpdate
 }: PhysicsSphereProps) {
   const rigidRef = useRef<RapierRigidBody>(null)
-  const velocitySet = useRef(false)
+  const initialMount = useRef(true)
 
-  // Only set initial velocity once on mount
+  // Use refs to always have access to latest values (avoids stale closure)
+  const positionRef = useRef(position)
+  const velocityRef = useRef(velocity)
+  positionRef.current = position
+  velocityRef.current = velocity
+
+  // Set initial velocity on mount
   useEffect(() => {
-    if (rigidRef.current && !velocitySet.current) {
-      rigidRef.current.setLinvel({ x: velocity[0], y: velocity[1], z: velocity[2] }, true)
-      velocitySet.current = true
+    if (rigidRef.current && initialMount.current) {
+      const v = velocityRef.current
+      rigidRef.current.setLinvel({ x: v[0], y: v[1], z: v[2] }, true)
+      initialMount.current = false
     }
-  }, []) // Empty dependency - only run on mount
+  }, [])
+
+  // Reset position and velocity when resetTrigger changes
+  useEffect(() => {
+    if (rigidRef.current && !initialMount.current) {
+      const p = positionRef.current
+      const v = velocityRef.current
+      // Reset position
+      rigidRef.current.setTranslation({ x: p[0], y: p[1], z: p[2] }, true)
+      // Reset rotation
+      rigidRef.current.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true)
+      // Reset velocities
+      rigidRef.current.setLinvel({ x: v[0], y: v[1], z: v[2] }, true)
+      rigidRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      // Wake up the body
+      rigidRef.current.wakeUp()
+    }
+  }, [resetTrigger])
 
   useFrame(() => {
     if (rigidRef.current && onUpdate) {
@@ -150,7 +202,7 @@ interface GroundProps {
 }
 
 export function Ground({
-  size = [20, 20],
+  size = [100, 100],
   position = [0, 0, 0],
   color = '#1a1a1a'
 }: GroundProps) {

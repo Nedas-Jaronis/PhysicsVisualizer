@@ -1,13 +1,14 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, Environment, PerspectiveCamera, Text } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 
 interface PhysicsSceneProps {
   children: React.ReactNode
   gravity?: [number, number, number]
   paused?: boolean
   debug?: boolean
+  timeStep?: number
   cameraPosition?: [number, number, number]
   cameraTarget?: [number, number, number]
 }
@@ -17,9 +18,14 @@ export function PhysicsScene({
   gravity = [0, -9.81, 0],
   paused = false,
   debug = false,
+  timeStep = 1/60,
   cameraPosition = [15, 12, 15],
   cameraTarget = [0, 5, 0]
 }: PhysicsSceneProps) {
+  useEffect(() => {
+    console.log(`Physics timeStep: ${timeStep}`)
+  }, [timeStep])
+
   return (
     <Canvas shadows style={{ background: '#0a0a0a' }}>
       <PerspectiveCamera makeDefault position={cameraPosition} fov={60} />
@@ -67,15 +73,15 @@ export function PhysicsScene({
             <bufferAttribute
               attach="attributes-position"
               count={2}
-              array={new Float32Array([0, 0, 0, 0, 30, 0])}
+              array={new Float32Array([0, 0, 0, 0, 50, 0])}
               itemSize={3}
             />
           </bufferGeometry>
           <lineBasicMaterial color="#444" />
         </line>
         {/* Height markers every 5 meters with labels */}
-        {[5, 10, 15, 20, 25, 30].map((h) => (
-          <group key={h}>
+        {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((h) => (
+          <group key={`h-${h}`}>
             <line>
               <bufferGeometry>
                 <bufferAttribute
@@ -108,6 +114,44 @@ export function PhysicsScene({
         >
           0m
         </Text>
+
+        {/* Horizontal distance markers */}
+        <line>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={2}
+              array={new Float32Array([0, 0.05, 0, 50, 0.05, 0])}
+              itemSize={3}
+            />
+          </bufferGeometry>
+          <lineBasicMaterial color="#444" />
+        </line>
+        {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((d) => (
+          <group key={`d-${d}`}>
+            <line>
+              <bufferGeometry>
+                <bufferAttribute
+                  attach="attributes-position"
+                  count={2}
+                  array={new Float32Array([d, 0, -0.5, d, 0, 0.5])}
+                  itemSize={3}
+                />
+              </bufferGeometry>
+              <lineBasicMaterial color="#555" />
+            </line>
+            <Text
+              position={[d, 0.1, 1.2]}
+              fontSize={0.4}
+              color="#555"
+              anchorX="center"
+              anchorY="bottom"
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
+              {d}m
+            </Text>
+          </group>
+        ))}
       </group>
 
       {/* Physics World */}
@@ -116,7 +160,7 @@ export function PhysicsScene({
           gravity={gravity}
           paused={paused}
           debug={debug}
-          timeStep="vary"
+          timeStep={timeStep}
         >
           {children}
         </Physics>
