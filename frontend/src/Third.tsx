@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { usePhysics } from "./PhysicsContent";
 import {
@@ -13,7 +14,9 @@ import {
   Projectile,
   Pendulum,
   Wall,
-  Cliff
+  Cliff,
+  BankedCurve,
+  Car
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -231,6 +234,11 @@ function determineSceneType(animationData: any): string {
     return 'spring';
   }
 
+  // Check for banked curve (circular motion on banked track)
+  if (envStr.includes('banked') || (motionStr.includes('circular') && envStr.includes('curve'))) {
+    return 'banked_curve';
+  }
+
   // Check for circular motion
   if (motionStr.includes('circular') || forceStr.includes('centripetal')) {
     return 'circular';
@@ -301,7 +309,7 @@ const Third: React.FC = () => {
 
   // Check problem text for special keywords and extract values
   const problemAnalysis = useMemo(() => {
-    if (!problem) return { overrides: {}, hasCliff: false, cliffHeight: 0, isHorizontalThrow: false };
+    if (!problem) return { overrides: {}, hasCliff: false, cliffHeight: 0, isHorizontalThrow: false, isBankedCurve: false };
     const lowerProblem = problem.toLowerCase();
     const overrides: Partial<PhysicsParams> = {};
 
@@ -318,6 +326,49 @@ const Third: React.FC = () => {
     // Check for inelastic collision
     if (lowerProblem.includes('inelastic') || lowerProblem.includes('perfectly inelastic')) {
       overrides.restitution = 0;
+    }
+
+    // Check for banked curve
+    const isBankedCurve = lowerProblem.includes('banked') &&
+                          (lowerProblem.includes('curve') || lowerProblem.includes('turn') || lowerProblem.includes('road'));
+
+    // Extract banked curve parameters
+    if (isBankedCurve) {
+      // Extract radius (e.g., "radius 50 m", "radius of 50m", "50 m radius")
+      const radiusPatterns = [
+        /radius\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i,
+        /(\d+(?:\.\d+)?)\s*m\s*radius/i,
+        /r\s*=\s*(\d+(?:\.\d+)?)\s*m/i
+      ];
+      for (const pattern of radiusPatterns) {
+        const match = problem.match(pattern);
+        if (match) {
+          overrides.curveRadius = parseFloat(match[1]);
+          break;
+        }
+      }
+
+      // Extract bank angle (e.g., "banked at 20°", "20 degree bank", "θ = 20°")
+      const anglePatterns = [
+        /banked\s*(?:at)?\s*(\d+(?:\.\d+)?)\s*(?:°|deg)/i,
+        /(\d+(?:\.\d+)?)\s*(?:°|deg(?:ree)?s?)\s*(?:bank|angle)/i,
+        /bank\s*angle\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)/i,
+        /θ\s*=\s*(\d+(?:\.\d+)?)/i
+      ];
+      for (const pattern of anglePatterns) {
+        const match = problem.match(pattern);
+        if (match) {
+          overrides.bankAngle = parseFloat(match[1]);
+          break;
+        }
+      }
+
+      // Calculate ideal speed for no-slip: v = sqrt(r * g * tan(θ))
+      const r = overrides.curveRadius || 50;
+      const theta = overrides.bankAngle || 20;
+      const thetaRad = (theta * Math.PI) / 180;
+      const idealSpeed = Math.sqrt(r * 9.81 * Math.tan(thetaRad));
+      overrides.carSpeed = parseFloat(idealSpeed.toFixed(1));
     }
 
     // Check for cliff/height scenarios
@@ -363,7 +414,7 @@ const Third: React.FC = () => {
       }
     }
 
-    return { overrides, hasCliff, cliffHeight, isHorizontalThrow };
+    return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve };
   }, [problem]);
 
   const problemOverrides = problemAnalysis.overrides;
@@ -394,7 +445,11 @@ const Third: React.FC = () => {
 
   // Replay: restart animation with current (user-modified) settings (no full reload)
   const handleReplay = useCallback(() => {
-    setActiveTimeScale(params.timeScale); // Lock in the timeScale for this run
+    // Use flushSync to ensure gravity update is processed before velocity reset
+    flushSync(() => {
+      setActiveTimeScale(params.timeScale); // Lock in the timeScale for this run
+    });
+    // Now trigger reset - gravity is already updated in Rapier
     setResetTrigger((t) => t + 1);
     setIsPaused(false);
   }, [params.timeScale]);
@@ -438,12 +493,16 @@ const Third: React.FC = () => {
     };
   }, [liveData, activeTimeScale]);
 
-  const sceneType = useMemo(() => determineSceneType(animation_data), [animation_data]);
+  // Determine scene type - override based on problem analysis if needed
+  const sceneType = useMemo(() => {
+    if (problemAnalysis.isBankedCurve) return 'banked_curve';
+    return determineSceneType(animation_data);
+  }, [animation_data, problemAnalysis.isBankedCurve]);
 
   // Calculate camera position based on INITIAL scene requirements only (not live params)
   // This prevents camera from shifting when user adjusts sliders
   const cameraSettings = useMemo(() => {
-    const { hasCliff, cliffHeight } = problemAnalysis;
+    const { hasCliff, cliffHeight, isBankedCurve } = problemAnalysis;
     // Use initial params for camera calculation, not live params
     const g = 9.81; // Always use standard gravity for camera calc
     const vy = initialParams.initialVelocityY || 0;
@@ -481,6 +540,17 @@ const Third: React.FC = () => {
       return {
         position: [cameraDistance * 0.7, maxHeight * 0.6 + 5, cameraDistance] as [number, number, number],
         target: [horizontalRange / 4, maxHeight / 2, 0] as [number, number, number]
+      };
+    }
+
+    // Banked curve camera - bird's eye view to see the circular track
+    if (isBankedCurve || sceneType === 'banked_curve') {
+      const radius = initialParams.curveRadius || 50;
+      const cameraHeight = radius * 1.2;
+      const cameraDistance = radius * 0.8;
+      return {
+        position: [cameraDistance, cameraHeight, cameraDistance] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
       };
     }
 
@@ -723,6 +793,25 @@ const Third: React.FC = () => {
               />
             )}
 
+            {/* Banked curve - car on circular banked track */}
+            {sceneType === 'banked_curve' && (
+              <>
+                <BankedCurve
+                  radius={params.curveRadius}
+                  bankAngle={params.bankAngle}
+                  trackWidth={8}
+                  color="#2a2a2a"
+                />
+                <Car
+                  radius={params.curveRadius}
+                  speed={params.carSpeed * activeTimeScale}
+                  bankAngle={params.bankAngle}
+                  resetTrigger={resetTrigger}
+                  color="#e63946"
+                />
+              </>
+            )}
+
             {/* Pulley system - two connected masses */}
             {sceneType === 'pulley' && (
               <>
@@ -794,6 +883,11 @@ const Third: React.FC = () => {
             {sceneType === 'collision' && (
               <div style={{ color: 'rgba(255,255,255,0.7)' }}>
                 m = {Number(params.mass || 0).toFixed(1)} kg | e = {Number(params.restitution || 0).toFixed(2)}
+              </div>
+            )}
+            {sceneType === 'banked_curve' && (
+              <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                r = {Number(params.curveRadius || 50).toFixed(0)}m | θ = {Number(params.bankAngle || 20).toFixed(0)}° | v = {Number(params.carSpeed || 13.4).toFixed(1)} m/s
               </div>
             )}
             <div style={{ color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>

@@ -25,6 +25,10 @@ export interface PhysicsParams {
   // Pendulum params
   pendulumLength: number
   pendulumAngle: number
+  // Banked curve params
+  curveRadius: number
+  bankAngle: number
+  carSpeed: number
 }
 
 export const defaultParams: PhysicsParams = {
@@ -44,7 +48,10 @@ export const defaultParams: PhysicsParams = {
   springDamping: 1,
   springRestLength: 2,
   pendulumLength: 3,
-  pendulumAngle: 45
+  pendulumAngle: 45,
+  curveRadius: 50,
+  bankAngle: 20,
+  carSpeed: 13.4
 }
 
 // ============================================
@@ -522,6 +529,40 @@ export function ControlPanel({
           unit="°"
           onChange={(v) => update('pendulumAngle', v)}
         />
+      </Section>
+
+      {/* Banked Curve Settings */}
+      <Section title="Banked Curve" defaultOpen={false}>
+        <Slider
+          label="Curve Radius"
+          value={params.curveRadius}
+          min={10}
+          max={100}
+          step={5}
+          unit=" m"
+          onChange={(v) => update('curveRadius', v)}
+        />
+        <Slider
+          label="Bank Angle"
+          value={params.bankAngle}
+          min={5}
+          max={45}
+          step={1}
+          unit="°"
+          onChange={(v) => update('bankAngle', v)}
+        />
+        <Slider
+          label="Car Speed"
+          value={params.carSpeed}
+          min={5}
+          max={30}
+          step={0.1}
+          unit=" m/s"
+          onChange={(v) => update('carSpeed', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          No-slip speed: v = √(r·g·tan θ)
+        </p>
       </Section>
     </div>
   )

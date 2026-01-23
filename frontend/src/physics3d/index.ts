@@ -10,5 +10,7 @@ export {
   Cliff,
   Pendulum,
   Projectile,
-  ForceArrow
+  ForceArrow,
+  BankedCurve,
+  Car
 } from './primitives'
