@@ -668,22 +668,78 @@ export function BankedCurve({
   }
 
   // Add track markings (dashed center line)
-  const markingCount = Math.floor(actualSegments / 16)
+  // Create evenly spaced dashes around the track
+  const dashCount = 32 // Number of dashes
   const markings = []
-  for (let i = 0; i < markingCount; i++) {
-    const midAngle = ((i * 2 + 0.5) / markingCount) * (arcAngle * Math.PI / 360)
-    const markR = radius
-    markings.push(
+  for (let i = 0; i < dashCount; i++) {
+    // Only draw every other segment to create dashed effect
+    if (i % 2 === 0) {
+      const startAngle = (i / dashCount) * (arcAngle * Math.PI / 180)
+      const endAngle = ((i + 0.8) / dashCount) * (arcAngle * Math.PI / 180)
+      const midAngle = (startAngle + endAngle) / 2
+      const dashLength = (2 * Math.PI * radius * arcAngle / 360) / dashCount * 0.8
+
+      const markR = radius // Center of track
+      const yPos = 1.27 + (trackWidth / 2) * Math.sin(bankRad) // Just above track surface
+
+      markings.push(
+        <mesh
+          key={`mark-${i}`}
+          position={[
+            Math.cos(midAngle) * markR,
+            yPos,
+            Math.sin(midAngle) * markR
+          ]}
+          rotation={[bankRad, -midAngle + Math.PI / 2, 0]}
+        >
+          <boxGeometry args={[dashLength, 0.02, 0.25]} />
+          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.2} />
+        </mesh>
+      )
+    }
+  }
+
+  // Add edge lines (solid white lines on edges of track)
+  const edgeLineSegments = 128
+  const edgeLines = []
+  for (let i = 0; i < edgeLineSegments; i++) {
+    const angle = (i / edgeLineSegments) * (arcAngle * Math.PI / 180)
+    const nextAngle = ((i + 1) / edgeLineSegments) * (arcAngle * Math.PI / 180)
+    const midAngle = (angle + nextAngle) / 2
+    const segLen = (2 * Math.PI * radius * arcAngle / 360) / edgeLineSegments
+
+    // Inner edge line
+    const innerLineR = radius - trackWidth / 2 + 1
+    const innerY = 1.27 + (trackWidth / 2 - 1) * Math.sin(bankRad)
+    edgeLines.push(
       <mesh
-        key={`mark-${i}`}
+        key={`inner-line-${i}`}
         position={[
-          Math.cos(midAngle) * markR,
-          1.3 + (trackWidth / 2) * Math.sin(bankRad),
-          Math.sin(midAngle) * markR
+          Math.cos(midAngle) * innerLineR,
+          innerY,
+          Math.sin(midAngle) * innerLineR
         ]}
         rotation={[bankRad, -midAngle + Math.PI / 2, 0]}
       >
-        <boxGeometry args={[4, 0.05, 0.3]} />
+        <boxGeometry args={[segLen * 1.05, 0.02, 0.15]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+    )
+
+    // Outer edge line
+    const outerLineR = radius + trackWidth / 2 - 1
+    const outerY = 1.27 + (trackWidth / 2 + 1) * Math.sin(bankRad)
+    edgeLines.push(
+      <mesh
+        key={`outer-line-${i}`}
+        position={[
+          Math.cos(midAngle) * outerLineR,
+          outerY,
+          Math.sin(midAngle) * outerLineR
+        ]}
+        rotation={[bankRad, -midAngle + Math.PI / 2, 0]}
+      >
+        <boxGeometry args={[segLen * 1.05, 0.02, 0.15]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh>
     )
@@ -694,6 +750,7 @@ export function BankedCurve({
       {trackSegments}
       {barriers}
       {markings}
+      {edgeLines}
     </group>
   )
 }
@@ -710,6 +767,35 @@ interface CarProps {
   onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; speed: number }) => void
 }
 
+// Animated wheel component
+function AnimatedWheel({ position, wheelRef, isRight }: {
+  position: [number, number, number]
+  wheelRef: React.RefObject<THREE.Group>
+  isRight: boolean
+}) {
+  return (
+    <group position={position}>
+      <group ref={wheelRef}>
+        {/* Tire */}
+        <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.4, 0.4, 0.3, 24]} />
+          <meshStandardMaterial color="#1a1a1a" />
+        </mesh>
+        {/* Tire treads */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.42, 0.42, 0.25, 24]} />
+          <meshStandardMaterial color="#2a2a2a" wireframe />
+        </mesh>
+      </group>
+      {/* Hubcap - doesn't rotate */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRight ? 0.16 : -0.16]}>
+        <cylinderGeometry args={[0.18, 0.18, 0.02, 8]} />
+        <meshStandardMaterial color="#cccccc" metalness={0.9} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
 export function Car({
   radius = 50,
   speed = 13.4,
@@ -720,46 +806,60 @@ export function Car({
 }: CarProps) {
   const groupRef = useRef<THREE.Group>(null)
   const angleRef = useRef(0)
-  const wheelRotation = useRef(0)
-  const startTimeRef = useRef(Date.now())
+
+  // Refs for each wheel to animate rotation
+  const wheelFL = useRef<THREE.Group>(null)
+  const wheelFR = useRef<THREE.Group>(null)
+  const wheelRL = useRef<THREE.Group>(null)
+  const wheelRR = useRef<THREE.Group>(null)
 
   // Reset when resetTrigger changes
   useEffect(() => {
     angleRef.current = 0
-    wheelRotation.current = 0
-    startTimeRef.current = Date.now()
   }, [resetTrigger])
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
 
-    // Angular velocity = v / r
+    // Angular velocity around the track = v / r (radians per second)
     const angularVelocity = speed / radius
     angleRef.current += angularVelocity * delta
 
     const bankRad = (bankAngle * Math.PI) / 180
-    const trackWidth = 10 // Match the track width
+    const trackWidth = 10
 
-    // Position on circle - car sits on the banked track surface
+    // Position on circle - car center follows the radius
     const x = Math.cos(angleRef.current) * radius
     const z = Math.sin(angleRef.current) * radius
-    // Y position accounts for track height and banking
-    const y = 2 + (trackWidth / 2) * Math.sin(bankRad)
+    // Y position: track base + half track width * sin(bank) + car ground clearance
+    const y = 1.5 + (trackWidth / 2) * Math.sin(bankRad) + 0.4
 
     groupRef.current.position.set(x, y, z)
 
-    // Car faces tangent to circle (perpendicular to radius)
-    // The car should face the direction of travel (forward along the curve)
-    groupRef.current.rotation.y = -angleRef.current + Math.PI / 2
+    // Car orientation:
+    // 1. Face tangent to circle (direction of travel) - car drives counterclockwise
+    //    Tangent angle = track angle + 90° (perpendicular to radius)
+    groupRef.current.rotation.y = -angleRef.current - Math.PI / 2
 
-    // Bank the car to match the track angle
-    groupRef.current.rotation.z = -bankRad
+    // 2. Bank the car to match track (tilt toward center of turn)
+    //    Use rotation order: first Y (heading), then local X (bank)
+    groupRef.current.rotation.x = bankRad
+    groupRef.current.rotation.z = 0
 
-    // Rotate wheels based on speed
-    wheelRotation.current += delta * speed * 3
+    // Animate wheels - rotate based on linear speed and wheel radius
+    const wheelRadius = 0.4
+    const wheelAngularVelocity = speed / wheelRadius // rad/s
+    const wheelRotation = delta * wheelAngularVelocity
+
+    // Rotate all wheels forward
+    ;[wheelFL, wheelFR, wheelRL, wheelRR].forEach(wheel => {
+      if (wheel.current) {
+        wheel.current.rotation.x += wheelRotation
+      }
+    })
 
     if (onUpdate) {
-      // Velocity is tangent to the circle
+      // Velocity is tangent to the circle (direction of travel)
       const vx = -Math.sin(angleRef.current) * speed
       const vz = Math.cos(angleRef.current) * speed
       onUpdate({
@@ -771,75 +871,80 @@ export function Car({
   })
 
   const bodyColor = color
-  const wheelColor = '#1a1a1a'
-  const windowColor = '#87ceeb'
 
   return (
     <group ref={groupRef}>
-      {/* Car body - main */}
-      <mesh castShadow position={[0, 0.4, 0]}>
-        <boxGeometry args={[4, 0.8, 1.8]} />
+      {/* Car body - main chassis */}
+      <mesh castShadow position={[0, 0.35, 0]}>
+        <boxGeometry args={[1.8, 0.6, 4]} />
         <meshStandardMaterial color={bodyColor} metalness={0.6} roughness={0.4} />
       </mesh>
 
-      {/* Car body - cabin */}
-      <mesh castShadow position={[0.3, 1, 0]}>
-        <boxGeometry args={[2, 0.7, 1.6]} />
+      {/* Car body - cabin/roof */}
+      <mesh castShadow position={[0, 0.85, 0.3]}>
+        <boxGeometry args={[1.6, 0.55, 2]} />
+        <meshStandardMaterial color={bodyColor} metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* Hood slope */}
+      <mesh castShadow position={[0, 0.5, -1.3]} rotation={[0.2, 0, 0]}>
+        <boxGeometry args={[1.6, 0.15, 1]} />
         <meshStandardMaterial color={bodyColor} metalness={0.6} roughness={0.4} />
       </mesh>
 
       {/* Windshield */}
-      <mesh position={[-0.6, 0.95, 0]} rotation={[0, 0, -0.3]}>
-        <boxGeometry args={[0.1, 0.6, 1.4]} />
-        <meshStandardMaterial color={windowColor} transparent opacity={0.7} />
+      <mesh position={[0, 0.75, -0.65]} rotation={[0.5, 0, 0]}>
+        <boxGeometry args={[1.4, 0.5, 0.05]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.6} />
       </mesh>
 
       {/* Rear window */}
-      <mesh position={[1.2, 0.95, 0]} rotation={[0, 0, 0.3]}>
-        <boxGeometry args={[0.1, 0.6, 1.4]} />
-        <meshStandardMaterial color={windowColor} transparent opacity={0.7} />
+      <mesh position={[0, 0.75, 1.25]} rotation={[-0.4, 0, 0]}>
+        <boxGeometry args={[1.4, 0.45, 0.05]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.6} />
+      </mesh>
+
+      {/* Side windows */}
+      <mesh position={[0.8, 0.8, 0.3]}>
+        <boxGeometry args={[0.05, 0.35, 1.5]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.5} />
+      </mesh>
+      <mesh position={[-0.8, 0.8, 0.3]}>
+        <boxGeometry args={[0.05, 0.35, 1.5]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.5} />
       </mesh>
 
       {/* Headlights */}
-      <mesh position={[-2, 0.4, 0.6]}>
-        <boxGeometry args={[0.1, 0.2, 0.3]} />
-        <meshStandardMaterial color="#ffff99" emissive="#ffff00" emissiveIntensity={0.5} />
+      <mesh position={[0.55, 0.35, -1.95]}>
+        <boxGeometry args={[0.4, 0.2, 0.1]} />
+        <meshStandardMaterial color="#ffffcc" emissive="#ffff00" emissiveIntensity={0.8} />
       </mesh>
-      <mesh position={[-2, 0.4, -0.6]}>
-        <boxGeometry args={[0.1, 0.2, 0.3]} />
-        <meshStandardMaterial color="#ffff99" emissive="#ffff00" emissiveIntensity={0.5} />
+      <mesh position={[-0.55, 0.35, -1.95]}>
+        <boxGeometry args={[0.4, 0.2, 0.1]} />
+        <meshStandardMaterial color="#ffffcc" emissive="#ffff00" emissiveIntensity={0.8} />
       </mesh>
 
       {/* Taillights */}
-      <mesh position={[2, 0.4, 0.6]}>
-        <boxGeometry args={[0.1, 0.2, 0.3]} />
-        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.3} />
+      <mesh position={[0.6, 0.4, 1.95]}>
+        <boxGeometry args={[0.35, 0.15, 0.1]} />
+        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.5} />
       </mesh>
-      <mesh position={[2, 0.4, -0.6]}>
-        <boxGeometry args={[0.1, 0.2, 0.3]} />
-        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.3} />
+      <mesh position={[-0.6, 0.4, 1.95]}>
+        <boxGeometry args={[0.35, 0.15, 0.1]} />
+        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.5} />
       </mesh>
 
-      {/* Wheels */}
-      {[
-        [-1.2, 0, 1],
-        [-1.2, 0, -1],
-        [1.2, 0, 1],
-        [1.2, 0, -1]
-      ].map((pos, i) => (
-        <group key={i} position={pos as [number, number, number]}>
-          {/* Tire */}
-          <mesh castShadow rotation={[Math.PI / 2, wheelRotation.current, 0]}>
-            <cylinderGeometry args={[0.4, 0.4, 0.3, 16]} />
-            <meshStandardMaterial color={wheelColor} />
-          </mesh>
-          {/* Hubcap */}
-          <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, pos[2] > 0 ? 0.16 : -0.16]}>
-            <cylinderGeometry args={[0.2, 0.2, 0.02, 16]} />
-            <meshStandardMaterial color="#silver" metalness={0.8} roughness={0.2} />
-          </mesh>
-        </group>
-      ))}
+      {/* Grille */}
+      <mesh position={[0, 0.25, -1.95]}>
+        <boxGeometry args={[1, 0.3, 0.05]} />
+        <meshStandardMaterial color="#222222" />
+      </mesh>
+
+      {/* Wheels - positioned at corners of car */}
+      <AnimatedWheel position={[0.85, 0, -1.2]} wheelRef={wheelFL} isRight={true} />
+      <AnimatedWheel position={[-0.85, 0, -1.2]} wheelRef={wheelFR} isRight={false} />
+      <AnimatedWheel position={[0.85, 0, 1.2]} wheelRef={wheelRL} isRight={true} />
+      <AnimatedWheel position={[-0.85, 0, 1.2]} wheelRef={wheelRR} isRight={false} />
     </group>
   )
 }
