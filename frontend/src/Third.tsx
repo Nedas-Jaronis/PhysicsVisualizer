@@ -16,7 +16,9 @@ import {
   Wall,
   Cliff,
   BankedCurve,
-  Car
+  Car,
+  StraightRoad,
+  LinearCar
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -414,7 +416,63 @@ const Third: React.FC = () => {
       }
     }
 
-    return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve };
+    // Check for linear kinematics (acceleration problems)
+    const isLinearKinematics = (lowerProblem.includes('accelerat') &&
+                                (lowerProblem.includes('car') || lowerProblem.includes('vehicle') ||
+                                 lowerProblem.includes('object') || lowerProblem.includes('starts'))) ||
+                               (lowerProblem.includes('from rest') && lowerProblem.includes('accelerat'));
+
+    // Extract kinematics parameters
+    if (isLinearKinematics) {
+      // Extract acceleration (e.g., "accelerates at 2.5 m/s²", "a = 3 m/s^2")
+      const accelPatterns = [
+        /accelerat\w*\s*(?:at|of|is|=)?\s*(\d+(?:\.\d+)?)\s*m\/s/i,
+        /a\s*=\s*(\d+(?:\.\d+)?)\s*m\/s/i,
+        /(\d+(?:\.\d+)?)\s*m\/s\s*[²2]/i
+      ];
+      for (const pattern of accelPatterns) {
+        const match = problem.match(pattern);
+        if (match) {
+          overrides.acceleration = parseFloat(match[1]);
+          break;
+        }
+      }
+
+      // Extract time (e.g., "for 8 seconds", "t = 5 s")
+      const timePatterns = [
+        /(?:for|during|over)\s*(\d+(?:\.\d+)?)\s*s(?:ec|econds?)?/i,
+        /t\s*=\s*(\d+(?:\.\d+)?)\s*s/i,
+        /(\d+(?:\.\d+)?)\s*s(?:ec|econds?)?\s*(?:later|after)/i
+      ];
+      for (const pattern of timePatterns) {
+        const match = problem.match(pattern);
+        if (match) {
+          overrides.maxTime = parseFloat(match[1]);
+          break;
+        }
+      }
+
+      // Check for "from rest" - initial velocity = 0
+      if (lowerProblem.includes('from rest') || lowerProblem.includes('starts from rest')) {
+        overrides.initialVelocityX = 0;
+      }
+
+      // Extract initial velocity if specified
+      const initVelPatterns = [
+        /initial\s*(?:velocity|speed)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m\/s/i,
+        /v[₀0]\s*=\s*(\d+(?:\.\d+)?)/i,
+        /starts\s*(?:at|with)\s*(\d+(?:\.\d+)?)\s*m\/s/i
+      ];
+      for (const pattern of initVelPatterns) {
+        const match = problem.match(pattern);
+        if (match) {
+          overrides.initialVelocityX = parseFloat(match[1]);
+          break;
+        }
+      }
+    }
+
+    return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve, isLinearKinematics };
   }, [problem]);
 
   const problemOverrides = problemAnalysis.overrides;
@@ -489,15 +547,17 @@ const Third: React.FC = () => {
         y: liveData.velocity.y / scale,
         z: liveData.velocity.z / scale
       } : undefined,
-      time: liveData.time ? liveData.time / scale : undefined
+      // Time is already reported as physics time from components, pass through directly
+      time: liveData.time
     };
   }, [liveData, activeTimeScale]);
 
   // Determine scene type - override based on problem analysis if needed
   const sceneType = useMemo(() => {
     if (problemAnalysis.isBankedCurve) return 'banked_curve';
+    if (problemAnalysis.isLinearKinematics) return 'linear_kinematics';
     return determineSceneType(animation_data);
-  }, [animation_data, problemAnalysis.isBankedCurve]);
+  }, [animation_data, problemAnalysis.isBankedCurve, problemAnalysis.isLinearKinematics]);
 
   // Calculate camera position based on INITIAL scene requirements only (not live params)
   // This prevents camera from shifting when user adjusts sliders
@@ -551,6 +611,20 @@ const Third: React.FC = () => {
       return {
         position: [cameraDistance, cameraHeight, cameraDistance] as [number, number, number],
         target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Linear kinematics camera - side view of straight road
+    if (problemAnalysis.isLinearKinematics || sceneType === 'linear_kinematics') {
+      const a = initialParams.acceleration || 2.5;
+      const t = initialParams.maxTime || 8;
+      const v0 = initialParams.initialVelocityX || 0;
+      // Calculate total distance: x = v₀t + ½at²
+      const totalDistance = v0 * t + 0.5 * a * t * t;
+      const cameraDistance = Math.max(totalDistance * 0.6, 30);
+      return {
+        position: [totalDistance / 2, 15, cameraDistance] as [number, number, number],
+        target: [totalDistance / 2, 0, 0] as [number, number, number]
       };
     }
 
@@ -679,6 +753,8 @@ const Third: React.FC = () => {
                 restitution={params.restitution}
                 friction={params.friction}
                 color="#40ff80"
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
                 onUpdate={handleObjectUpdate}
               />
             )}
@@ -724,6 +800,8 @@ const Third: React.FC = () => {
                     restitution={0.05}
                     friction={params.friction}
                     color="#4080ff"
+                    timeScale={activeTimeScale}
+                    isPaused={isPaused}
                     onUpdate={handleObjectUpdate}
                   />
                 </>
@@ -775,6 +853,8 @@ const Third: React.FC = () => {
                   mass={params.mass}
                   restitution={0.1}
                   color="#40ffff"
+                  timeScale={activeTimeScale}
+                  isPaused={isPaused}
                   onUpdate={handleObjectUpdate}
                 />
               </>
@@ -789,6 +869,8 @@ const Third: React.FC = () => {
                 mass={params.mass}
                 restitution={0.8}
                 color="#ff40ff"
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
                 onUpdate={handleObjectUpdate}
               />
             )}
@@ -807,7 +889,34 @@ const Third: React.FC = () => {
                   speed={params.carSpeed * activeTimeScale}
                   bankAngle={params.bankAngle}
                   resetTrigger={resetTrigger}
+                  timeScale={activeTimeScale}
+                  isPaused={isPaused}
                   color="#e63946"
+                  onUpdate={handleObjectUpdate}
+                />
+              </>
+            )}
+
+            {/* Linear kinematics - car accelerating on straight road */}
+            {sceneType === 'linear_kinematics' && (
+              <>
+                <StraightRoad
+                  length={Math.max(
+                    (params.initialVelocityX || 0) * (params.maxTime || 8) +
+                    0.5 * (params.acceleration || 2.5) * Math.pow(params.maxTime || 8, 2) + 20,
+                    100
+                  )}
+                  width={10}
+                />
+                <LinearCar
+                  initialVelocity={params.initialVelocityX || 0}
+                  acceleration={params.acceleration || 2.5}
+                  maxTime={params.maxTime || 8}
+                  resetTrigger={resetTrigger}
+                  timeScale={activeTimeScale}
+                  isPaused={isPaused}
+                  color="#2266cc"
+                  onUpdate={handleObjectUpdate}
                 />
               </>
             )}
@@ -821,6 +930,8 @@ const Third: React.FC = () => {
                   position={[-2, 6, 0]}
                   mass={params.mass}
                   color="#4080ff"
+                  timeScale={activeTimeScale}
+                  isPaused={isPaused}
                   onUpdate={handleObjectUpdate}
                 />
                 <PhysicsBox
@@ -841,6 +952,8 @@ const Third: React.FC = () => {
                 mass={params.mass}
                 restitution={params.restitution}
                 friction={params.friction}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
                 onUpdate={handleObjectUpdate}
               />
             )}
@@ -890,6 +1003,21 @@ const Third: React.FC = () => {
                 r = {Number(params.curveRadius || 50).toFixed(0)}m | θ = {Number(params.bankAngle || 20).toFixed(0)}° | v = {Number(params.carSpeed || 13.4).toFixed(1)} m/s
               </div>
             )}
+            {sceneType === 'linear_kinematics' && (() => {
+              const v0 = params.initialVelocityX || 0;
+              const a = params.acceleration || 2.5;
+              const t = params.maxTime || 8;
+              const vFinal = v0 + a * t;
+              const distance = v0 * t + 0.5 * a * t * t;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>v₀ = {v0.toFixed(1)} m/s | a = {a.toFixed(1)} m/s² | t = {t.toFixed(1)} s</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    v = {vFinal.toFixed(1)} m/s | d = {distance.toFixed(1)} m
+                  </div>
+                </div>
+              );
+            })()}
             <div style={{ color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
               g = {Number(params.gravity || 9.81).toFixed(2)} m/s²
             </div>

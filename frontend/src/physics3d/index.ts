@@ -12,5 +12,7 @@ export {
   Projectile,
   ForceArrow,
   BankedCurve,
-  Car
+  Car,
+  StraightRoad,
+  LinearCar
 } from './primitives'

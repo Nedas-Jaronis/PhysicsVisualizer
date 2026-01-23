@@ -17,7 +17,9 @@ interface PhysicsBoxProps {
   fixed?: boolean
   name?: string
   resetTrigger?: number
-  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3 }) => void
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; time: number }) => void
 }
 
 export function PhysicsBox({
@@ -31,10 +33,13 @@ export function PhysicsBox({
   fixed = false,
   name,
   resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
   onUpdate
 }: PhysicsBoxProps) {
   const rigidRef = useRef<RapierRigidBody>(null)
   const initialMount = useRef(true)
+  const timeRef = useRef(0)
 
   // Use refs to always have access to latest values (avoids stale closure)
   const positionRef = useRef(position)
@@ -65,16 +70,24 @@ export function PhysicsBox({
       rigidRef.current.setAngvel({ x: 0, y: 0, z: 0 }, true)
       // Wake up the body
       rigidRef.current.wakeUp()
+      // Reset time
+      timeRef.current = 0
     }
   }, [resetTrigger])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // Track physics time (only when not paused)
+    if (!isPaused) {
+      timeRef.current += delta * timeScale
+    }
+
     if (rigidRef.current && onUpdate) {
       const pos = rigidRef.current.translation()
       const vel = rigidRef.current.linvel()
       onUpdate({
         position: new THREE.Vector3(pos.x, pos.y, pos.z),
-        velocity: new THREE.Vector3(vel.x, vel.y, vel.z)
+        velocity: new THREE.Vector3(vel.x, vel.y, vel.z),
+        time: timeRef.current
       })
     }
   })
@@ -111,7 +124,9 @@ interface PhysicsSphereProps {
   fixed?: boolean
   name?: string
   resetTrigger?: number
-  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3 }) => void
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; time: number }) => void
 }
 
 export function PhysicsSphere({
@@ -125,10 +140,13 @@ export function PhysicsSphere({
   fixed = false,
   name,
   resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
   onUpdate
 }: PhysicsSphereProps) {
   const rigidRef = useRef<RapierRigidBody>(null)
   const initialMount = useRef(true)
+  const timeRef = useRef(0)
 
   // Use refs to always have access to latest values (avoids stale closure)
   const positionRef = useRef(position)
@@ -160,15 +178,23 @@ export function PhysicsSphere({
       // Wake up the body
       rigidRef.current.wakeUp()
     }
+    // Reset time
+    timeRef.current = 0
   }, [resetTrigger])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // Track physics time (only when not paused)
+    if (!isPaused) {
+      timeRef.current += delta * timeScale
+    }
+
     if (rigidRef.current && onUpdate) {
       const pos = rigidRef.current.translation()
       const vel = rigidRef.current.linvel()
       onUpdate({
         position: new THREE.Vector3(pos.x, pos.y, pos.z),
-        velocity: new THREE.Vector3(vel.x, vel.y, vel.z)
+        velocity: new THREE.Vector3(vel.x, vel.y, vel.z),
+        time: timeRef.current
       })
     }
   })
@@ -756,18 +782,276 @@ export function BankedCurve({
 }
 
 // ============================================
+// STRAIGHT ROAD (for linear motion)
+// ============================================
+interface StraightRoadProps {
+  length?: number
+  width?: number
+  position?: [number, number, number]
+}
+
+export function StraightRoad({
+  length = 100,
+  width = 10,
+  position = [0, 0, 0]
+}: StraightRoadProps) {
+  const roadSegments = 50
+  const segmentLength = length / roadSegments
+
+  return (
+    <group position={position}>
+      {/* Road surface */}
+      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[length / 2, 0.01, 0]}>
+        <planeGeometry args={[length, width]} />
+        <meshStandardMaterial color="#333333" />
+      </mesh>
+
+      {/* Center dashed line */}
+      {Array.from({ length: Math.floor(roadSegments / 2) }).map((_, i) => (
+        <mesh
+          key={`dash-${i}`}
+          position={[i * segmentLength * 2 + segmentLength, 0.02, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <planeGeometry args={[segmentLength * 0.8, 0.2]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+      ))}
+
+      {/* Edge lines */}
+      <mesh position={[length / 2, 0.02, width / 2 - 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[length, 0.15]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+      <mesh position={[length / 2, 0.02, -width / 2 + 0.5]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[length, 0.15]} />
+        <meshStandardMaterial color="#ffffff" />
+      </mesh>
+
+      {/* Distance markers every 10m */}
+      {Array.from({ length: Math.floor(length / 10) + 1 }).map((_, i) => (
+        <group key={`marker-${i}`} position={[i * 10, 0, width / 2 + 1]}>
+          <mesh position={[0, 0.5, 0]}>
+            <boxGeometry args={[0.2, 1, 0.2]} />
+            <meshStandardMaterial color="#ff6600" />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// ============================================
+// LINEAR CAR (for acceleration/kinematics)
+// ============================================
+interface LinearCarProps {
+  initialVelocity?: number
+  acceleration?: number
+  maxTime?: number
+  color?: string
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; time: number; distance: number }) => void
+}
+
+export function LinearCar({
+  initialVelocity = 0,
+  acceleration = 2.5,
+  maxTime = 8,
+  color = '#2266cc',
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: LinearCarProps) {
+  const groupRef = useRef<THREE.Group>(null)
+  const timeRef = useRef(0)
+  const wheelRefs = [
+    useRef<THREE.Group>(null),
+    useRef<THREE.Group>(null),
+    useRef<THREE.Group>(null),
+    useRef<THREE.Group>(null)
+  ]
+
+  // Reset when resetTrigger changes
+  useEffect(() => {
+    timeRef.current = 0
+    if (groupRef.current) {
+      groupRef.current.position.set(0, 0.5, 0)
+    }
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return
+
+    // Don't update if paused
+    if (isPaused) {
+      // Still report current state when paused
+      const t = Math.min(timeRef.current, maxTime)
+      const distance = initialVelocity * t + 0.5 * acceleration * t * t
+      const velocity = initialVelocity + acceleration * t
+      if (onUpdate) {
+        onUpdate({
+          position: new THREE.Vector3(distance, 0.5, 0),
+          velocity: new THREE.Vector3(velocity, 0, 0),
+          time: t,
+          distance: distance
+        })
+      }
+      return
+    }
+
+    // Scale delta by timeScale for slow-mo effect
+    const scaledDelta = delta * timeScale
+
+    // Only update if within time limit
+    if (timeRef.current < maxTime) {
+      timeRef.current += scaledDelta
+
+      // Kinematics: x = v₀t + ½at²
+      const t = Math.min(timeRef.current, maxTime)
+      const distance = initialVelocity * t + 0.5 * acceleration * t * t
+
+      // Current velocity: v = v₀ + at
+      const velocity = initialVelocity + acceleration * t
+
+      // Update position (car moves along X axis)
+      groupRef.current.position.x = distance
+      groupRef.current.position.y = 0.5
+
+      // Rotate wheels based on distance traveled (wheels spin around Z axis as car moves along X)
+      const wheelRadius = 0.4
+      const wheelRotation = distance / wheelRadius
+      wheelRefs.forEach(ref => {
+        if (ref.current) {
+          ref.current.rotation.z = -wheelRotation // Negative for correct forward roll direction
+        }
+      })
+
+      if (onUpdate) {
+        onUpdate({
+          position: new THREE.Vector3(distance, 0.5, 0),
+          velocity: new THREE.Vector3(velocity, 0, 0),
+          time: t,
+          distance: distance
+        })
+      }
+    }
+  })
+
+  return (
+    <group ref={groupRef} position={[0, 0.5, 0]}>
+      {/* Car body - main chassis */}
+      <mesh castShadow position={[0, 0.35, 0]}>
+        <boxGeometry args={[4, 0.6, 1.8]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* Car body - cabin */}
+      <mesh castShadow position={[-0.3, 0.85, 0]}>
+        <boxGeometry args={[2, 0.55, 1.6]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* Hood */}
+      <mesh castShadow position={[1.3, 0.5, 0]} rotation={[0, 0, -0.15]}>
+        <boxGeometry args={[1.2, 0.15, 1.6]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+      </mesh>
+
+      {/* Windshield */}
+      <mesh position={[0.65, 0.75, 0]} rotation={[0, 0, -0.4]}>
+        <boxGeometry args={[0.6, 0.5, 1.4]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.6} />
+      </mesh>
+
+      {/* Rear window */}
+      <mesh position={[-1.25, 0.75, 0]} rotation={[0, 0, 0.3]}>
+        <boxGeometry args={[0.5, 0.45, 1.4]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.6} />
+      </mesh>
+
+      {/* Headlights */}
+      <mesh position={[1.95, 0.35, 0.55]}>
+        <boxGeometry args={[0.1, 0.2, 0.4]} />
+        <meshStandardMaterial color="#ffffcc" emissive="#ffff00" emissiveIntensity={0.8} />
+      </mesh>
+      <mesh position={[1.95, 0.35, -0.55]}>
+        <boxGeometry args={[0.1, 0.2, 0.4]} />
+        <meshStandardMaterial color="#ffffcc" emissive="#ffff00" emissiveIntensity={0.8} />
+      </mesh>
+
+      {/* Taillights */}
+      <mesh position={[-1.95, 0.4, 0.6]}>
+        <boxGeometry args={[0.1, 0.15, 0.35]} />
+        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.5} />
+      </mesh>
+      <mesh position={[-1.95, 0.4, -0.6]}>
+        <boxGeometry args={[0.1, 0.15, 0.35]} />
+        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.5} />
+      </mesh>
+
+      {/* Grille */}
+      <mesh position={[1.95, 0.25, 0]}>
+        <boxGeometry args={[0.05, 0.25, 1]} />
+        <meshStandardMaterial color="#222222" />
+      </mesh>
+
+      {/* Wheels */}
+      {[
+        [1.2, 0, 0.95],
+        [1.2, 0, -0.95],
+        [-1.2, 0, 0.95],
+        [-1.2, 0, -0.95]
+      ].map((pos, i) => {
+        const isRightSide = pos[2] > 0
+        return (
+          <group key={i} position={pos as [number, number, number]}>
+            <group ref={wheelRefs[i]}>
+              {/* Tire - outer rubber */}
+              <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.4, 0.4, 0.28, 32]} />
+                <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
+              </mesh>
+              {/* Tire - inner rim */}
+              <mesh rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.28, 0.28, 0.3, 32]} />
+                <meshStandardMaterial color="#333333" metalness={0.3} roughness={0.7} />
+              </mesh>
+              {/* Wheel rim/hubcap */}
+              <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRightSide ? 0.14 : -0.14]}>
+                <cylinderGeometry args={[0.22, 0.22, 0.04, 16]} />
+                <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.2} />
+              </mesh>
+              {/* Center cap */}
+              <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRightSide ? 0.16 : -0.16]}>
+                <cylinderGeometry args={[0.08, 0.08, 0.02, 12]} />
+                <meshStandardMaterial color="#444444" metalness={0.9} roughness={0.1} />
+              </mesh>
+            </group>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+// ============================================
 // CAR (for circular motion)
 // ============================================
 interface CarProps {
   radius?: number // radius of circular path
-  speed?: number // tangential speed
+  speed?: number // tangential speed (already scaled by timeScale in parent)
   bankAngle?: number
   color?: string
   resetTrigger?: number
-  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; speed: number }) => void
+  timeScale?: number // for tracking physics time
+  isPaused?: boolean
+  onUpdate?: (data: { position: THREE.Vector3; velocity: THREE.Vector3; speed: number; time: number }) => void
 }
 
-// Animated wheel component
+// Animated wheel component for circular motion car
 function AnimatedWheel({ position, wheelRef, isRight }: {
   position: [number, number, number]
   wheelRef: React.RefObject<THREE.Group>
@@ -776,22 +1060,27 @@ function AnimatedWheel({ position, wheelRef, isRight }: {
   return (
     <group position={position}>
       <group ref={wheelRef}>
-        {/* Tire */}
+        {/* Tire - outer rubber */}
         <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.3, 24]} />
-          <meshStandardMaterial color="#1a1a1a" />
+          <cylinderGeometry args={[0.4, 0.4, 0.28, 32]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
         </mesh>
-        {/* Tire treads */}
+        {/* Tire - inner rim */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.42, 0.42, 0.25, 24]} />
-          <meshStandardMaterial color="#2a2a2a" wireframe />
+          <cylinderGeometry args={[0.28, 0.28, 0.3, 32]} />
+          <meshStandardMaterial color="#333333" metalness={0.3} roughness={0.7} />
+        </mesh>
+        {/* Wheel rim */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRight ? 0.14 : -0.14]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.04, 16]} />
+          <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.2} />
+        </mesh>
+        {/* Center cap */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRight ? 0.16 : -0.16]}>
+          <cylinderGeometry args={[0.08, 0.08, 0.02, 12]} />
+          <meshStandardMaterial color="#444444" metalness={0.9} roughness={0.1} />
         </mesh>
       </group>
-      {/* Hubcap - doesn't rotate */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, isRight ? 0.16 : -0.16]}>
-        <cylinderGeometry args={[0.18, 0.18, 0.02, 8]} />
-        <meshStandardMaterial color="#cccccc" metalness={0.9} roughness={0.1} />
-      </mesh>
     </group>
   )
 }
@@ -802,10 +1091,13 @@ export function Car({
   bankAngle = 20,
   color = '#e63946',
   resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
   onUpdate
 }: CarProps) {
   const groupRef = useRef<THREE.Group>(null)
   const angleRef = useRef(0)
+  const timeRef = useRef(0)
 
   // Refs for each wheel to animate rotation
   const wheelFL = useRef<THREE.Group>(null)
@@ -816,14 +1108,21 @@ export function Car({
   // Reset when resetTrigger changes
   useEffect(() => {
     angleRef.current = 0
+    timeRef.current = 0
   }, [resetTrigger])
 
   useFrame((_, delta) => {
     if (!groupRef.current) return
 
-    // Angular velocity around the track = v / r (radians per second)
-    const angularVelocity = speed / radius
-    angleRef.current += angularVelocity * delta
+    // Don't update if paused (but still report current state)
+    if (!isPaused) {
+      // Track elapsed physics time (scaled)
+      timeRef.current += delta * timeScale
+
+      // Angular velocity around the track = v / r (radians per second)
+      const angularVelocity = speed / radius
+      angleRef.current += angularVelocity * delta
+    }
 
     const bankRad = (bankAngle * Math.PI) / 180
     const trackWidth = 10
@@ -865,7 +1164,8 @@ export function Car({
       onUpdate({
         position: new THREE.Vector3(x, y, z),
         velocity: new THREE.Vector3(vx, 0, vz),
-        speed: speed
+        speed: speed,
+        time: timeRef.current
       })
     }
   })

@@ -29,6 +29,9 @@ export interface PhysicsParams {
   curveRadius: number
   bankAngle: number
   carSpeed: number
+  // Linear kinematics params
+  acceleration: number
+  maxTime: number
 }
 
 export const defaultParams: PhysicsParams = {
@@ -51,7 +54,9 @@ export const defaultParams: PhysicsParams = {
   pendulumAngle: 45,
   curveRadius: 50,
   bankAngle: 20,
-  carSpeed: 13.4
+  carSpeed: 13.4,
+  acceleration: 2.5,
+  maxTime: 8
 }
 
 // ============================================
@@ -562,6 +567,40 @@ export function ControlPanel({
         />
         <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
           No-slip speed: v = √(r·g·tan θ)
+        </p>
+      </Section>
+
+      {/* Linear Kinematics Settings */}
+      <Section title="Kinematics" defaultOpen={false}>
+        <Slider
+          label="Initial Velocity"
+          value={params.initialVelocityX}
+          min={0}
+          max={30}
+          step={0.5}
+          unit=" m/s"
+          onChange={(v) => update('initialVelocityX', v)}
+        />
+        <Slider
+          label="Acceleration"
+          value={params.acceleration}
+          min={0}
+          max={10}
+          step={0.1}
+          unit=" m/s²"
+          onChange={(v) => update('acceleration', v)}
+        />
+        <Slider
+          label="Time"
+          value={params.maxTime}
+          min={1}
+          max={20}
+          step={0.5}
+          unit=" s"
+          onChange={(v) => update('maxTime', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          v = v₀ + at | x = v₀t + ½at²
         </p>
       </Section>
     </div>
