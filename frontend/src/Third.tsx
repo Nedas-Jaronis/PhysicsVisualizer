@@ -11,14 +11,23 @@ import {
   PhysicsSphere,
   Ground,
   Ramp,
-  Projectile,
   Pendulum,
   Wall,
   Cliff,
   BankedCurve,
   Car,
   StraightRoad,
-  LinearCar
+  LinearCar,
+  MassSpringSystem,
+  CircularMotionString,
+  HorizontalPush,
+  Elevator,
+  TwoRopeTension,
+  AtwoodMachine,
+  TablePulley,
+  TorqueDemo,
+  Seesaw,
+  EnhancedCollision
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -211,28 +220,94 @@ function extractPhysicsParams(animationData: any): Partial<PhysicsParams> {
   return params;
 }
 
-// Determine scene type based on animation data
-function determineSceneType(animationData: any): string {
-  if (!animationData) return 'default';
+// Determine scene type based on animation data and problem text
+function determineSceneType(animationData: any, problem?: string): string {
+  if (!animationData && !problem) return 'default';
 
-  const motions = animationData.motions || [];
-  const environments = animationData.environments || [];
-  const interactions = animationData.interactions || [];
-  const forces = animationData.forces || [];
+  const motions = animationData?.motions || [];
+  const environments = animationData?.environments || [];
+  const interactions = animationData?.interactions || [];
+  const forces = animationData?.forces || [];
 
   // Convert to lowercase strings for easier matching
   const motionStr = JSON.stringify(motions).toLowerCase();
   const envStr = JSON.stringify(environments).toLowerCase();
   const interactionStr = JSON.stringify(interactions).toLowerCase();
   const forceStr = JSON.stringify(forces).toLowerCase();
+  const lowerProblem = (problem || '').toLowerCase();
+
+  // Check for horizontal push with friction
+  if (lowerProblem.includes('push') &&
+      (lowerProblem.includes('friction') || lowerProblem.includes('surface'))) {
+    return 'horizontal_push';
+  }
+
+  // Check for elevator/apparent weight
+  if (lowerProblem.includes('elevator') ||
+      (lowerProblem.includes('scale') && lowerProblem.includes('accelerat'))) {
+    return 'elevator';
+  }
+
+  // Check for two-rope tension
+  if ((lowerProblem.includes('rope') || lowerProblem.includes('string')) &&
+      lowerProblem.includes('hang') &&
+      (lowerProblem.includes('angle') || lowerProblem.includes('two'))) {
+    return 'rope_tension';
+  }
+
+  // Check for Atwood machine
+  if (lowerProblem.includes('atwood') ||
+      (lowerProblem.includes('pulley') && lowerProblem.match(/two\s*(?:hanging\s*)?masses/i))) {
+    return 'atwood';
+  }
+
+  // Check for table-edge pulley
+  if (lowerProblem.includes('pulley') &&
+      (lowerProblem.includes('table') || lowerProblem.includes('edge'))) {
+    return 'table_pulley';
+  }
+
+  // Check for torque/door problems
+  if (lowerProblem.includes('torque') ||
+      (lowerProblem.includes('door') && lowerProblem.includes('push'))) {
+    return 'torque';
+  }
+
+  // Check for seesaw/lever equilibrium
+  if (lowerProblem.includes('seesaw') || lowerProblem.includes('lever') ||
+      (lowerProblem.includes('balance') && lowerProblem.includes('pivot'))) {
+    return 'seesaw';
+  }
+
+  // Check for mass-spring oscillation
+  if (lowerProblem.match(/mass[\s-]*spring/i) ||
+      (lowerProblem.includes('spring') && lowerProblem.includes('oscillat'))) {
+    return 'mass_spring';
+  }
+
+  // Check for circular motion on string
+  if (lowerProblem.includes('whirl') ||
+      (lowerProblem.includes('string') && lowerProblem.includes('circle')) ||
+      (lowerProblem.includes('mass') && lowerProblem.includes('radius') && lowerProblem.includes('m/s'))) {
+    return 'circular_string';
+  }
+
+  // Check for collision with impulse
+  if (lowerProblem.includes('impulse') ||
+      (lowerProblem.includes('collision') && lowerProblem.includes('cart')) ||
+      lowerProblem.includes('caught') || lowerProblem.includes('embeds')) {
+    return 'enhanced_collision';
+  }
 
   // Check for pendulum
-  if (envStr.includes('pendulum') || motionStr.includes('simpleharmonic')) {
+  if (envStr.includes('pendulum') || motionStr.includes('simpleharmonic') ||
+      lowerProblem.includes('pendulum')) {
     return 'pendulum';
   }
 
   // Check for spring/oscillation
-  if (forceStr.includes('spring') || motionStr.includes('damped') || motionStr.includes('oscillat')) {
+  if (forceStr.includes('spring') || motionStr.includes('damped') || motionStr.includes('oscillat') ||
+      (lowerProblem.includes('spring') && !lowerProblem.includes('mass-spring'))) {
     return 'spring';
   }
 
@@ -252,17 +327,17 @@ function determineSceneType(animationData: any): string {
   }
 
   // Check for incline
-  if (envStr.includes('incline')) {
+  if (envStr.includes('incline') || lowerProblem.includes('ramp') || lowerProblem.includes('incline')) {
     return 'incline';
   }
 
   // Check for collision
-  if (interactionStr.includes('collision')) {
+  if (interactionStr.includes('collision') || lowerProblem.includes('collision')) {
     return 'collision';
   }
 
   // Check for projectile motion (2D or 3D)
-  if (motionStr.includes('projectile')) {
+  if (motionStr.includes('projectile') || lowerProblem.includes('projectile')) {
     return 'projectile';
   }
 
@@ -277,7 +352,7 @@ function determineSceneType(animationData: any): string {
   }
 
   // Default to projectile for thrown objects (like ball thrown up)
-  const objects = animationData.objects || [];
+  const objects = animationData?.objects || [];
   for (const obj of objects) {
     const vel = obj.velocity || obj.initialVelocity || {};
     if (vel.y > 0 || vel.x !== 0) {
@@ -286,9 +361,11 @@ function determineSceneType(animationData: any): string {
   }
 
   // Check if there's any motion that implies throwing
-  const foundSpeed = deepFind(animationData, ['speed', 'initialSpeed', 'v0', 'velocity']);
-  if (foundSpeed !== undefined && typeof foundSpeed === 'number' && foundSpeed > 0) {
-    return 'projectile';
+  if (animationData) {
+    const foundSpeed = deepFind(animationData, ['speed', 'initialSpeed', 'v0', 'velocity']);
+    if (foundSpeed !== undefined && typeof foundSpeed === 'number' && foundSpeed > 0) {
+      return 'projectile';
+    }
   }
 
   return 'freefall'; // Default to freefall (dropping an object)
@@ -472,6 +549,94 @@ const Third: React.FC = () => {
       }
     }
 
+    // ===== NEW PARSING PATTERNS =====
+
+    // Applied force (e.g., "pushed with 24 N", "force of 10 N")
+    const appliedForceMatch = problem.match(/push(?:ed|ing)?\s*(?:with)?\s*(?:a\s*)?(?:force\s*(?:of)?)?\s*(\d+(?:\.\d+)?)\s*N/i);
+    if (appliedForceMatch) overrides.appliedForce = parseFloat(appliedForceMatch[1]);
+
+    // Friction coefficient (e.g., "coefficient of friction 0.20", "μ = 0.3")
+    const frictionMatch = problem.match(/(?:coefficient\s*(?:of)?\s*(?:kinetic\s*)?friction|μk?)\s*(?:is|=|of)?\s*(\d+(?:\.\d+)?)/i);
+    if (frictionMatch) {
+      const coeff = parseFloat(frictionMatch[1]);
+      overrides.kineticFrictionCoeff = coeff;
+      overrides.staticFrictionCoeff = coeff * 1.2; // Static typically ~20% higher
+    }
+
+    // Elevator acceleration (e.g., "accelerating upward at 2 m/s²")
+    const elevatorMatch = problem.match(/elevator[^.]*?accelerat\w*\s*(upward|downward|up|down)[^.]*?(\d+(?:\.\d+)?)\s*m\/s/i);
+    if (elevatorMatch) {
+      const direction = elevatorMatch[1].toLowerCase().startsWith('up') ? 1 : -1;
+      overrides.elevatorAcceleration = direction * parseFloat(elevatorMatch[2]);
+    }
+
+    // Person mass for elevator (e.g., "70 kg person", "person weighs 65 kg")
+    const personMassMatch = problem.match(/(\d+(?:\.\d+)?)\s*kg\s*(?:person|man|woman|stands)/i) ||
+                            problem.match(/person\s*(?:weighs?|of)?\s*(\d+(?:\.\d+)?)\s*kg/i);
+    if (personMassMatch) overrides.personMass = parseFloat(personMassMatch[1]);
+
+    // Rope angle (e.g., "30° from vertical", "angle of 45 degrees")
+    const ropeAngleMatch = problem.match(/(?:angle|angled?)\s*(?:of|at)?\s*(\d+(?:\.\d+)?)\s*(?:°|deg)/i) ||
+                           problem.match(/(\d+(?:\.\d+)?)\s*(?:°|deg)\s*(?:from\s*vertical)?/i);
+    if (ropeAngleMatch) overrides.ropeAngle = parseFloat(ropeAngleMatch[1]);
+
+    // Circular motion radius (e.g., "radius 0.8 m", "r = 0.5 m")
+    const circularRadiusMatch = problem.match(/radius\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i);
+    if (circularRadiusMatch) overrides.circularRadius = parseFloat(circularRadiusMatch[1]);
+
+    // Circular motion speed (e.g., "at 6 m/s", "speed of 8 m/s")
+    const circularSpeedMatch = problem.match(/(?:at|speed\s*(?:of)?)\s*(\d+(?:\.\d+)?)\s*m\/s/i);
+    if (circularSpeedMatch && !lowerProblem.includes('accelerat')) {
+      overrides.circularSpeed = parseFloat(circularSpeedMatch[1]);
+    }
+
+    // Spring constant (e.g., "k = 500 N/m", "spring constant 400 N/m")
+    const springKMatch = problem.match(/(?:k\s*=|spring\s*constant)\s*(\d+(?:\.\d+)?)\s*N\/m/i);
+    if (springKMatch) overrides.springStiffness = parseFloat(springKMatch[1]);
+
+    // Spring compression/stretch (e.g., "compressed 0.15 m", "stretched by 0.2 m")
+    const springCompressionMatch = problem.match(/(?:compress(?:ed|ion)?|stretch(?:ed)?)\s*(?:of|by)?\s*(\d+(?:\.\d+)?)\s*m(?:eters?)?/i);
+    if (springCompressionMatch) overrides.springAmplitude = parseFloat(springCompressionMatch[1]);
+
+    // Two masses for pulleys/collisions (e.g., "Cart A (2 kg)", "mass of 3 kg")
+    const massMatches = [...problem.matchAll(/(?:mass|cart|block|object)\s*[AB12]?\s*\(?(\d+(?:\.\d+)?)\s*kg\)?/gi)];
+    if (massMatches.length >= 1) overrides.mass = parseFloat(massMatches[0][1]);
+    if (massMatches.length >= 2) overrides.mass2 = parseFloat(massMatches[1][1]);
+
+    // Collision duration (e.g., "in 0.02 s", "over 0.1 seconds")
+    const durationMatch = problem.match(/(?:in|over|during|takes?)\s*(\d+(?:\.\d+)?)\s*(?:s|sec|ms)/i);
+    if (durationMatch) {
+      let duration = parseFloat(durationMatch[1]);
+      if (problem.toLowerCase().includes('ms')) duration /= 1000;
+      overrides.collisionDuration = duration;
+    }
+
+    // Collision type
+    if (lowerProblem.includes('elastic') && !lowerProblem.includes('inelastic')) {
+      overrides.collisionType = 'elastic';
+    } else if (lowerProblem.includes('inelastic') || lowerProblem.includes('stick') || lowerProblem.includes('embeds')) {
+      overrides.collisionType = 'inelastic';
+    }
+
+    // Velocity for collision (e.g., "moving at 5 m/s", "velocity of 40 m/s")
+    const velocityMatch = problem.match(/(?:moving|velocity)\s*(?:at|of)?\s*(\d+(?:\.\d+)?)\s*m\/s/i);
+    if (velocityMatch) overrides.velocity1 = parseFloat(velocityMatch[1]);
+
+    // Seesaw/lever distances (e.g., "1.5 m from pivot", "distance of 2 m")
+    const distanceMatches = [...problem.matchAll(/(\d+(?:\.\d+)?)\s*m\s*(?:from\s*(?:the\s*)?(?:pivot|fulcrum|center))/gi)];
+    if (distanceMatches.length >= 1) overrides.leftDistance = parseFloat(distanceMatches[0][1]);
+    if (distanceMatches.length >= 2) overrides.rightDistance = parseFloat(distanceMatches[1][1]);
+
+    // Door/lever length (e.g., "door is 2 m wide", "lever 1.5 m long")
+    const lengthMatch = problem.match(/(?:door|lever|rod)\s*(?:is)?\s*(\d+(?:\.\d+)?)\s*m\s*(?:wide|long)/i);
+    if (lengthMatch) overrides.leverArm = parseFloat(lengthMatch[1]) * 0.9; // Force typically applied near end
+
+    // Force magnitude for torque (e.g., "force of 15 N", "pushes with 20 N")
+    const torqueForceMatch = problem.match(/(?:force\s*(?:of)?|push(?:es|ed)?\s*(?:with)?)\s*(\d+(?:\.\d+)?)\s*N/i);
+    if (torqueForceMatch && !appliedForceMatch) {
+      overrides.forceMagnitude = parseFloat(torqueForceMatch[1]);
+    }
+
     return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve, isLinearKinematics };
   }, [problem]);
 
@@ -556,8 +721,8 @@ const Third: React.FC = () => {
   const sceneType = useMemo(() => {
     if (problemAnalysis.isBankedCurve) return 'banked_curve';
     if (problemAnalysis.isLinearKinematics) return 'linear_kinematics';
-    return determineSceneType(animation_data);
-  }, [animation_data, problemAnalysis.isBankedCurve, problemAnalysis.isLinearKinematics]);
+    return determineSceneType(animation_data, problem);
+  }, [animation_data, problem, problemAnalysis.isBankedCurve, problemAnalysis.isLinearKinematics]);
 
   // Calculate camera position based on INITIAL scene requirements only (not live params)
   // This prevents camera from shifting when user adjusts sliders
@@ -625,6 +790,86 @@ const Third: React.FC = () => {
       return {
         position: [totalDistance / 2, 15, cameraDistance] as [number, number, number],
         target: [totalDistance / 2, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Mass-spring system camera
+    if (sceneType === 'mass_spring') {
+      return {
+        position: [5, 2, 8] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Circular motion on string camera
+    if (sceneType === 'circular_string') {
+      return {
+        position: [0, 8, 8] as [number, number, number],
+        target: [0, 4, 0] as [number, number, number]
+      };
+    }
+
+    // Horizontal push camera
+    if (sceneType === 'horizontal_push') {
+      return {
+        position: [8, 4, 8] as [number, number, number],
+        target: [3, 0.5, 0] as [number, number, number]
+      };
+    }
+
+    // Elevator camera
+    if (sceneType === 'elevator') {
+      return {
+        position: [8, 10, 12] as [number, number, number],
+        target: [0, 5, 0] as [number, number, number]
+      };
+    }
+
+    // Rope tension camera
+    if (sceneType === 'rope_tension') {
+      return {
+        position: [0, 4, 10] as [number, number, number],
+        target: [0, 2.5, 0] as [number, number, number]
+      };
+    }
+
+    // Atwood machine camera
+    if (sceneType === 'atwood') {
+      return {
+        position: [6, 6, 10] as [number, number, number],
+        target: [0, 5, 0] as [number, number, number]
+      };
+    }
+
+    // Table pulley camera
+    if (sceneType === 'table_pulley') {
+      return {
+        position: [8, 6, 10] as [number, number, number],
+        target: [3, 2, 0] as [number, number, number]
+      };
+    }
+
+    // Torque demo camera
+    if (sceneType === 'torque') {
+      return {
+        position: [4, 3, 6] as [number, number, number],
+        target: [1, 1.5, 0] as [number, number, number]
+      };
+    }
+
+    // Seesaw camera
+    if (sceneType === 'seesaw') {
+      return {
+        position: [0, 5, 10] as [number, number, number],
+        target: [0, 1, 0] as [number, number, number]
+      };
+    }
+
+    // Enhanced collision camera
+    if (sceneType === 'enhanced_collision') {
+      return {
+        position: [0, 5, 15] as [number, number, number],
+        target: [0, 1, 0] as [number, number, number]
       };
     }
 
@@ -943,6 +1188,194 @@ const Third: React.FC = () => {
               </>
             )}
 
+            {/* Mass-Spring System (SHM) */}
+            {sceneType === 'mass_spring' && (
+              <MassSpringSystem
+                mass={params.mass}
+                springConstant={params.springStiffness}
+                dampingCoefficient={params.springDamping}
+                amplitude={params.springAmplitude || 0.5}
+                orientation={params.springOrientation || 'horizontal'}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Circular Motion on String */}
+            {sceneType === 'circular_string' && (
+              <CircularMotionString
+                mass={params.mass}
+                radius={params.circularRadius || 0.8}
+                speed={params.circularSpeed || 6}
+                plane={params.circularPlane || 'horizontal'}
+                pivotPosition={[0, 5, 0]}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Horizontal Push with Friction */}
+            {sceneType === 'horizontal_push' && (
+              <HorizontalPush
+                mass={params.mass}
+                appliedForce={params.appliedForce}
+                staticFrictionCoeff={params.staticFrictionCoeff}
+                kineticFrictionCoeff={params.kineticFrictionCoeff}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Elevator Scene */}
+            {sceneType === 'elevator' && (
+              <Elevator
+                personMass={params.personMass || 70}
+                elevatorAcceleration={params.elevatorAcceleration}
+                maxHeight={20}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Two Rope Tension */}
+            {sceneType === 'rope_tension' && (
+              <TwoRopeTension
+                mass={params.mass}
+                ropeAngle={params.ropeAngle || 30}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: { x: 0, y: 0, z: 0 },
+                  time: 0
+                })}
+              />
+            )}
+
+            {/* Atwood Machine */}
+            {sceneType === 'atwood' && (
+              <AtwoodMachine
+                mass1={params.mass}
+                mass2={params.mass2}
+                initialHeight1={5}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position1,
+                  velocity: { x: 0, y: data.velocity, z: 0 },
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Table Pulley System */}
+            {sceneType === 'table_pulley' && (
+              <TablePulley
+                tableMass={params.tableMass || 2}
+                hangingMass={params.hangingMass || 3}
+                frictionCoefficient={params.friction}
+                tableLength={5}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.tableBlockPosition,
+                  velocity: { x: data.velocity, y: 0, z: 0 },
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Torque Demo */}
+            {sceneType === 'torque' && (
+              <TorqueDemo
+                objectType="door"
+                length={2}
+                mass={params.mass}
+                forcePosition={params.leverArm || 1.5}
+                forceMagnitude={params.forceMagnitude || 10}
+                forceAngle={params.forceAngle || 0}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: { x: data.angle * Math.PI / 180, y: 0, z: 0 },
+                  velocity: { x: data.angularVelocity, y: 0, z: 0 },
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Seesaw/Balance */}
+            {sceneType === 'seesaw' && (
+              <Seesaw
+                beamLength={6}
+                leftMass={params.leftMass || 2}
+                leftDistance={params.leftDistance || 1}
+                rightMass={params.rightMass || 2}
+                rightDistance={params.rightDistance || 1}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: { x: data.angle, y: 0, z: 0 },
+                  velocity: { x: 0, y: 0, z: 0 },
+                  time: 0
+                })}
+              />
+            )}
+
+            {/* Enhanced Collision */}
+            {sceneType === 'enhanced_collision' && (
+              <EnhancedCollision
+                mass1={params.mass}
+                velocity1={params.velocity1 || 5}
+                mass2={params.mass2}
+                velocity2={params.velocity2 || 0}
+                collisionType={params.collisionType || 'elastic'}
+                collisionDuration={params.collisionDuration || 0.1}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position1,
+                  velocity: { x: data.velocity1, y: 0, z: 0 },
+                  time: data.time
+                })}
+              />
+            )}
+
             {/* Default/freefall scene */}
             {(sceneType === 'default' || sceneType === 'rotation') && (
               <PhysicsBox
@@ -1014,6 +1447,149 @@ const Third: React.FC = () => {
                   <div>v₀ = {v0.toFixed(1)} m/s | a = {a.toFixed(1)} m/s² | t = {t.toFixed(1)} s</div>
                   <div style={{ marginTop: '4px', color: '#40ff80' }}>
                     v = {vFinal.toFixed(1)} m/s | d = {distance.toFixed(1)} m
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'mass_spring' && (() => {
+              const k = params.springStiffness || 50;
+              const x = params.springAmplitude || 0.15;
+              const elasticPE = 0.5 * k * x * x;
+              const maxForce = k * x;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>k = {k.toFixed(0)} N/m | x = {x.toFixed(2)} m</div>
+                  <div style={{ marginTop: '4px', color: '#ff8800' }}>
+                    PE = ½kx² = {elasticPE.toFixed(2)} J
+                  </div>
+                  <div style={{ marginTop: '4px', color: '#ff4444' }}>
+                    F_max = kx = {maxForce.toFixed(1)} N
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'circular_string' && (() => {
+              const m = params.mass || 1;
+              const r = params.circularRadius || 0.8;
+              const v = params.circularSpeed || 6;
+              const ac = (v * v) / r;
+              const tension = m * ac;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m = {m.toFixed(1)} kg | r = {r.toFixed(2)} m | v = {v.toFixed(1)} m/s</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    ac = {ac.toFixed(1)} m/s² | T = {tension.toFixed(1)} N
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'horizontal_push' && (() => {
+              const m = params.mass || 1;
+              const F = params.appliedForce || 10;
+              const uk = params.kineticFrictionCoeff || 0.3;
+              const g = params.gravity || 9.81;
+              const friction = uk * m * g;
+              const netForce = F - friction;
+              const acc = netForce > 0 ? netForce / m : 0;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>F = {F.toFixed(0)} N | m = {m.toFixed(1)} kg | μk = {uk.toFixed(2)}</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    f = {friction.toFixed(1)} N | a = {acc.toFixed(2)} m/s²
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'elevator' && (() => {
+              const m = params.personMass || 70;
+              const a = params.elevatorAcceleration || 2;
+              const g = params.gravity || 9.81;
+              const apparentW = m * (g + a);
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m = {m.toFixed(0)} kg | a = {a.toFixed(1)} m/s² ({a > 0 ? 'up' : 'down'})</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    W_apparent = {apparentW.toFixed(0)} N
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'rope_tension' && (() => {
+              const m = params.mass || 1;
+              const angle = params.ropeAngle || 30;
+              const g = params.gravity || 9.81;
+              const angleRad = (angle * Math.PI) / 180;
+              const tension = (m * g) / (2 * Math.cos(angleRad));
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m = {m.toFixed(1)} kg | θ = {angle.toFixed(0)}°</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    T = {tension.toFixed(1)} N (each rope)
+                  </div>
+                </div>
+              );
+            })()}
+            {(sceneType === 'atwood' || sceneType === 'table_pulley') && (() => {
+              const m1 = params.mass || 2;
+              const m2 = params.mass2 || 3;
+              const g = params.gravity || 9.81;
+              const acc = ((m2 - m1) * g) / (m1 + m2);
+              const tension = (2 * m1 * m2 * g) / (m1 + m2);
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m₁ = {m1.toFixed(1)} kg | m₂ = {m2.toFixed(1)} kg</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    a = {Math.abs(acc).toFixed(2)} m/s² | T = {tension.toFixed(1)} N
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'torque' && (() => {
+              const r = params.leverArm || 1;
+              const F = params.forceMagnitude || 10;
+              const angle = params.forceAngle || 0;
+              const angleRad = (angle * Math.PI) / 180;
+              const torque = r * F * Math.cos(angleRad);
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>r = {r.toFixed(1)} m | F = {F.toFixed(0)} N | θ = {angle.toFixed(0)}°</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    τ = {torque.toFixed(1)} N·m
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'seesaw' && (() => {
+              const m1 = params.leftMass || 2;
+              const d1 = params.leftDistance || 1;
+              const m2 = params.rightMass || 2;
+              const d2 = params.rightDistance || 1;
+              const g = params.gravity || 9.81;
+              const tau1 = m1 * g * d1;
+              const tau2 = m2 * g * d2;
+              const isBalanced = Math.abs(tau1 - tau2) < 0.1;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>Left: {m1.toFixed(1)}kg × {d1.toFixed(1)}m | Right: {m2.toFixed(1)}kg × {d2.toFixed(1)}m</div>
+                  <div style={{ marginTop: '4px', color: isBalanced ? '#40ff80' : '#ff8040' }}>
+                    τ₁ = {tau1.toFixed(1)} N·m | τ₂ = {tau2.toFixed(1)} N·m {isBalanced ? '(BALANCED)' : ''}
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'enhanced_collision' && (() => {
+              const m1 = params.mass || 2;
+              const v1 = params.velocity1 || 5;
+              const m2 = params.mass2 || 1;
+              const v2 = params.velocity2 || 0;
+              const type = params.collisionType || 'elastic';
+              const pBefore = m1 * v1 + m2 * v2;
+              const keBefore = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m₁={m1}kg @ {v1}m/s | m₂={m2}kg @ {v2}m/s | {type}</div>
+                  <div style={{ marginTop: '4px', color: '#40ff80' }}>
+                    p = {pBefore.toFixed(1)} kg·m/s | KE = {keBefore.toFixed(1)} J
                   </div>
                 </div>
               );

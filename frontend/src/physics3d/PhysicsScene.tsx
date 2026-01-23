@@ -72,9 +72,7 @@ export function PhysicsScene({
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
-              count={2}
-              array={new Float32Array([0, 0, 0, 0, 50, 0])}
-              itemSize={3}
+              args={[new Float32Array([0, 0, 0, 0, 50, 0]), 3]}
             />
           </bufferGeometry>
           <lineBasicMaterial color="#444" />
@@ -86,9 +84,7 @@ export function PhysicsScene({
               <bufferGeometry>
                 <bufferAttribute
                   attach="attributes-position"
-                  count={2}
-                  array={new Float32Array([-0.5, h, 0, 0.5, h, 0])}
-                  itemSize={3}
+                  args={[new Float32Array([-0.5, h, 0, 0.5, h, 0]), 3]}
                 />
               </bufferGeometry>
               <lineBasicMaterial color="#555" />
@@ -120,9 +116,7 @@ export function PhysicsScene({
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
-              count={2}
-              array={new Float32Array([0, 0.05, 0, 50, 0.05, 0])}
-              itemSize={3}
+              args={[new Float32Array([0, 0.05, 0, 50, 0.05, 0]), 3]}
             />
           </bufferGeometry>
           <lineBasicMaterial color="#444" />
@@ -133,9 +127,7 @@ export function PhysicsScene({
               <bufferGeometry>
                 <bufferAttribute
                   attach="attributes-position"
-                  count={2}
-                  array={new Float32Array([d, 0, -0.5, d, 0, 0.5])}
-                  itemSize={3}
+                  args={[new Float32Array([d, 0, -0.5, d, 0, 0.5]), 3]}
                 />
               </bufferGeometry>
               <lineBasicMaterial color="#555" />

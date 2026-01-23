@@ -22,6 +22,8 @@ export interface PhysicsParams {
   springStiffness: number
   springDamping: number
   springRestLength: number
+  springOrientation: 'horizontal' | 'vertical'
+  springAmplitude: number
   // Pendulum params
   pendulumLength: number
   pendulumAngle: number
@@ -32,6 +34,42 @@ export interface PhysicsParams {
   // Linear kinematics params
   acceleration: number
   maxTime: number
+  // Newton's Laws (horizontal push, friction)
+  appliedForce: number
+  staticFrictionCoeff: number
+  kineticFrictionCoeff: number
+  // Elevator
+  elevatorAcceleration: number
+  personMass: number
+  // Rope/String
+  ropeAngle: number
+  stringLength: number
+  // Circular motion
+  circularRadius: number
+  circularSpeed: number
+  circularPlane: 'horizontal' | 'vertical' | 'conical'
+  // Pulley Systems
+  mass2: number
+  pulleyMass: number
+  pulleyRadius: number
+  hangingMass: number
+  tableMass: number
+  // Collisions
+  velocity1: number
+  velocity2: number
+  collisionType: 'elastic' | 'inelastic'
+  collisionDuration: number
+  // Rotational
+  leverArm: number
+  forceAngle: number
+  forceMagnitude: number
+  leftMass: number
+  leftDistance: number
+  rightMass: number
+  rightDistance: number
+  // Rolling
+  rollingShape: 'solid_sphere' | 'hollow_sphere' | 'solid_cylinder' | 'hollow_cylinder' | 'hoop'
+  objectRadius: number
 }
 
 export const defaultParams: PhysicsParams = {
@@ -50,13 +88,51 @@ export const defaultParams: PhysicsParams = {
   springStiffness: 50,
   springDamping: 1,
   springRestLength: 2,
+  springOrientation: 'horizontal',
+  springAmplitude: 0.5,
   pendulumLength: 3,
   pendulumAngle: 45,
   curveRadius: 50,
   bankAngle: 20,
   carSpeed: 13.4,
   acceleration: 2.5,
-  maxTime: 8
+  maxTime: 8,
+  // Newton's Laws
+  appliedForce: 10,
+  staticFrictionCoeff: 0.5,
+  kineticFrictionCoeff: 0.3,
+  // Elevator
+  elevatorAcceleration: 2,
+  personMass: 70,
+  // Rope/String
+  ropeAngle: 30,
+  stringLength: 1,
+  // Circular motion
+  circularRadius: 0.8,
+  circularSpeed: 6,
+  circularPlane: 'horizontal',
+  // Pulley Systems
+  mass2: 2,
+  pulleyMass: 0,
+  pulleyRadius: 0.1,
+  hangingMass: 3,
+  tableMass: 2,
+  // Collisions
+  velocity1: 5,
+  velocity2: 0,
+  collisionType: 'elastic',
+  collisionDuration: 0.1,
+  // Rotational
+  leverArm: 1,
+  forceAngle: 0,
+  forceMagnitude: 10,
+  leftMass: 2,
+  leftDistance: 1,
+  rightMass: 2,
+  rightDistance: 1,
+  // Rolling
+  rollingShape: 'solid_sphere',
+  objectRadius: 0.2
 }
 
 // ============================================
@@ -601,6 +677,276 @@ export function ControlPanel({
         />
         <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
           v = v₀ + at | x = v₀t + ½at²
+        </p>
+      </Section>
+
+      {/* Newton's Laws / Forces */}
+      <Section title="Forces" defaultOpen={false}>
+        <Slider
+          label="Applied Force"
+          value={params.appliedForce}
+          min={0}
+          max={100}
+          step={1}
+          unit=" N"
+          onChange={(v) => update('appliedForce', v)}
+        />
+        <Slider
+          label="Static μs"
+          value={params.staticFrictionCoeff}
+          min={0}
+          max={1.5}
+          step={0.05}
+          onChange={(v) => update('staticFrictionCoeff', v)}
+        />
+        <Slider
+          label="Kinetic μk"
+          value={params.kineticFrictionCoeff}
+          min={0}
+          max={1}
+          step={0.05}
+          onChange={(v) => update('kineticFrictionCoeff', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          f = μN | a = (F - f) / m
+        </p>
+      </Section>
+
+      {/* Elevator Settings */}
+      <Section title="Elevator" defaultOpen={false}>
+        <Slider
+          label="Person Mass"
+          value={params.personMass}
+          min={40}
+          max={120}
+          step={1}
+          unit=" kg"
+          onChange={(v) => update('personMass', v)}
+        />
+        <Slider
+          label="Acceleration"
+          value={params.elevatorAcceleration}
+          min={-10}
+          max={10}
+          step={0.5}
+          unit=" m/s²"
+          onChange={(v) => update('elevatorAcceleration', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          W_app = m(g + a) | + = up, - = down
+        </p>
+      </Section>
+
+      {/* Rope Tension Settings */}
+      <Section title="Rope Tension" defaultOpen={false}>
+        <Slider
+          label="Rope Angle"
+          value={params.ropeAngle}
+          min={5}
+          max={85}
+          step={1}
+          unit="°"
+          onChange={(v) => update('ropeAngle', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          T = mg / (2·cos θ)
+        </p>
+      </Section>
+
+      {/* Circular Motion Settings */}
+      <Section title="Circular Motion" defaultOpen={false}>
+        <Slider
+          label="Radius"
+          value={params.circularRadius}
+          min={0.3}
+          max={5}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('circularRadius', v)}
+        />
+        <Slider
+          label="Speed"
+          value={params.circularSpeed}
+          min={1}
+          max={20}
+          step={0.5}
+          unit=" m/s"
+          onChange={(v) => update('circularSpeed', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          ac = v²/r | T = mv²/r
+        </p>
+      </Section>
+
+      {/* Pulley Systems */}
+      <Section title="Pulley System" defaultOpen={false}>
+        <Slider
+          label="Mass 1"
+          value={params.mass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('mass', v)}
+        />
+        <Slider
+          label="Mass 2"
+          value={params.mass2}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('mass2', v)}
+        />
+        <Slider
+          label="Table Mass"
+          value={params.tableMass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('tableMass', v)}
+        />
+        <Slider
+          label="Hanging Mass"
+          value={params.hangingMass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('hangingMass', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          a = (m₂-m₁)g / (m₁+m₂)
+        </p>
+      </Section>
+
+      {/* Collision Settings */}
+      <Section title="Collision" defaultOpen={false}>
+        <Slider
+          label="Mass 1"
+          value={params.mass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('mass', v)}
+        />
+        <Slider
+          label="Velocity 1"
+          value={params.velocity1}
+          min={0}
+          max={20}
+          step={0.5}
+          unit=" m/s"
+          onChange={(v) => update('velocity1', v)}
+        />
+        <Slider
+          label="Mass 2"
+          value={params.mass2}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('mass2', v)}
+        />
+        <Slider
+          label="Velocity 2"
+          value={params.velocity2}
+          min={-10}
+          max={10}
+          step={0.5}
+          unit=" m/s"
+          onChange={(v) => update('velocity2', v)}
+        />
+        <Slider
+          label="Collision Time"
+          value={params.collisionDuration}
+          min={0.01}
+          max={0.5}
+          step={0.01}
+          unit=" s"
+          onChange={(v) => update('collisionDuration', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          J = Δp = m·Δv | F_avg = J/Δt
+        </p>
+      </Section>
+
+      {/* Torque/Rotational Settings */}
+      <Section title="Torque" defaultOpen={false}>
+        <Slider
+          label="Force Position"
+          value={params.leverArm}
+          min={0.1}
+          max={2}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('leverArm', v)}
+        />
+        <Slider
+          label="Force"
+          value={params.forceMagnitude}
+          min={1}
+          max={50}
+          step={1}
+          unit=" N"
+          onChange={(v) => update('forceMagnitude', v)}
+        />
+        <Slider
+          label="Force Angle"
+          value={params.forceAngle}
+          min={0}
+          max={60}
+          step={1}
+          unit="°"
+          onChange={(v) => update('forceAngle', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          τ = r × F = rF·cos θ
+        </p>
+      </Section>
+
+      {/* Seesaw/Balance Settings */}
+      <Section title="Seesaw" defaultOpen={false}>
+        <Slider
+          label="Left Mass"
+          value={params.leftMass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('leftMass', v)}
+        />
+        <Slider
+          label="Left Distance"
+          value={params.leftDistance}
+          min={0.5}
+          max={3}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('leftDistance', v)}
+        />
+        <Slider
+          label="Right Mass"
+          value={params.rightMass}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('rightMass', v)}
+        />
+        <Slider
+          label="Right Distance"
+          value={params.rightDistance}
+          min={0.5}
+          max={3}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('rightDistance', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          Equilibrium: m₁d₁ = m₂d₂
         </p>
       </Section>
     </div>

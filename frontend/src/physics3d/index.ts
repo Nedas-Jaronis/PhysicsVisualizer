@@ -14,5 +14,16 @@ export {
   BankedCurve,
   Car,
   StraightRoad,
-  LinearCar
+  LinearCar,
+  MassSpringSystem,
+  CircularMotionString,
+  HorizontalPush,
+  Elevator,
+  TwoRopeTension,
+  AtwoodMachine,
+  TablePulley,
+  TorqueDemo,
+  Seesaw,
+  EnergyBars,
+  EnhancedCollision
 } from './primitives'

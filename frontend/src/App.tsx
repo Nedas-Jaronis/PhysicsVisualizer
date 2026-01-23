@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import HomePage from "./HomePage.tsx"
-import First from "./first.tsx"
 import Second from "./Second.tsx";
 import Third from "./Third.tsx" 
 import Formula from "./FormulasPage.tsx"

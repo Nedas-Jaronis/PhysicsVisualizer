@@ -441,7 +441,8 @@ class MatterManager {
           case "pulley": {
 
             const pulleyX = (environment.position?.x ?? canvasWidth / 2) * scale;
-            const pulleyY = (environment.position?.y ?? canvasHeight / 2) * scale;
+            const _pulleyY = (environment.position?.y ?? canvasHeight / 2) * scale;
+            void _pulleyY;
             const pulleyRadius = (environment.radius ?? 0.1) * scale;
 
             // Add supports if any
@@ -813,7 +814,8 @@ public setupObjects(): void {
       } else if (typeof obj.inclinePositionRatio === "number") {
         const ratio = obj.inclinePositionRatio;
 
-        const inclineHalfLength = this.InclineLength / 2;
+        const _inclineHalfLength = this.InclineLength / 2;
+        void _inclineHalfLength;
         const inclineCenterX = this.InclineX;
         const inclineCenterY = this.InclineY;
         
@@ -940,7 +942,8 @@ public setupObjects(): void {
     const magnitude: number = force.magnitude ?? 0;
     let direction: string = force.direction;
     const source: string = force.source || "unknown";
-    const appliedTo: string = force.applied_to || objectId;
+    const _appliedTo: string = force.applied_to || objectId;
+    void _appliedTo;
 
     if(magnitude == 0) return
     
@@ -1072,7 +1075,7 @@ public setupObjects(): void {
     const ctx: CanvasRenderingContext2D = this.renderContext;
     
     // Draw mass labels on objects
-    this.bodies.forEach((body: Matter.Body, id: string) => {
+    this.bodies.forEach((body: Matter.Body, _id: string) => {
       const massLabel: string = (body as any).massLabel;
       if (massLabel) {
         ctx.fillStyle = '#FFFFFF';
@@ -1391,7 +1394,8 @@ private HandleMotions(): void {
   const data = this.animationData;
   if (!data || !Array.isArray(data.objects) || !Array.isArray(data.motions)) return;
 
-   const keyframes: { objectId: string, time: number, position: { x: number, y: number }, velocity: { x: number, y: number } }[] = [];
+   const _keyframes: { objectId: string, time: number, position: { x: number, y: number }, velocity: { x: number, y: number } }[] = [];
+   void _keyframes;
 
   data.objects.forEach((obj: ObjectData) => {
     const objectId = obj.id;
@@ -1441,8 +1445,9 @@ private HandleMotions(): void {
           const newProj2DVy = -motion.initialVelocity.y
           console.log(motion.initialVelocity.x, motion.initialVelocity.y, tProj2D ,motion.acceleration.y)
           console.log(newProj2DVx, "...Velocity...", newProj2DVy)
-          const x = motion.initialPosition.x
-          const y = motion.initialPosition.y
+          const _x = motion.initialPosition.x
+          const _y = motion.initialPosition.y
+          void _x; void _y;
           Matter.Body.setVelocity(body, { x: 5, y: 0});
           console.log(newProj2DVx, "...Velocity...", newProj2DVy) 
 
@@ -1481,12 +1486,14 @@ private HandleMotions(): void {
 
           // Calculate velocity and displacement over time and update the body's velocity
           const initialX = body.position.x;
-          const initialY = body.position.y;
+          const _initialY = body.position.y;
+          void _initialY;
 
           while (t <= tFinal) {
             const v = (v0 - F / b) * Math.exp(-b * t / m) + F / b;
             const displacement = ((v0 - F / b) * (-m / b) * (Math.exp(-b * t / m) - 1)) + (F / b) * t;
-            const x = initialX + displacement * isPositive;
+            const _x = initialX + displacement * isPositive;
+            void _x;
 
             // Apply velocity to the body
             Matter.Body.setVelocity(body, { x: v * isPositive, y: 0 });
@@ -1499,7 +1506,7 @@ private HandleMotions(): void {
         case "rotational": {
           const {
             objectId,
-            axis,
+            axis: _axis,
             angularVelocity,
             duration,
             initialAngle = 0,  // Default to 0 if not provided
@@ -1703,7 +1710,8 @@ private applyDampedOscillations(): void {
     this.setupWorld();
 
     const groundEnvironment = environments.find(env=> env.type === "ground");
-    const groundThickness = (groundEnvironment?.thickness ?? 20) * scale;
+    const _groundThickness = (groundEnvironment?.thickness ?? 20) * scale;
+    void _groundThickness;
 
     // Create rope constraint between m1 and m2 if they exist
     const m1Body: Matter.Body | undefined = this.bodies.get("m1");
