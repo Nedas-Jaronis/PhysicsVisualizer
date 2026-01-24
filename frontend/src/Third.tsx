@@ -27,7 +27,8 @@ import {
   TablePulley,
   TorqueDemo,
   Seesaw,
-  EnhancedCollision
+  EnhancedCollision,
+  PoweredLift
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -297,6 +298,13 @@ function determineSceneType(animationData: any, problem?: string): string {
       (lowerProblem.includes('collision') && lowerProblem.includes('cart')) ||
       lowerProblem.includes('caught') || lowerProblem.includes('embeds')) {
     return 'enhanced_collision';
+  }
+
+  // Check for powered lift / machine lifting load
+  if ((lowerProblem.includes('machine') && lowerProblem.includes('lift')) ||
+      (lowerProblem.includes('power') && lowerProblem.includes('lift')) ||
+      (lowerProblem.includes('lift') && lowerProblem.includes('load') && lowerProblem.includes('w'))) {
+    return 'powered_lift';
   }
 
   // Check for pendulum
@@ -637,6 +645,14 @@ const Third: React.FC = () => {
       overrides.forceMagnitude = parseFloat(torqueForceMatch[1]);
     }
 
+    // Power (e.g., "500 W", "using 500 W", "power of 500 W")
+    const powerMatch = problem.match(/(\d+(?:\.\d+)?)\s*W(?:atts?)?/i);
+    if (powerMatch) overrides.power = parseFloat(powerMatch[1]);
+
+    // Lift height (e.g., "lift it 10 m", "raise 5 m", "height of 10 m")
+    const liftHeightMatch = problem.match(/(?:lift\s*(?:it)?|raise|height\s*(?:of)?)\s*(\d+(?:\.\d+)?)\s*m/i);
+    if (liftHeightMatch) overrides.liftHeight = parseFloat(liftHeightMatch[1]);
+
     return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve, isLinearKinematics };
   }, [problem]);
 
@@ -870,6 +886,15 @@ const Third: React.FC = () => {
       return {
         position: [0, 5, 15] as [number, number, number],
         target: [0, 1, 0] as [number, number, number]
+      };
+    }
+
+    // Powered lift camera - adjust based on lift height
+    if (sceneType === 'powered_lift') {
+      const h = initialParams.liftHeight || 10;
+      return {
+        position: [12, h / 2 + 3, 14] as [number, number, number],
+        target: [0, h / 2, 0] as [number, number, number]
       };
     }
 
@@ -1376,6 +1401,24 @@ const Third: React.FC = () => {
               />
             )}
 
+            {/* Powered Lift / Machine */}
+            {sceneType === 'powered_lift' && (
+              <PoweredLift
+                mass={params.mass}
+                power={params.power || 500}
+                liftHeight={params.liftHeight || 10}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
             {/* Default/freefall scene */}
             {(sceneType === 'default' || sceneType === 'rotation') && (
               <PhysicsBox
@@ -1590,6 +1633,30 @@ const Third: React.FC = () => {
                   <div>m₁={m1}kg @ {v1}m/s | m₂={m2}kg @ {v2}m/s | {type}</div>
                   <div style={{ marginTop: '4px', color: '#40ff80' }}>
                     p = {pBefore.toFixed(1)} kg·m/s | KE = {keBefore.toFixed(1)} J
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'powered_lift' && (() => {
+              const m = params.mass || 50;
+              const P = params.power || 500;
+              const h = params.liftHeight || 10;
+              const g = params.gravity || 9.81;
+              const W = m * g;
+              const v = P / W;
+              const work = m * g * h;
+              const time = work / P;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m = {m} kg | P = {P} W | h = {h} m</div>
+                  <div style={{ marginTop: '4px', color: '#ff8844' }}>
+                    Work = mgh = {work.toFixed(0)} J
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#44aaff' }}>
+                    Time = W/P = {time.toFixed(2)} s
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#44ff44' }}>
+                    Speed = P/(mg) = {v.toFixed(2)} m/s
                   </div>
                 </div>
               );

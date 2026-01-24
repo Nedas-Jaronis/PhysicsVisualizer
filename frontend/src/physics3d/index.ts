@@ -25,5 +25,6 @@ export {
   TorqueDemo,
   Seesaw,
   EnergyBars,
-  EnhancedCollision
+  EnhancedCollision,
+  PoweredLift
 } from './primitives'

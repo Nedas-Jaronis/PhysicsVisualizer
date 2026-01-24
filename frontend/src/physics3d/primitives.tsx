@@ -2339,29 +2339,49 @@ export function HorizontalPush({
         </group>
       )}
 
-      {/* Weight arrow (orange, down) */}
-      <group position={[0, 0, 0]}>
-        <mesh>
-          <cylinderGeometry args={[0.04, 0.04, 0.5, 8]} />
-          <meshStandardMaterial color="#ff8800" />
-        </mesh>
-        <mesh position={[0, -0.35, 0]}>
-          <coneGeometry args={[0.1, 0.2, 8]} />
-          <meshStandardMaterial color="#ff8800" />
-        </mesh>
-      </group>
+      {/* Weight arrow (orange, down) - scales with gravity */}
+      {(() => {
+        const referenceForce = 100 // N
+        const referenceLength = 1.0 // m
+        const minArrowLength = 0.4
+        const maxArrowLength = 2.0
+        const weightArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(normalForce / referenceForce)))
+        return (
+          <group position={[0, 0, 0]}>
+            <mesh position={[0, -weightArrowLength / 2 + 0.5, 0]}>
+              <cylinderGeometry args={[0.04, 0.04, weightArrowLength, 8]} />
+              <meshStandardMaterial color="#ff8800" />
+            </mesh>
+            <mesh position={[0, -weightArrowLength + 0.4, 0]}>
+              <coneGeometry args={[0.1, 0.2, 8]} />
+              <meshStandardMaterial color="#ff8800" />
+            </mesh>
+          </group>
+        )
+      })()}
 
-      {/* Normal force arrow (green, up) */}
-      <group position={[0, 1, 0]}>
-        <mesh>
-          <cylinderGeometry args={[0.04, 0.04, 0.5, 8]} />
-          <meshStandardMaterial color="#44ff44" />
-        </mesh>
-        <mesh position={[0, 0.35, 0]} rotation={[Math.PI, 0, 0]}>
-          <coneGeometry args={[0.1, 0.2, 8]} />
-          <meshStandardMaterial color="#44ff44" />
-        </mesh>
-      </group>
+      {/* Normal force arrow (green, up) - scales with gravity */}
+      {(() => {
+        const referenceForce = 100 // N
+        const referenceLength = 1.0 // m
+        const minArrowLength = 0.4
+        const maxArrowLength = 2.0
+        const normalArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(normalForce / referenceForce)))
+        return (
+          <group position={[0, 1, 0]}>
+            <mesh position={[0, normalArrowLength / 2, 0]}>
+              <cylinderGeometry args={[0.04, 0.04, normalArrowLength, 8]} />
+              <meshStandardMaterial color="#44ff44" />
+            </mesh>
+            <mesh position={[0, normalArrowLength + 0.1, 0]} rotation={[Math.PI, 0, 0]}>
+              <coneGeometry args={[0.1, 0.2, 8]} />
+              <meshStandardMaterial color="#44ff44" />
+            </mesh>
+          </group>
+        )
+      })()}
     </group>
   )
 }
@@ -2705,14 +2725,18 @@ export function TwoRopeTension({
 
       {/* Weight vector (down from box center) */}
       {(() => {
-        const weightArrowScale = 0.08
-        const minArrowLength = 0.8
-        const maxArrowLength = 2.5
-        const weightArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength, weight * weightArrowScale))
+        // Scale arrows relative to a reference force (100N = 1.5m arrow)
+        // Use sqrt scaling for better visual range across different gravity values
+        const referenceForce = 100 // N
+        const referenceLength = 1.5 // m
+        const minArrowLength = 0.5
+        const maxArrowLength = 3.5
+        const weightArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(weight / referenceForce) * 1.5))
         const shaftRadius = 0.04
         const headRadius = 0.12
         const headLength = 0.25
-        const shaftLength = weightArrowLength - headLength
+        const shaftLength = Math.max(0.3, weightArrowLength - headLength)
 
         return (
           <group position={[0, boxCenterY, 0.1]}>
@@ -2731,26 +2755,28 @@ export function TwoRopeTension({
       })()}
       {/* Weight label */}
       <Text
-        position={[0.4, boxCenterY - 0.8, 0.1]}
+        position={[0.4, boxCenterY - 1.2, 0.1]}
         fontSize={0.2}
         color="#ff6600"
         anchorX="left"
         anchorY="middle"
       >
-        W = {weight.toFixed(1)} N
+        W = mg = {weight.toFixed(1)} N
       </Text>
 
       {/* Force vectors - all originating from box center for clarity */}
       {(() => {
-        // Arrow scaling - make arrows proportional but visible
-        const arrowScale = 0.08 // Scale factor for force magnitude to arrow length
-        const minArrowLength = 0.8
-        const maxArrowLength = 2.5
-        const tensionArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength, tension * arrowScale))
+        // Scale arrows relative to a reference force, using sqrt for better visual range
+        const referenceForce = 100 // N
+        const referenceLength = 1.5 // m
+        const minArrowLength = 0.5
+        const maxArrowLength = 3.5
+        const tensionArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(tension / referenceForce) * 1.5))
         const shaftRadius = 0.04
         const headRadius = 0.12
         const headLength = 0.25
-        const shaftLength = tensionArrowLength - headLength
+        const shaftLength = Math.max(0.3, tensionArrowLength - headLength)
 
         return (
           <>
@@ -3374,6 +3400,325 @@ export function Car({
       <AnimatedWheel position={[-0.85, 0, -1.2]} wheelRef={wheelFR} isRight={false} />
       <AnimatedWheel position={[0.85, 0, 1.2]} wheelRef={wheelRL} isRight={true} />
       <AnimatedWheel position={[-0.85, 0, 1.2]} wheelRef={wheelRR} isRight={false} />
+    </group>
+  )
+}
+
+// ============================================
+// POWERED LIFT (Machine lifting a load)
+// ============================================
+interface PoweredLiftProps {
+  mass: number                      // kg (load mass)
+  power: number                     // W (power of machine)
+  liftHeight: number                // m (target height to lift)
+  gravity?: number                  // m/s²
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: THREE.Vector3
+    velocity: THREE.Vector3
+    time: number
+    height: number
+    workDone: number
+    percentComplete: number
+  }) => void
+}
+
+export function PoweredLift({
+  mass,
+  power,
+  liftHeight,
+  gravity = 9.81,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: PoweredLiftProps) {
+  const timeRef = useRef(0)
+  const heightRef = useRef(0)
+  const loadRef = useRef<THREE.Group>(null)
+  const ropeRef = useRef<THREE.Mesh>(null)
+  const pulleyRef = useRef<THREE.Mesh>(null)
+
+  // Structure dimensions - pulley height based on lift height
+  const loadHeight = 0.8 // Size of the load box
+  const pulleyY = liftHeight + 2 // Pulley is 2m above target height
+  const structureHeight = pulleyY + 1 // Total structure height
+
+  // Physics calculations
+  const g = gravity
+  const weight = mass * g
+  // At constant speed, lifting force = weight, so P = F*v = mg*v
+  // Therefore v = P / (mg)
+  const liftSpeed = power / weight
+  // Time to lift = distance / speed = h / v = mgh / P
+  const totalTime = (mass * g * liftHeight) / power
+  // Work done = mgh (gravitational PE gained)
+  const totalWork = mass * g * liftHeight
+  // These are used for physics info display
+  void totalTime; void totalWork
+
+  // Reset when resetTrigger changes
+  useEffect(() => {
+    timeRef.current = 0
+    heightRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+
+    // Only advance time if we haven't reached the target
+    if (heightRef.current < liftHeight) {
+      timeRef.current += delta * timeScale
+    }
+
+    // Calculate current height based on constant speed, capped at liftHeight
+    const currentHeight = Math.min(liftHeight, liftSpeed * timeRef.current)
+    heightRef.current = currentHeight
+
+    // Update load position (load bottom at currentHeight, so center is at currentHeight + loadHeight/2)
+    if (loadRef.current) {
+      loadRef.current.position.y = currentHeight + loadHeight / 2
+    }
+
+    // Update rope length (from pulley down to top of load)
+    if (ropeRef.current) {
+      const loadTopY = currentHeight + loadHeight
+      const ropeLength = pulleyY - loadTopY - 0.3 // 0.3 for pulley radius
+      const minRopeLength = 0.5
+      const actualRopeLength = Math.max(minRopeLength, ropeLength)
+      ropeRef.current.scale.y = actualRopeLength / (pulleyY - loadHeight)
+      ropeRef.current.position.y = pulleyY - 0.3 - actualRopeLength / 2
+    }
+
+    // Rotate pulley only while moving
+    if (pulleyRef.current && currentHeight < liftHeight) {
+      pulleyRef.current.rotation.x += (liftSpeed / 0.3) * delta * timeScale
+    }
+
+    // Calculate work done so far
+    const workDone = mass * g * currentHeight
+    const percentComplete = (currentHeight / liftHeight) * 100
+
+    if (onUpdate) {
+      onUpdate({
+        position: new THREE.Vector3(0, currentHeight, 0),
+        velocity: new THREE.Vector3(0, currentHeight < liftHeight ? liftSpeed : 0, 0),
+        time: timeRef.current,
+        height: currentHeight,
+        workDone,
+        percentComplete
+      })
+    }
+  })
+
+  return (
+    <group>
+      {/* Ground */}
+      <mesh position={[0, -0.1, 0]} receiveShadow>
+        <boxGeometry args={[8, 0.2, 4]} />
+        <meshStandardMaterial color="#333333" />
+      </mesh>
+
+      {/* Support frame - vertical beams (height based on pulley position) */}
+      <mesh position={[-1.5, structureHeight / 2, 0]} castShadow>
+        <boxGeometry args={[0.2, structureHeight, 0.2]} />
+        <meshStandardMaterial color="#555555" />
+      </mesh>
+      <mesh position={[1.5, structureHeight / 2, 0]} castShadow>
+        <boxGeometry args={[0.2, structureHeight, 0.2]} />
+        <meshStandardMaterial color="#555555" />
+      </mesh>
+
+      {/* Top beam */}
+      <mesh position={[0, structureHeight + 0.1, 0]} castShadow>
+        <boxGeometry args={[3.5, 0.2, 0.3]} />
+        <meshStandardMaterial color="#555555" />
+      </mesh>
+
+      {/* Pulley wheel */}
+      <mesh ref={pulleyRef} position={[0, pulleyY, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.15, 24]} />
+        <meshStandardMaterial color="#666666" metalness={0.6} roughness={0.3} />
+      </mesh>
+      {/* Pulley axle */}
+      <mesh position={[0, pulleyY, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.08, 0.08, 0.3, 12]} />
+        <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.2} />
+      </mesh>
+
+      {/* Motor/machine housing */}
+      <mesh position={[0, structureHeight + 0.5, 0]} castShadow>
+        <boxGeometry args={[1, 0.6, 0.6]} />
+        <meshStandardMaterial color="#884400" />
+      </mesh>
+      <Text
+        position={[0, structureHeight + 0.5, 0.35]}
+        fontSize={0.15}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {power} W
+      </Text>
+
+      {/* Rope (from pulley down to load) - initial length */}
+      <mesh ref={ropeRef} position={[0, pulleyY / 2, 0]}>
+        <cylinderGeometry args={[0.025, 0.025, pulleyY - loadHeight, 8]} />
+        <meshStandardMaterial color="#aa8866" />
+      </mesh>
+
+      {/* Load being lifted */}
+      <group ref={loadRef} position={[0, loadHeight / 2, 0]}>
+        {/* Main crate */}
+        <mesh castShadow>
+          <boxGeometry args={[0.8, loadHeight, 0.8]} />
+          <meshStandardMaterial color="#4488ff" />
+        </mesh>
+        {/* Hook attachment */}
+        <mesh position={[0, loadHeight / 2 + 0.1, 0]}>
+          <torusGeometry args={[0.08, 0.025, 8, 16]} />
+          <meshStandardMaterial color="#666666" metalness={0.7} roughness={0.3} />
+        </mesh>
+        {/* Mass label */}
+        <Text
+          position={[0, 0, 0.45]}
+          fontSize={0.15}
+          color="#ffffff"
+          anchorX="center"
+          anchorY="middle"
+        >
+          {mass} kg
+        </Text>
+      </group>
+
+      {/* Height markers */}
+      {[0, 2, 4, 6, 8, 10].filter(h => h <= liftHeight + 1).map((h) => (
+        <group key={h} position={[2, h, 0]}>
+          <mesh>
+            <boxGeometry args={[0.3, 0.02, 0.1]} />
+            <meshStandardMaterial color="#ffff00" transparent opacity={0.6} />
+          </mesh>
+          <Text
+            position={[0.35, 0, 0]}
+            fontSize={0.12}
+            color="#ffff00"
+            anchorX="left"
+            anchorY="middle"
+          >
+            {h} m
+          </Text>
+        </group>
+      ))}
+
+      {/* Target height marker */}
+      <group position={[-2, liftHeight, 0]}>
+        <mesh>
+          <boxGeometry args={[0.5, 0.05, 0.2]} />
+          <meshStandardMaterial color="#00ff00" transparent opacity={0.7} />
+        </mesh>
+        <Text
+          position={[-0.4, 0, 0]}
+          fontSize={0.15}
+          color="#00ff00"
+          anchorX="right"
+          anchorY="middle"
+        >
+          Target: {liftHeight} m
+        </Text>
+      </group>
+
+      {/* Physics info display */}
+      <group position={[3.5, liftHeight / 2 + 2, 0]}>
+        <Text position={[0, 1.2, 0]} fontSize={0.18} color="#ffffff" anchorX="left">
+          Power: P = {power} W
+        </Text>
+        <Text position={[0, 0.9, 0]} fontSize={0.18} color="#ffffff" anchorX="left">
+          Weight: W = mg = {weight.toFixed(1)} N
+        </Text>
+        <Text position={[0, 0.6, 0]} fontSize={0.18} color="#44ff44" anchorX="left">
+          Speed: v = P/W = {liftSpeed.toFixed(2)} m/s
+        </Text>
+        <Text position={[0, 0.3, 0]} fontSize={0.18} color="#ff8844" anchorX="left">
+          Work: W = mgh = {totalWork.toFixed(0)} J
+        </Text>
+        <Text position={[0, 0, 0]} fontSize={0.18} color="#44aaff" anchorX="left">
+          Time: t = W/P = {totalTime.toFixed(2)} s
+        </Text>
+      </group>
+
+      {/* Progress bar */}
+      <group position={[-3, liftHeight / 2, 0]}>
+        <Text position={[0, 1.5, 0]} fontSize={0.15} color="#ffffff" anchorX="center">
+          Progress
+        </Text>
+        {/* Background bar */}
+        <mesh position={[0, 0.5, 0]}>
+          <boxGeometry args={[0.4, 2, 0.2]} />
+          <meshStandardMaterial color="#333333" />
+        </mesh>
+        {/* Fill bar - will be updated via ref */}
+        <mesh position={[0, -0.5 + (heightRef.current / liftHeight), 0]}>
+          <boxGeometry args={[0.35, (heightRef.current / liftHeight) * 2 || 0.01, 0.15]} />
+          <meshStandardMaterial color="#00ff88" emissive="#00ff88" emissiveIntensity={0.3} />
+        </mesh>
+      </group>
+
+      {/* Velocity arrow (pointing up when moving) - scales with speed */}
+      {(() => {
+        // Scale velocity arrow relative to a reference speed (1 m/s = 0.8m arrow)
+        const referenceSpeed = 1.0 // m/s
+        const referenceLength = 0.8 // m
+        const minArrowLength = 0.3
+        const maxArrowLength = 1.5
+        const velocityArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(liftSpeed / referenceSpeed)))
+
+        return (
+          <group position={[1.2, heightRef.current + 0.4, 0]}>
+            <mesh position={[0, velocityArrowLength / 2, 0]}>
+              <cylinderGeometry args={[0.03, 0.03, velocityArrowLength, 8]} />
+              <meshStandardMaterial color="#44ff44" emissive="#44ff44" emissiveIntensity={0.3} />
+            </mesh>
+            <mesh position={[0, velocityArrowLength + 0.075, 0]} rotation={[0, 0, 0]}>
+              <coneGeometry args={[0.08, 0.15, 8]} />
+              <meshStandardMaterial color="#44ff44" emissive="#44ff44" emissiveIntensity={0.3} />
+            </mesh>
+            <Text position={[0.2, velocityArrowLength / 2, 0]} fontSize={0.12} color="#44ff44" anchorX="left">
+              v = {liftSpeed.toFixed(2)} m/s
+            </Text>
+          </group>
+        )
+      })()}
+
+      {/* Weight arrow (pointing down) - scales with gravity */}
+      {(() => {
+        // Scale arrows relative to a reference force (100N = 1.0m arrow)
+        // Use sqrt scaling for better visual range across different gravity values
+        const referenceForce = 100 // N
+        const referenceLength = 1.0 // m
+        const minArrowLength = 0.4
+        const maxArrowLength = 2.5
+        const weightArrowLength = Math.min(maxArrowLength, Math.max(minArrowLength,
+          referenceLength * Math.sqrt(weight / referenceForce) * 1.2))
+
+        return (
+          <group position={[-0.8, heightRef.current + 0.4, 0]}>
+            <mesh position={[0, -weightArrowLength / 2, 0]}>
+              <cylinderGeometry args={[0.03, 0.03, weightArrowLength, 8]} />
+              <meshStandardMaterial color="#ff6600" emissive="#ff6600" emissiveIntensity={0.3} />
+            </mesh>
+            <mesh position={[0, -weightArrowLength - 0.075, 0]} rotation={[Math.PI, 0, 0]}>
+              <coneGeometry args={[0.08, 0.15, 8]} />
+              <meshStandardMaterial color="#ff6600" emissive="#ff6600" emissiveIntensity={0.3} />
+            </mesh>
+            <Text position={[-0.2, -weightArrowLength / 2, 0]} fontSize={0.12} color="#ff6600" anchorX="right">
+              W = {weight.toFixed(0)}N
+            </Text>
+          </group>
+        )
+      })()}
     </group>
   )
 }

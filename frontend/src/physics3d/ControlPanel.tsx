@@ -70,6 +70,9 @@ export interface PhysicsParams {
   // Rolling
   rollingShape: 'solid_sphere' | 'hollow_sphere' | 'solid_cylinder' | 'hollow_cylinder' | 'hoop'
   objectRadius: number
+  // Powered lift
+  power: number
+  liftHeight: number
 }
 
 export const defaultParams: PhysicsParams = {
@@ -132,7 +135,10 @@ export const defaultParams: PhysicsParams = {
   rightDistance: 1,
   // Rolling
   rollingShape: 'solid_sphere',
-  objectRadius: 0.2
+  objectRadius: 0.2,
+  // Powered lift
+  power: 500,
+  liftHeight: 10
 }
 
 // ============================================
