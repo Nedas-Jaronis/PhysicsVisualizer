@@ -26,5 +26,15 @@ export {
   Seesaw,
   EnergyBars,
   EnhancedCollision,
-  PoweredLift
+  PoweredLift,
+  EnergyRamp,
+  RollingIncline,
+  TransverseWave,
+  StandingWave,
+  BuoyancyDemo,
+  DopplerEffect,
+  AngularMomentumDemo,
+  SatelliteOrbit,
+  WaveSuperposition,
+  FBDOverlay
 } from './primitives'

@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StandingWave",
+  "type": "object",
+  "properties": {
+    "type": { "const": "standing_wave" },
+    "harmonicNumber": { "type": "integer", "minimum": 1 },
+    "stringLength": { "type": "number", "minimum": 0 },
+    "waveSpeed": { "type": "number", "minimum": 0 },
+    "amplitude": { "type": "number", "minimum": 0 },
+    "boundaryType": { "type": "string", "enum": ["fixed_fixed", "fixed_free"] }
+  },
+  "required": ["type", "harmonicNumber", "stringLength", "waveSpeed"]
+}

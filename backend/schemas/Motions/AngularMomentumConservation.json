@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AngularMomentumConservation",
+  "type": "object",
+  "properties": {
+    "type": { "const": "angular_momentum_conservation" },
+    "objectId": { "type": "string", "description": "ID corresponding to object ID" },
+    "diskMass": { "type": "number", "minimum": 0 },
+    "diskRadius": { "type": "number", "minimum": 0 },
+    "initialArmRadius": { "type": "number", "minimum": 0 },
+    "finalArmRadius": { "type": "number", "minimum": 0 },
+    "armMass": { "type": "number", "minimum": 0 },
+    "initialAngularVelocity": { "type": "number", "minimum": 0 }
+  },
+  "required": ["type", "objectId", "diskMass", "diskRadius", "initialAngularVelocity"]
+}

@@ -25,7 +25,7 @@ import { DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME } from "./
 export default class TypeBuilder {
     private tb: _TypeBuilder;
     
-    AnimationData: ClassViewer<'AnimationData', "forces" | "interactions" | "motions" | "objects" | "environments">;
+    AnimationData: ClassViewer<'AnimationData', "forces" | "interactions" | "motions" | "waves" | "objects" | "environments">;
     
     ProblemData: ClassViewer<'ProblemData', "problem" | "stepByStep" | "formulas" | "solution">;
     
@@ -36,9 +36,11 @@ export default class TypeBuilder {
     
     Interactions: EnumViewer<'Interactions', "Buoyancy" | "Collision" | "DragForce" | "ElectrostaticForce" | "Friction" | "Gravity" | "MagneticForce" | "NormalForce" | "SpringForce" | "Tension">;
     
-    Motions: EnumViewer<'Motions', "CombinedTransRotMotion" | "DampedOscillation" | "LinearMotion" | "ProjectileMotion2D" | "ProjectileMotion3D" | "RelativeMotion" | "ResistiveMotion" | "RotationalMotion" | "SimpleHarmonicMotion" | "UniformCircularMotion">;
+    Motions: EnumViewer<'Motions', "CombinedTransRotMotion" | "DampedOscillation" | "EnergyConservation" | "LinearMotion" | "ProjectileMotion2D" | "ProjectileMotion3D" | "RelativeMotion" | "ResistiveMotion" | "RollingMotion" | "RotationalMotion" | "AngularMomentumConservation" | "SimpleHarmonicMotion" | "UniformCircularMotion">;
     
     Objects: EnumViewer<'Objects', "Object">;
+    
+    Waves: EnumViewer<'Waves', "TransverseWave" | "StandingWave" | "DopplerEffect" | "WaveSuperposition">;
     
 
     constructor() {
@@ -47,13 +49,13 @@ export default class TypeBuilder {
             "AnimationData","ProblemData",
           ]),
           enums: new Set([
-            "Environments","Forces","Interactions","Motions","Objects",
+            "Environments","Forces","Interactions","Motions","Objects","Waves",
           ]),
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
         
         this.AnimationData = this.tb.classViewer("AnimationData", [
-          "forces","interactions","motions","objects","environments",
+          "forces","interactions","motions","waves","objects","environments",
         ]);
         
         this.ProblemData = this.tb.classViewer("ProblemData", [
@@ -74,11 +76,15 @@ export default class TypeBuilder {
         ]);
         
         this.Motions = this.tb.enumViewer("Motions", [
-          "CombinedTransRotMotion","DampedOscillation","LinearMotion","ProjectileMotion2D","ProjectileMotion3D","RelativeMotion","ResistiveMotion","RotationalMotion","SimpleHarmonicMotion","UniformCircularMotion",
+          "CombinedTransRotMotion","DampedOscillation","EnergyConservation","LinearMotion","ProjectileMotion2D","ProjectileMotion3D","RelativeMotion","ResistiveMotion","RollingMotion","RotationalMotion","AngularMomentumConservation","SimpleHarmonicMotion","UniformCircularMotion",
         ]);
         
         this.Objects = this.tb.enumViewer("Objects", [
           "Object",
+        ]);
+        
+        this.Waves = this.tb.enumViewer("Waves", [
+          "TransverseWave","StandingWave","DopplerEffect","WaveSuperposition",
         ]);
         
     }

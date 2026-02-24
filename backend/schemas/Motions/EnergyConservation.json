@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EnergyConservation",
+  "type": "object",
+  "properties": {
+    "type": { "const": "energy_conservation" },
+    "objectId": { "type": "string", "description": "ID corresponding to object ID" },
+    "mass": { "type": "number", "minimum": 0 },
+    "height": { "type": "number", "minimum": 0 },
+    "inclineAngle": { "type": "number", "minimum": 0, "maximum": 90 },
+    "frictionCoefficient": { "type": "number", "minimum": 0 },
+    "initialVelocity": { "type": "number", "default": 0 }
+  },
+  "required": ["type", "objectId", "mass", "height", "inclineAngle"]
+}

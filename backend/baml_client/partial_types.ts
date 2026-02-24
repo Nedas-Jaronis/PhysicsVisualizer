@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  AnimationData,  Environments,  Forces,  Interactions,  Motions,  Objects,  ProblemData } from "./types"
+import type {  AnimationData,  Environments,  Forces,  Interactions,  Motions,  Objects,  ProblemData,  Waves } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -40,6 +40,7 @@ export namespace partial_types {
       forces: types.Forces[]
       interactions: types.Interactions[]
       motions: types.Motions[]
+      waves: types.Waves[]
       objects: types.Objects[]
       environments: types.Environments[]
     }

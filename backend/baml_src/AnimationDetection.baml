@@ -57,14 +57,24 @@ enum Interactions {
 enum Motions {
   CombinedTransRotMotion
   DampedOscillation
+  EnergyConservation
   LinearMotion
   ProjectileMotion2D
   ProjectileMotion3D
   RelativeMotion
   ResistiveMotion
+  RollingMotion
   RotationalMotion
+  AngularMomentumConservation
   SimpleHarmonicMotion
   UniformCircularMotion
+}
+
+enum Waves {
+  TransverseWave
+  StandingWave
+  DopplerEffect
+  WaveSuperposition
 }
 
 enum Objects {
@@ -89,6 +99,7 @@ class AnimationData {
   interactions Interactions[]
   // materials Materials[]
   motions Motions[]
+  waves Waves[]
   objects Objects[]
   environments Environments[]
 }
@@ -116,8 +127,10 @@ function Extract_animation_data(problem: string) -> AnimationData {
   interactions: ["Buoyancy", "Collision", "Friction", "Tension", "SpringForce"]
   
   
-  motions: ["DampedOscillation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RotationalMotion", "SimpleHarmonicMotion", "UniformCircularMotion"]
-  
+  motions: ["DampedOscillation", "EnergyConservation", "LinearMotion", "ProjectileMotion2D", "ProjectileMotion3D", "RollingMotion", "RotationalMotion", "AngularMomentumConservation", "SimpleHarmonicMotion", "UniformCircularMotion"]
+
+  waves: ["TransverseWave", "StandingWave", "DopplerEffect", "WaveSuperposition"]
+
   objects: ["Object"]
 
   environments: ["Cliff", "Ground", "Incline", "Wall", "PulleySystem", "Constraint", "Pendulum", "Table"]
@@ -127,7 +140,7 @@ function Extract_animation_data(problem: string) -> AnimationData {
   - If the problem involves multiple instances of the same force type applied to different objects, return a separate complete object for each instance.
   - For example, if there are two gravitational forces on two different objects, return two separate "GravitationalForce" objects in the forces array.
   - Use empty strings or default numbers (e.g., `0`) for values.
-  - Return a full JSON object with arrays for: "forces", "motions", "interactions", and "objects".
+  - Return a full JSON object with arrays for: "forces", "motions", "waves", "interactions", and "objects".
   - Do NOT leave any schema fields out — include all fields defined in your official JSON schemas.
   - Do NOT invent new types — only use exact names from the lists above.
   - Do NOT merge or combine multiple forces of the same type into one object.

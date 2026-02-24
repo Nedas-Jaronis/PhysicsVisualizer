@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DopplerEffect",
+  "type": "object",
+  "properties": {
+    "type": { "const": "doppler_effect" },
+    "sourceFrequency": { "type": "number", "minimum": 0 },
+    "sourceSpeed": { "type": "number", "minimum": 0 },
+    "soundSpeed": { "type": "number", "minimum": 0, "default": 343 },
+    "observerPosition": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number" },
+        "z": { "type": "number" }
+      }
+    }
+  },
+  "required": ["type", "sourceFrequency", "sourceSpeed"]
+}

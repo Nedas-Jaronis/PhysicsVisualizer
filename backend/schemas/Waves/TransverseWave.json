@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TransverseWave",
+  "type": "object",
+  "properties": {
+    "type": { "const": "transverse_wave" },
+    "amplitude": { "type": "number", "minimum": 0 },
+    "frequency": { "type": "number", "minimum": 0 },
+    "wavelength": { "type": "number", "minimum": 0 },
+    "stringLength": { "type": "number", "minimum": 0 },
+    "waveSpeed": { "type": "number", "minimum": 0 }
+  },
+  "required": ["type", "amplitude", "frequency", "wavelength"]
+}

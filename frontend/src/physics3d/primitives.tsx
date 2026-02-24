@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { RigidBody, RapierRigidBody, useSpringJoint, BallCollider } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
@@ -3719,6 +3719,1450 @@ export function PoweredLift({
           </group>
         )
       })()}
+    </group>
+  )
+}
+
+// ============================================
+// ENERGY RAMP (Phase 1: Work/Energy Conservation)
+// ============================================
+interface EnergyRampProps {
+  mass: number
+  rampAngle: number
+  rampHeight: number
+  frictionCoeff: number
+  gravity?: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    kineticEnergy: number
+    potentialEnergy: number
+    dissipatedEnergy: number
+    totalEnergy: number
+  }) => void
+}
+
+export function EnergyRamp({
+  mass,
+  rampAngle,
+  rampHeight,
+  frictionCoeff,
+  gravity = 9.81,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: EnergyRampProps) {
+  const timeRef = useRef(0)
+  const posRef = useRef(0) // distance along ramp from top
+  const velRef = useRef(0)
+  const blockRef = useRef<THREE.Group>(null)
+  const dissipatedRef = useRef(0)
+
+  const angleRad = (rampAngle * Math.PI) / 180
+  const rampLength = rampHeight / Math.sin(angleRad)
+  const g = gravity
+
+  // Acceleration along ramp: a = g*sin(θ) - μk*g*cos(θ)
+  const accel = g * Math.sin(angleRad) - frictionCoeff * g * Math.cos(angleRad)
+
+  const totalEnergy = mass * g * rampHeight
+
+  useEffect(() => {
+    timeRef.current = 0
+    posRef.current = 0
+    velRef.current = 0
+    dissipatedRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+
+    if (posRef.current < rampLength && accel > 0) {
+      timeRef.current += dt
+      velRef.current += accel * dt
+      posRef.current += velRef.current * dt
+
+      if (posRef.current > rampLength) {
+        posRef.current = rampLength
+        velRef.current = Math.sqrt(Math.max(0, 2 * accel * rampLength))
+      }
+    }
+
+    const d = posRef.current
+    const v = velRef.current
+    const currentHeight = rampHeight - d * Math.sin(angleRad)
+    const currentX = d * Math.cos(angleRad)
+
+    // Energy bookkeeping
+    const ke = 0.5 * mass * v * v
+    const pe = mass * g * Math.max(0, currentHeight)
+    const wFriction = frictionCoeff * mass * g * Math.cos(angleRad) * d
+    dissipatedRef.current = wFriction
+
+    if (blockRef.current) {
+      blockRef.current.position.set(
+        -rampLength * Math.cos(angleRad) / 2 + currentX,
+        currentHeight + 0.4,
+        0
+      )
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: currentX, y: currentHeight, z: 0 },
+        velocity: { x: v * Math.cos(angleRad), y: -v * Math.sin(angleRad), z: 0 },
+        time: timeRef.current,
+        kineticEnergy: ke,
+        potentialEnergy: pe,
+        dissipatedEnergy: wFriction,
+        totalEnergy
+      })
+    }
+  })
+
+  const rampThickness = 0.3
+  const rampWidth = 3
+
+  return (
+    <group>
+      {/* Ramp surface */}
+      <group position={[0, rampHeight / 2, 0]} rotation={[0, 0, -angleRad]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[rampLength, rampThickness, rampWidth]} />
+          <meshStandardMaterial color="#444" />
+        </mesh>
+      </group>
+
+      {/* Block on ramp */}
+      <group ref={blockRef} position={[-rampLength * Math.cos(angleRad) / 2, rampHeight + 0.4, 0]}>
+        <mesh castShadow rotation={[0, 0, -angleRad]}>
+          <boxGeometry args={[0.8, 0.8, 0.8]} />
+          <meshStandardMaterial color="#4080ff" />
+        </mesh>
+      </group>
+
+      {/* Energy bars */}
+      <EnergyBars
+        kineticEnergy={0.5 * mass * velRef.current * velRef.current}
+        potentialEnergy={mass * g * Math.max(0, rampHeight - posRef.current * Math.sin(angleRad))}
+        dissipatedEnergy={dissipatedRef.current}
+        totalEnergy={totalEnergy}
+        position={[rampLength * 0.4, rampHeight + 2, 0]}
+        scale={0.08}
+      />
+
+      {/* Ground reference */}
+      <mesh position={[0, -0.05, 0]} receiveShadow>
+        <boxGeometry args={[rampLength * 2, 0.1, rampWidth + 2]} />
+        <meshStandardMaterial color="#222" />
+      </mesh>
+    </group>
+  )
+}
+
+// ============================================
+// ROLLING INCLINE (Phase 2: Rotational Dynamics)
+// ============================================
+interface RollingInclineProps {
+  mass: number
+  objectRadius: number
+  rampAngle: number
+  rampHeight: number
+  rollingShape: 'solid_sphere' | 'hollow_sphere' | 'solid_cylinder' | 'hollow_cylinder' | 'hoop'
+  gravity?: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    transKE: number
+    rotKE: number
+    potentialEnergy: number
+    totalEnergy: number
+  }) => void
+}
+
+export function RollingIncline({
+  mass,
+  objectRadius,
+  rampAngle,
+  rampHeight,
+  rollingShape,
+  gravity = 9.81,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: RollingInclineProps) {
+  const timeRef = useRef(0)
+  const posRef = useRef(0)
+  const velRef = useRef(0)
+  const rotAngleRef = useRef(0)
+  const objRef = useRef<THREE.Group>(null)
+
+  // Moment of inertia factor c where I = c*M*R²
+  const shapeFactors: Record<string, number> = {
+    solid_sphere: 2 / 5,
+    hollow_sphere: 2 / 3,
+    solid_cylinder: 1 / 2,
+    hollow_cylinder: 1,
+    hoop: 1
+  }
+  const c = shapeFactors[rollingShape] || 2 / 5
+  const angleRad = (rampAngle * Math.PI) / 180
+  const rampLength = rampHeight / Math.sin(angleRad)
+  const g = gravity
+
+  // Rolling without slipping: a = g*sin(θ) / (1 + c)
+  const accel = (g * Math.sin(angleRad)) / (1 + c)
+
+  const totalEnergy = mass * g * rampHeight
+
+  useEffect(() => {
+    timeRef.current = 0
+    posRef.current = 0
+    velRef.current = 0
+    rotAngleRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+
+    if (posRef.current < rampLength) {
+      timeRef.current += dt
+      velRef.current += accel * dt
+      posRef.current += velRef.current * dt
+      rotAngleRef.current += (velRef.current / objectRadius) * dt
+
+      if (posRef.current > rampLength) {
+        posRef.current = rampLength
+      }
+    }
+
+    const d = posRef.current
+    const v = velRef.current
+    const currentHeight = rampHeight - d * Math.sin(angleRad)
+    const currentX = d * Math.cos(angleRad)
+
+    const transKE = 0.5 * mass * v * v
+    const omega = v / objectRadius
+    const I = c * mass * objectRadius * objectRadius
+    const rotKE = 0.5 * I * omega * omega
+    const pe = mass * g * Math.max(0, currentHeight)
+
+    if (objRef.current) {
+      objRef.current.position.set(
+        -rampLength * Math.cos(angleRad) / 2 + currentX,
+        currentHeight + objectRadius + 0.15,
+        0
+      )
+      objRef.current.rotation.z = -rotAngleRef.current
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: currentX, y: currentHeight, z: 0 },
+        velocity: { x: v * Math.cos(angleRad), y: -v * Math.sin(angleRad), z: 0 },
+        time: timeRef.current,
+        transKE,
+        rotKE,
+        potentialEnergy: pe,
+        totalEnergy
+      })
+    }
+  })
+
+  const rampThickness = 0.3
+  const rampWidth = 3
+
+  // Render the appropriate shape geometry
+  const renderShape = () => {
+    if (rollingShape === 'solid_sphere' || rollingShape === 'hollow_sphere') {
+      return (
+        <mesh castShadow>
+          <sphereGeometry args={[objectRadius, 32, 32]} />
+          <meshStandardMaterial
+            color={rollingShape === 'solid_sphere' ? '#ff6644' : '#ff6644'}
+            wireframe={rollingShape === 'hollow_sphere'}
+          />
+        </mesh>
+      )
+    }
+    if (rollingShape === 'hoop') {
+      return (
+        <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[objectRadius, objectRadius * 0.08, 16, 32]} />
+          <meshStandardMaterial color="#ffaa22" />
+        </mesh>
+      )
+    }
+    // solid_cylinder or hollow_cylinder
+    return (
+      <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[objectRadius, objectRadius, objectRadius * 1.5, 32]} />
+        <meshStandardMaterial
+          color="#44aaff"
+          wireframe={rollingShape === 'hollow_cylinder'}
+        />
+      </mesh>
+    )
+  }
+
+  return (
+    <group>
+      {/* Ramp */}
+      <group position={[0, rampHeight / 2, 0]} rotation={[0, 0, -angleRad]}>
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[rampLength, rampThickness, rampWidth]} />
+          <meshStandardMaterial color="#444" />
+        </mesh>
+      </group>
+
+      {/* Rolling object */}
+      <group ref={objRef} position={[-rampLength * Math.cos(angleRad) / 2, rampHeight + objectRadius + 0.15, 0]}>
+        {renderShape()}
+      </group>
+
+      {/* Energy bars: 3-part (trans KE, rot KE, PE) */}
+      <EnergyBars
+        kineticEnergy={0.5 * mass * velRef.current * velRef.current}
+        potentialEnergy={mass * g * Math.max(0, rampHeight - posRef.current * Math.sin(angleRad))}
+        springEnergy={0.5 * c * mass * velRef.current * velRef.current}
+        totalEnergy={totalEnergy}
+        position={[rampLength * 0.4, rampHeight + 2, 0]}
+        scale={0.08}
+      />
+
+      {/* Ground */}
+      <mesh position={[0, -0.05, 0]} receiveShadow>
+        <boxGeometry args={[rampLength * 2, 0.1, rampWidth + 2]} />
+        <meshStandardMaterial color="#222" />
+      </mesh>
+    </group>
+  )
+}
+
+// ============================================
+// TRANSVERSE WAVE (Phase 3: Waves Foundation)
+// ============================================
+interface TransverseWaveProps {
+  amplitude: number
+  frequency: number
+  wavelength: number
+  stringLength: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+  }) => void
+}
+
+export function TransverseWave({
+  amplitude,
+  frequency,
+  wavelength,
+  stringLength,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: TransverseWaveProps) {
+  const lineRef = useRef<THREE.Line>(null)
+  const particleRef = useRef<THREE.Mesh>(null)
+  const timeRef = useRef(0)
+  const numPoints = 200
+
+  const k = (2 * Math.PI) / wavelength
+  const omega = 2 * Math.PI * frequency
+  const waveSpeed = frequency * wavelength
+
+  useEffect(() => {
+    timeRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    timeRef.current += delta * timeScale
+
+    const t = timeRef.current
+
+    if (lineRef.current) {
+      const positions = lineRef.current.geometry.attributes.position
+      for (let i = 0; i < numPoints; i++) {
+        const x = (i / (numPoints - 1)) * stringLength - stringLength / 2
+        const y = amplitude * Math.sin(k * x - omega * t)
+        positions.setXYZ(i, x, y, 0)
+      }
+      positions.needsUpdate = true
+    }
+
+    // Highlighted particle at center of string
+    if (particleRef.current) {
+      const x = 0
+      const y = amplitude * Math.sin(k * x - omega * t)
+      particleRef.current.position.set(x, y, 0)
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: 0, y: amplitude * Math.sin(-omega * t), z: 0 },
+        velocity: { x: waveSpeed, y: 0, z: 0 },
+        time: t
+      })
+    }
+  })
+
+  // Create initial positions (memoized)
+  const initialPositions = useMemo(() => {
+    const pos = new Float32Array(numPoints * 3)
+    for (let i = 0; i < numPoints; i++) {
+      pos[i * 3] = (i / (numPoints - 1)) * stringLength - stringLength / 2
+      pos[i * 3 + 1] = 0
+      pos[i * 3 + 2] = 0
+    }
+    return pos
+  }, [numPoints, stringLength])
+
+  return (
+    <group position={[0, 2, 0]}>
+      {/* Wave string */}
+      <line ref={lineRef as any}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[initialPositions, 3]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#00aaff" linewidth={2} />
+      </line>
+
+      {/* Highlighted particle */}
+      <mesh ref={particleRef} position={[0, 0, 0]}>
+        <sphereGeometry args={[0.12, 16, 16]} />
+        <meshStandardMaterial color="#ffff00" emissive="#ffff00" emissiveIntensity={0.5} />
+      </mesh>
+
+      {/* Wavelength marker */}
+      <group position={[-stringLength / 2, -amplitude - 0.5, 0]}>
+        <mesh position={[wavelength / 2, 0, 0]}>
+          <boxGeometry args={[wavelength, 0.02, 0.02]} />
+          <meshStandardMaterial color="#ff8800" />
+        </mesh>
+        <Text position={[wavelength / 2, -0.2, 0]} fontSize={0.15} color="#ff8800" anchorX="center">
+          {'\u03BB'} = {wavelength.toFixed(2)}m
+        </Text>
+      </group>
+
+      {/* Amplitude marker */}
+      <group position={[-stringLength / 2 - 0.3, 0, 0]}>
+        <mesh position={[0, amplitude / 2, 0]}>
+          <boxGeometry args={[0.02, amplitude, 0.02]} />
+          <meshStandardMaterial color="#44ff44" />
+        </mesh>
+        <Text position={[-0.3, amplitude / 2, 0]} fontSize={0.15} color="#44ff44" anchorX="right">
+          A = {amplitude.toFixed(2)}m
+        </Text>
+      </group>
+
+      {/* v = fλ label */}
+      <Text position={[0, amplitude + 0.8, 0]} fontSize={0.2} color="white" anchorX="center">
+        v = f{'\u03BB'} = {waveSpeed.toFixed(2)} m/s
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// STANDING WAVE (Phase 4: Harmonics)
+// ============================================
+interface StandingWaveProps {
+  harmonicNumber: number
+  stringLength: number
+  waveSpeed: number
+  amplitude: number
+  boundaryType: 'fixed_fixed' | 'fixed_free'
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+  }) => void
+}
+
+export function StandingWave({
+  harmonicNumber,
+  stringLength,
+  waveSpeed,
+  amplitude,
+  boundaryType,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: StandingWaveProps) {
+  const lineRef = useRef<THREE.Line>(null)
+  const timeRef = useRef(0)
+  const numPoints = 200
+
+  const n = harmonicNumber
+  // λn = 2L/n (fixed-fixed), λn = 4L/(2n-1) (fixed-free)
+  const wavelengthN = boundaryType === 'fixed_fixed'
+    ? (2 * stringLength) / n
+    : (4 * stringLength) / (2 * n - 1)
+  const frequencyN = waveSpeed / wavelengthN
+  const k = (2 * Math.PI) / wavelengthN
+  const omega = 2 * Math.PI * frequencyN
+
+  useEffect(() => {
+    timeRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    timeRef.current += delta * timeScale
+
+    const t = timeRef.current
+
+    if (lineRef.current) {
+      const positions = lineRef.current.geometry.attributes.position
+      for (let i = 0; i < numPoints; i++) {
+        const x = (i / (numPoints - 1)) * stringLength
+        const y = 2 * amplitude * Math.sin(k * x) * Math.cos(omega * t)
+        positions.setXYZ(i, x - stringLength / 2, y, 0)
+      }
+      positions.needsUpdate = true
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: 0, y: 0, z: 0 },
+        velocity: { x: 0, y: 0, z: 0 },
+        time: t
+      })
+    }
+  })
+
+  const initialPositions = useMemo(() => {
+    const pos = new Float32Array(numPoints * 3)
+    for (let i = 0; i < numPoints; i++) {
+      pos[i * 3] = (i / (numPoints - 1)) * stringLength - stringLength / 2
+      pos[i * 3 + 1] = 0
+      pos[i * 3 + 2] = 0
+    }
+    return pos
+  }, [numPoints, stringLength])
+
+  // Calculate node positions
+  const nodes: number[] = []
+  const antinodes: number[] = []
+  if (boundaryType === 'fixed_fixed') {
+    for (let i = 0; i <= n; i++) {
+      nodes.push((i / n) * stringLength)
+    }
+    for (let i = 0; i < n; i++) {
+      antinodes.push(((i + 0.5) / n) * stringLength)
+    }
+  } else {
+    // fixed-free
+    for (let i = 0; i < n; i++) {
+      nodes.push((i / (n - 0.5)) * stringLength)
+    }
+    for (let i = 0; i < n; i++) {
+      antinodes.push(((i + 0.5) / (n - 0.5)) * stringLength)
+    }
+  }
+
+  return (
+    <group position={[0, 2, 0]}>
+      {/* Standing wave */}
+      <line ref={lineRef as any}>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[initialPositions, 3]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#00ddff" linewidth={2} />
+      </line>
+
+      {/* Boundary walls */}
+      <mesh position={[-stringLength / 2, 0, 0]}>
+        <boxGeometry args={[0.1, amplitude * 3, 0.5]} />
+        <meshStandardMaterial color="#666" />
+      </mesh>
+      {boundaryType === 'fixed_fixed' && (
+        <mesh position={[stringLength / 2, 0, 0]}>
+          <boxGeometry args={[0.1, amplitude * 3, 0.5]} />
+          <meshStandardMaterial color="#666" />
+        </mesh>
+      )}
+
+      {/* Node markers (blue dots) */}
+      {nodes.map((x, i) => (
+        <mesh key={`node-${i}`} position={[x - stringLength / 2, 0, 0]}>
+          <sphereGeometry args={[0.08, 8, 8]} />
+          <meshStandardMaterial color="#4444ff" emissive="#4444ff" emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+
+      {/* Antinode markers (red dots) */}
+      {antinodes.map((x, i) => (
+        <mesh key={`antinode-${i}`} position={[x - stringLength / 2, 0, 0]}>
+          <sphereGeometry args={[0.08, 8, 8]} />
+          <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+
+      {/* Labels */}
+      <Text position={[0, amplitude * 2.5 + 0.5, 0]} fontSize={0.2} color="white" anchorX="center">
+        n={n} | f{n} = {frequencyN.toFixed(1)} Hz | {'\u03BB'}{n} = {wavelengthN.toFixed(2)} m
+      </Text>
+      <Text position={[-stringLength / 2 - 0.3, -amplitude - 0.3, 0]} fontSize={0.12} color="#4444ff" anchorX="right">
+        Nodes
+      </Text>
+      <Text position={[-stringLength / 2 - 0.3, -amplitude - 0.6, 0]} fontSize={0.12} color="#ff4444" anchorX="right">
+        Antinodes
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// BUOYANCY DEMO (Phase 5: Fluid Mechanics)
+// ============================================
+interface BuoyancyDemoProps {
+  objectDensity: number    // kg/m³
+  fluidDensity: number     // kg/m³
+  objectVolume: number     // m³
+  gravity?: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    buoyantForce: number
+    weight: number
+    submergedFraction: number
+  }) => void
+}
+
+export function BuoyancyDemo({
+  objectDensity,
+  fluidDensity,
+  objectVolume,
+  gravity = 9.81,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: BuoyancyDemoProps) {
+  const timeRef = useRef(0)
+  const posYRef = useRef(3) // start above fluid
+  const velYRef = useRef(0)
+  const blockRef = useRef<THREE.Mesh>(null)
+
+  const g = gravity
+  const mass = objectDensity * objectVolume
+  const weight = mass * g
+  const objectSize = Math.cbrt(objectVolume) // cube side length
+  const fluidSurfaceY = 0 // fluid top at y=0
+  const fluidDepth = 4
+  const fluidWidth = 6
+
+  // Equilibrium: object floats with fraction submerged = ρ_obj/ρ_fluid
+  const densityRatio = objectDensity / fluidDensity
+  const floats = densityRatio < 1
+
+  useEffect(() => {
+    timeRef.current = 0
+    posYRef.current = 3
+    velYRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+    timeRef.current += dt
+
+    const y = posYRef.current
+    const blockBottom = y - objectSize / 2
+    const blockTop = y + objectSize / 2
+
+    // Calculate submerged depth
+    let submergedDepth = 0
+    if (blockBottom < fluidSurfaceY) {
+      submergedDepth = Math.min(objectSize, fluidSurfaceY - blockBottom)
+    }
+    const submergedFraction = submergedDepth / objectSize
+    const submergedVolume = submergedFraction * objectVolume
+
+    // Forces
+    const Fb = fluidDensity * submergedVolume * g
+    const netForce = Fb - weight
+
+    // Add damping when in fluid to simulate viscous drag
+    const dragCoeff = submergedFraction > 0 ? 5.0 : 0
+    const drag = -dragCoeff * velYRef.current
+
+    const accel = (netForce + drag) / mass
+
+    velYRef.current += accel * dt
+    posYRef.current += velYRef.current * dt
+
+    // Stop sinking through floor
+    const fluidBottom = fluidSurfaceY - fluidDepth
+    if (posYRef.current - objectSize / 2 < fluidBottom) {
+      posYRef.current = fluidBottom + objectSize / 2
+      velYRef.current = 0
+    }
+
+    // Stop flying too high
+    if (blockTop > 5) {
+      posYRef.current = 5 - objectSize / 2
+      velYRef.current = Math.min(0, velYRef.current)
+    }
+
+    if (blockRef.current) {
+      blockRef.current.position.y = posYRef.current
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: 0, y: posYRef.current, z: 0 },
+        velocity: { x: 0, y: velYRef.current, z: 0 },
+        time: timeRef.current,
+        buoyantForce: Fb,
+        weight,
+        submergedFraction
+      })
+    }
+  })
+
+  return (
+    <group>
+      {/* Fluid container (semi-transparent) */}
+      <mesh position={[0, fluidSurfaceY - fluidDepth / 2, 0]}>
+        <boxGeometry args={[fluidWidth, fluidDepth, fluidWidth]} />
+        <meshStandardMaterial color="#2244aa" transparent opacity={0.3} />
+      </mesh>
+
+      {/* Fluid surface marker */}
+      <mesh position={[0, fluidSurfaceY, 0]}>
+        <boxGeometry args={[fluidWidth + 0.1, 0.02, fluidWidth + 0.1]} />
+        <meshStandardMaterial color="#4488ff" transparent opacity={0.5} />
+      </mesh>
+
+      {/* Object */}
+      <mesh ref={blockRef} position={[0, 3, 0]} castShadow>
+        <boxGeometry args={[objectSize, objectSize, objectSize]} />
+        <meshStandardMaterial color={floats ? '#ff8844' : '#aa4444'} />
+      </mesh>
+
+      {/* Weight arrow (down) */}
+      <ForceArrow
+        position={[objectSize, posYRef.current || 3, 0]}
+        direction={[0, -1, 0]}
+        magnitude={weight / (mass * g) * 3}
+        color="#ff4444"
+        label="W"
+      />
+
+      {/* Buoyant force arrow (up) */}
+      <ForceArrow
+        position={[-objectSize, posYRef.current || 3, 0]}
+        direction={[0, 1, 0]}
+        magnitude={Math.min(weight, fluidDensity * objectVolume * g) / (mass * g) * 3}
+        color="#44aaff"
+        label="Fb"
+      />
+
+      {/* Labels */}
+      <Text position={[0, fluidSurfaceY + 0.5, fluidWidth / 2 + 0.5]} fontSize={0.2} color="#4488ff" anchorX="center">
+        {'\u03C1'}_fluid = {fluidDensity} kg/m{'\u00B3'}
+      </Text>
+      <Text position={[0, 4, 0]} fontSize={0.18} color="white" anchorX="center">
+        {floats ? 'FLOATS' : 'SINKS'} ({'\u03C1'}_obj/{'\u03C1'}_fluid = {densityRatio.toFixed(2)})
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// DOPPLER EFFECT (Phase 6: Waves Applied)
+// ============================================
+interface DopplerEffectProps {
+  sourceFrequency: number   // Hz
+  sourceSpeed: number       // m/s
+  soundSpeed: number        // m/s
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    observedFreqFront: number
+    observedFreqBehind: number
+  }) => void
+}
+
+export function DopplerEffect({
+  sourceFrequency,
+  sourceSpeed,
+  soundSpeed,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: DopplerEffectProps) {
+  const timeRef = useRef(0)
+  const sourceXRef = useRef(-8)
+  const wavefrontsRef = useRef<{ x: number; z: number; emitTime: number }[]>([])
+  const lastEmitRef = useRef(0)
+  const ringsGroupRef = useRef<THREE.Group>(null)
+
+  const emitInterval = 1 / sourceFrequency
+  const maxWavefronts = 30
+
+  // Doppler shifted frequencies
+  const fFront = sourceFrequency * soundSpeed / (soundSpeed - sourceSpeed)
+  const fBehind = sourceFrequency * soundSpeed / (soundSpeed + sourceSpeed)
+
+  useEffect(() => {
+    timeRef.current = 0
+    sourceXRef.current = -8
+    wavefrontsRef.current = []
+    lastEmitRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+    timeRef.current += dt
+
+    const t = timeRef.current
+
+    // Move source
+    sourceXRef.current = -8 + sourceSpeed * t
+
+    // Emit new wavefront
+    if (t - lastEmitRef.current >= emitInterval) {
+      wavefrontsRef.current.push({
+        x: sourceXRef.current,
+        z: 0,
+        emitTime: t
+      })
+      lastEmitRef.current = t
+
+      // Trim old wavefronts
+      if (wavefrontsRef.current.length > maxWavefronts) {
+        wavefrontsRef.current.shift()
+      }
+    }
+
+    // Reset when source goes too far
+    if (sourceXRef.current > 12) {
+      sourceXRef.current = -8
+      wavefrontsRef.current = []
+      lastEmitRef.current = t
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: sourceXRef.current, y: 0, z: 0 },
+        velocity: { x: sourceSpeed, y: 0, z: 0 },
+        time: t,
+        observedFreqFront: fFront,
+        observedFreqBehind: fBehind
+      })
+    }
+  })
+
+  // Render wavefronts as expanding rings (top-down view, Y-up)
+  const renderWavefronts = () => {
+    const t = timeRef.current
+    return wavefrontsRef.current.map((wf, i) => {
+      const age = t - wf.emitTime
+      const radius = soundSpeed * age * 0.5 // scale down for visual
+      if (radius <= 0 || radius > 15) return null
+
+      // Color: blue for compressed (front), red for stretched (behind)
+      const opacity = Math.max(0.1, 1 - age * 0.3)
+
+      return (
+        <mesh key={i} position={[wf.x, 0.01, wf.z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[Math.max(0, radius - 0.05), radius, 64]} />
+          <meshBasicMaterial color="#44aaff" transparent opacity={opacity} side={2} />
+        </mesh>
+      )
+    })
+  }
+
+  return (
+    <group>
+      {/* Ground plane (top-down view) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[30, 20]} />
+        <meshStandardMaterial color="#111" />
+      </mesh>
+
+      {/* Wavefronts */}
+      <group ref={ringsGroupRef}>
+        {renderWavefronts()}
+      </group>
+
+      {/* Source (moving sphere) */}
+      <mesh position={[sourceXRef.current || -8, 0.3, 0]} castShadow>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.5} />
+      </mesh>
+
+      {/* Observer marker (front) */}
+      <mesh position={[10, 0.2, 0]}>
+        <sphereGeometry args={[0.2, 16, 16]} />
+        <meshStandardMaterial color="#44ff44" emissive="#44ff44" emissiveIntensity={0.3} />
+      </mesh>
+      <Text position={[10, 0.8, 0]} fontSize={0.2} color="#44ff44" anchorX="center">
+        f' = {fFront.toFixed(1)} Hz
+      </Text>
+
+      {/* Observer marker (behind) */}
+      <mesh position={[-10, 0.2, 0]}>
+        <sphereGeometry args={[0.2, 16, 16]} />
+        <meshStandardMaterial color="#ff8844" emissive="#ff8844" emissiveIntensity={0.3} />
+      </mesh>
+      <Text position={[-10, 0.8, 0]} fontSize={0.2} color="#ff8844" anchorX="center">
+        f' = {fBehind.toFixed(1)} Hz
+      </Text>
+
+      {/* Direction arrow */}
+      <mesh position={[sourceXRef.current || -8, 0.8, 0]}>
+        <coneGeometry args={[0.15, 0.4, 8]} />
+        <meshStandardMaterial color="#ff4444" />
+      </mesh>
+      <Text position={[0, 2, 0]} fontSize={0.25} color="white" anchorX="center">
+        Source: f = {sourceFrequency.toFixed(0)} Hz | v_s = {sourceSpeed.toFixed(1)} m/s
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// ANGULAR MOMENTUM DEMO (Phase 7: Rotational)
+// ============================================
+interface AngularMomentumDemoProps {
+  diskMass: number
+  diskRadius: number
+  initialRadius: number       // arm mass initial distance
+  finalRadius: number         // arm mass final distance
+  armMass: number
+  initialAngularVelocity: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    angularVelocity: number
+    momentOfInertia: number
+    angularMomentum: number
+  }) => void
+}
+
+export function AngularMomentumDemo({
+  diskMass,
+  diskRadius,
+  initialRadius,
+  finalRadius,
+  armMass,
+  initialAngularVelocity,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: AngularMomentumDemoProps) {
+  const timeRef = useRef(0)
+  const angleRef = useRef(0)
+  const armRadiusRef = useRef(initialRadius)
+  const groupRef = useRef<THREE.Group>(null)
+  const arm1Ref = useRef<THREE.Mesh>(null)
+  const arm2Ref = useRef<THREE.Mesh>(null)
+
+  // I_disk = ½MR², I_arms = 2*m*r²
+  const I_disk = 0.5 * diskMass * diskRadius * diskRadius
+  const I_initial = I_disk + 2 * armMass * initialRadius * initialRadius
+  const L = I_initial * initialAngularVelocity // conserved
+
+  const transitionTime = 2 // seconds to pull arms in
+
+  useEffect(() => {
+    timeRef.current = 0
+    angleRef.current = 0
+    armRadiusRef.current = initialRadius
+  }, [resetTrigger, initialRadius])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+    timeRef.current += dt
+
+    // Smoothly transition arm radius
+    const t = timeRef.current
+    const progress = Math.min(1, t / transitionTime)
+    const smoothProgress = progress * progress * (3 - 2 * progress) // smoothstep
+    const currentRadius = initialRadius + (finalRadius - initialRadius) * smoothProgress
+    armRadiusRef.current = currentRadius
+
+    // Current moment of inertia
+    const I_current = I_disk + 2 * armMass * currentRadius * currentRadius
+    // Angular velocity from conservation: L = Iω
+    const omega = L / I_current
+
+    angleRef.current += omega * dt
+
+    // Update visual rotation
+    if (groupRef.current) {
+      groupRef.current.rotation.y = angleRef.current
+    }
+
+    // Update arm positions
+    if (arm1Ref.current) arm1Ref.current.position.x = currentRadius
+    if (arm2Ref.current) arm2Ref.current.position.x = -currentRadius
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: 0, y: 0, z: 0 },
+        velocity: { x: omega * currentRadius, y: 0, z: 0 },
+        time: t,
+        angularVelocity: omega,
+        momentOfInertia: I_current,
+        angularMomentum: L
+      })
+    }
+  })
+
+  return (
+    <group>
+      {/* Rotating platform */}
+      <group ref={groupRef}>
+        {/* Disk */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[diskRadius, diskRadius, 0.15, 32]} />
+          <meshStandardMaterial color="#555" />
+        </mesh>
+
+        {/* Arm 1 */}
+        <mesh ref={arm1Ref} position={[initialRadius, 0.2, 0]} castShadow>
+          <sphereGeometry args={[0.2, 16, 16]} />
+          <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.3} />
+        </mesh>
+
+        {/* Arm 2 */}
+        <mesh ref={arm2Ref} position={[-initialRadius, 0.2, 0]} castShadow>
+          <sphereGeometry args={[0.2, 16, 16]} />
+          <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.3} />
+        </mesh>
+
+        {/* Arms connecting to center */}
+        <mesh position={[0, 0.2, 0]}>
+          <boxGeometry args={[initialRadius * 2, 0.05, 0.05]} />
+          <meshStandardMaterial color="#888" />
+        </mesh>
+      </group>
+
+      {/* Center axle */}
+      <mesh position={[0, -0.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.08, 1, 16]} />
+        <meshStandardMaterial color="#666" />
+      </mesh>
+
+      {/* Labels */}
+      <Text position={[0, 2, 0]} fontSize={0.2} color="white" anchorX="center">
+        L = I{'\u03C9'} = {L.toFixed(2)} kg{'\u00B7'}m{'\u00B2'}/s (conserved)
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// SATELLITE ORBIT (Phase 8: Circular Motion)
+// ============================================
+interface SatelliteOrbitProps {
+  planetMass: number        // kg (scaled for visual, e.g., 5.97e24 for Earth)
+  orbitRadius: number       // visual radius in scene units
+  satelliteMass?: number
+  gravity?: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    orbitalSpeed: number
+    orbitalPeriod: number
+  }) => void
+}
+
+export function SatelliteOrbit({
+  planetMass,
+  orbitRadius,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: SatelliteOrbitProps) {
+  const timeRef = useRef(0)
+  const angleRef = useRef(0)
+  const satRef = useRef<THREE.Mesh>(null)
+
+  const G = 6.674e-11
+  // For visualization: use simplified orbital mechanics scaled to scene
+  // v = sqrt(GM/r), T = 2π*r/v
+  // Scale: we use visual period of ~5 seconds for nice animation
+  const orbitalPeriod = 5 // visual seconds
+  const angularSpeed = (2 * Math.PI) / orbitalPeriod
+
+  // Real physics values (for display)
+  const realOrbitalSpeed = Math.sqrt(G * planetMass / (orbitRadius * 1e6)) // if radius in Mm
+  const realPeriod = (2 * Math.PI * orbitRadius * 1e6) / realOrbitalSpeed
+
+  const planetRadius = orbitRadius * 0.3
+
+  useEffect(() => {
+    timeRef.current = 0
+    angleRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    const dt = delta * timeScale
+    timeRef.current += dt
+
+    angleRef.current += angularSpeed * dt
+
+    const x = orbitRadius * Math.cos(angleRef.current)
+    const z = orbitRadius * Math.sin(angleRef.current)
+
+    if (satRef.current) {
+      satRef.current.position.set(x, 0, z)
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x, y: 0, z },
+        velocity: {
+          x: -orbitRadius * angularSpeed * Math.sin(angleRef.current),
+          y: 0,
+          z: orbitRadius * angularSpeed * Math.cos(angleRef.current)
+        },
+        time: timeRef.current,
+        orbitalSpeed: realOrbitalSpeed,
+        orbitalPeriod: realPeriod
+      })
+    }
+  })
+
+  // Create orbit ring points (memoized)
+  const orbitPositions = useMemo(() => {
+    const pts = new Float32Array(65 * 3)
+    for (let i = 0; i <= 64; i++) {
+      const a = (i / 64) * Math.PI * 2
+      pts[i * 3] = orbitRadius * Math.cos(a)
+      pts[i * 3 + 1] = 0
+      pts[i * 3 + 2] = orbitRadius * Math.sin(a)
+    }
+    return pts
+  }, [orbitRadius])
+
+  return (
+    <group>
+      {/* Planet */}
+      <mesh castShadow>
+        <sphereGeometry args={[planetRadius, 32, 32]} />
+        <meshStandardMaterial color="#2244aa" emissive="#1133aa" emissiveIntensity={0.2} />
+      </mesh>
+
+      {/* Orbit path */}
+      <line>
+        <bufferGeometry>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[orbitPositions, 3]}
+          />
+        </bufferGeometry>
+        <lineBasicMaterial color="#444" transparent opacity={0.5} />
+      </line>
+
+      {/* Satellite */}
+      <mesh ref={satRef} position={[orbitRadius, 0, 0]} castShadow>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color="#ffaa22" emissive="#ffaa22" emissiveIntensity={0.4} />
+      </mesh>
+
+      {/* Gravity arrow (from satellite toward planet) */}
+      <ForceArrow
+        position={[orbitRadius, 0, 0]}
+        direction={[-1, 0, 0]}
+        magnitude={2}
+        color="#ff4444"
+        label="Fg"
+      />
+
+      {/* Labels */}
+      <Text position={[0, planetRadius + 0.5, 0]} fontSize={0.25} color="#4488ff" anchorX="center">
+        Planet
+      </Text>
+      <Text position={[0, -orbitRadius - 1, 0]} fontSize={0.2} color="white" anchorX="center">
+        v = {'\u221A'}(GM/r) | T = 2{'\u03C0'}r/v
+      </Text>
+    </group>
+  )
+}
+
+// ============================================
+// WAVE SUPERPOSITION (Phase 9: Interference)
+// ============================================
+interface WaveSuperpositionProps {
+  amplitude1: number
+  frequency1: number
+  amplitude2: number
+  frequency2: number
+  wavelength: number
+  phaseOffset: number
+  stringLength: number
+  resetTrigger?: number
+  timeScale?: number
+  isPaused?: boolean
+  onUpdate?: (data: {
+    position: { x: number; y: number; z: number }
+    velocity: { x: number; y: number; z: number }
+    time: number
+    beatFrequency: number
+  }) => void
+}
+
+export function WaveSuperposition({
+  amplitude1,
+  frequency1,
+  amplitude2,
+  frequency2,
+  wavelength,
+  phaseOffset,
+  stringLength,
+  resetTrigger = 0,
+  timeScale = 1,
+  isPaused = false,
+  onUpdate
+}: WaveSuperpositionProps) {
+  const line1Ref = useRef<THREE.Line>(null)
+  const line2Ref = useRef<THREE.Line>(null)
+  const lineSumRef = useRef<THREE.Line>(null)
+  const timeRef = useRef(0)
+  const numPoints = 200
+
+  const k = (2 * Math.PI) / wavelength
+  const omega1 = 2 * Math.PI * frequency1
+  const omega2 = 2 * Math.PI * frequency2
+  const beatFreq = Math.abs(frequency1 - frequency2)
+
+  useEffect(() => {
+    timeRef.current = 0
+  }, [resetTrigger])
+
+  useFrame((_, delta) => {
+    if (isPaused) return
+    timeRef.current += delta * timeScale
+
+    const t = timeRef.current
+
+    // Update all three lines
+    for (let lineIdx = 0; lineIdx < 3; lineIdx++) {
+      const ref = lineIdx === 0 ? line1Ref : lineIdx === 1 ? line2Ref : lineSumRef
+      if (!ref.current) continue
+
+      const positions = ref.current.geometry.attributes.position
+      for (let i = 0; i < numPoints; i++) {
+        const x = (i / (numPoints - 1)) * stringLength - stringLength / 2
+        const y1 = amplitude1 * Math.sin(k * x - omega1 * t)
+        const y2 = amplitude2 * Math.sin(k * x - omega2 * t + phaseOffset)
+
+        let y: number
+        if (lineIdx === 0) y = y1
+        else if (lineIdx === 1) y = y2
+        else y = y1 + y2
+
+        // Stack vertically: wave 1 at top, wave 2 middle, sum at bottom
+        const yOffset = lineIdx === 0 ? 3 : lineIdx === 1 ? 0 : -3
+        positions.setXYZ(i, x, y + yOffset, 0)
+      }
+      positions.needsUpdate = true
+    }
+
+    if (onUpdate) {
+      onUpdate({
+        position: { x: 0, y: 0, z: 0 },
+        velocity: { x: 0, y: 0, z: 0 },
+        time: t,
+        beatFrequency: beatFreq
+      })
+    }
+  })
+
+  const positions1 = useMemo(() => {
+    const pos = new Float32Array(numPoints * 3)
+    for (let i = 0; i < numPoints; i++) {
+      pos[i * 3] = (i / (numPoints - 1)) * stringLength - stringLength / 2
+      pos[i * 3 + 1] = 3
+      pos[i * 3 + 2] = 0
+    }
+    return pos
+  }, [numPoints, stringLength])
+
+  const positions2 = useMemo(() => {
+    const pos = new Float32Array(numPoints * 3)
+    for (let i = 0; i < numPoints; i++) {
+      pos[i * 3] = (i / (numPoints - 1)) * stringLength - stringLength / 2
+      pos[i * 3 + 1] = 0
+      pos[i * 3 + 2] = 0
+    }
+    return pos
+  }, [numPoints, stringLength])
+
+  const positionsSum = useMemo(() => {
+    const pos = new Float32Array(numPoints * 3)
+    for (let i = 0; i < numPoints; i++) {
+      pos[i * 3] = (i / (numPoints - 1)) * stringLength - stringLength / 2
+      pos[i * 3 + 1] = -3
+      pos[i * 3 + 2] = 0
+    }
+    return pos
+  }, [numPoints, stringLength])
+
+  return (
+    <group position={[0, 2, 0]}>
+      {/* Wave 1 (red) */}
+      <line ref={line1Ref as any}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions1, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color="#ff4444" linewidth={2} />
+      </line>
+      <Text position={[-stringLength / 2 - 0.5, 3, 0]} fontSize={0.18} color="#ff4444" anchorX="right">
+        f{'\u2081'} = {frequency1.toFixed(1)} Hz
+      </Text>
+
+      {/* Wave 2 (blue) */}
+      <line ref={line2Ref as any}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions2, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color="#4444ff" linewidth={2} />
+      </line>
+      <Text position={[-stringLength / 2 - 0.5, 0, 0]} fontSize={0.18} color="#4444ff" anchorX="right">
+        f{'\u2082'} = {frequency2.toFixed(1)} Hz
+      </Text>
+
+      {/* Sum (green) */}
+      <line ref={lineSumRef as any}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positionsSum, 3]} />
+        </bufferGeometry>
+        <lineBasicMaterial color="#44ff44" linewidth={2} />
+      </line>
+      <Text position={[-stringLength / 2 - 0.5, -3, 0]} fontSize={0.18} color="#44ff44" anchorX="right">
+        Sum
+      </Text>
+
+      {/* Beat frequency label */}
+      {beatFreq > 0 && (
+        <Text position={[0, -5, 0]} fontSize={0.2} color="#ffaa00" anchorX="center">
+          Beat freq = |f{'\u2081'} - f{'\u2082'}| = {beatFreq.toFixed(1)} Hz
+        </Text>
+      )}
+
+      {/* Phase offset label */}
+      {phaseOffset !== 0 && (
+        <Text position={[0, 5.5, 0]} fontSize={0.18} color="#aaa" anchorX="center">
+          {'\u0394\u03C6'} = {(phaseOffset * 180 / Math.PI).toFixed(0)}{'\u00B0'}
+        </Text>
+      )}
+    </group>
+  )
+}
+
+// ============================================
+// FBD OVERLAY (Phase 10: Reusable Force Diagram)
+// ============================================
+interface FBDForce {
+  direction: [number, number, number]
+  magnitude: number
+  color: string
+  label: string
+}
+
+interface FBDOverlayProps {
+  forces: FBDForce[]
+  trackedPosition: [number, number, number]
+}
+
+const ORIGIN = new THREE.Vector3(0, 0, 0)
+
+export function FBDOverlay({ forces, trackedPosition }: FBDOverlayProps) {
+  return (
+    <group>
+      {forces.map((force, i) => {
+        const len = Math.sqrt(force.direction[0] ** 2 + force.direction[1] ** 2 + force.direction[2] ** 2) || 1
+        const dx = force.direction[0] / len
+        const dy = force.direction[1] / len
+        const dz = force.direction[2] / len
+        const dir = new THREE.Vector3(dx, dy, dz)
+        const length = Math.max(0.3, force.magnitude * 0.3)
+
+        return (
+          <group key={i} position={trackedPosition}>
+            <arrowHelper
+              args={[
+                dir,
+                ORIGIN,
+                length,
+                force.color,
+                length * 0.2,
+                length * 0.1
+              ]}
+            />
+            <Text
+              position={[
+                dx * (length + 0.3),
+                dy * (length + 0.3),
+                dz * (length + 0.3)
+              ]}
+              fontSize={0.15}
+              color={force.color}
+              anchorX="center"
+            >
+              {force.label}
+            </Text>
+          </group>
+        )
+      })}
     </group>
   )
 }

@@ -15,6 +15,7 @@ const CATEGORY_TO_FOLDER: Record<string, string> = {
   interactions: 'Interactions',
   materials: 'Materials',
   motions: 'Motions',
+  waves: 'Waves',
   objects: 'Objects',
   environments: 'Environments'
 };

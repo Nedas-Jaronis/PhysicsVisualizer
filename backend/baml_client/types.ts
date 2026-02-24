@@ -92,12 +92,15 @@ export enum Interactions {
 export enum Motions {
   CombinedTransRotMotion = "CombinedTransRotMotion",
   DampedOscillation = "DampedOscillation",
+  EnergyConservation = "EnergyConservation",
   LinearMotion = "LinearMotion",
   ProjectileMotion2D = "ProjectileMotion2D",
   ProjectileMotion3D = "ProjectileMotion3D",
   RelativeMotion = "RelativeMotion",
   ResistiveMotion = "ResistiveMotion",
+  RollingMotion = "RollingMotion",
   RotationalMotion = "RotationalMotion",
+  AngularMomentumConservation = "AngularMomentumConservation",
   SimpleHarmonicMotion = "SimpleHarmonicMotion",
   UniformCircularMotion = "UniformCircularMotion",
 }
@@ -106,10 +109,18 @@ export enum Objects {
   Object = "Object",
 }
 
+export enum Waves {
+  TransverseWave = "TransverseWave",
+  StandingWave = "StandingWave",
+  DopplerEffect = "DopplerEffect",
+  WaveSuperposition = "WaveSuperposition",
+}
+
 export interface AnimationData {
   forces: Forces[]
   interactions: Interactions[]
   motions: Motions[]
+  waves: Waves[]
   objects: Objects[]
   environments: Environments[]
   

@@ -28,7 +28,17 @@ import {
   TorqueDemo,
   Seesaw,
   EnhancedCollision,
-  PoweredLift
+  PoweredLift,
+  EnergyRamp,
+  RollingIncline,
+  TransverseWave,
+  StandingWave,
+  BuoyancyDemo,
+  DopplerEffect,
+  AngularMomentumDemo,
+  SatelliteOrbit,
+  WaveSuperposition,
+  FBDOverlay
 } from "./physics3d";
 
 // Deep search for a value in nested object
@@ -235,7 +245,75 @@ function determineSceneType(animationData: any, problem?: string): string {
   const envStr = JSON.stringify(environments).toLowerCase();
   const interactionStr = JSON.stringify(interactions).toLowerCase();
   const forceStr = JSON.stringify(forces).toLowerCase();
+  const wavesStr = JSON.stringify(animationData?.waves || []).toLowerCase();
   const lowerProblem = (problem || '').toLowerCase();
+
+  // --- NEW SCENE TYPE DETECTION ---
+
+  // Check for wave superposition / interference / beats
+  if (lowerProblem.includes('superposition') || lowerProblem.includes('interference') ||
+      lowerProblem.includes('constructive') || lowerProblem.includes('destructive') ||
+      lowerProblem.includes('beats') || wavesStr.includes('wavesuperposition')) {
+    return 'wave_superposition';
+  }
+
+  // Check for standing wave / harmonics
+  if (lowerProblem.includes('standing wave') || lowerProblem.includes('harmonic') ||
+      lowerProblem.includes('node') || lowerProblem.includes('antinode') ||
+      lowerProblem.includes('resonan') || wavesStr.includes('standingwave')) {
+    return 'standing_wave';
+  }
+
+  // Check for Doppler effect
+  if (lowerProblem.includes('doppler') || lowerProblem.includes('siren') ||
+      (lowerProblem.includes('moving source') && lowerProblem.includes('frequen')) ||
+      (lowerProblem.includes('approaching') && lowerProblem.includes('sound')) ||
+      wavesStr.includes('dopplereffect')) {
+    return 'doppler';
+  }
+
+  // Check for transverse wave
+  if ((lowerProblem.includes('wave') && (lowerProblem.includes('transverse') || lowerProblem.includes('string wave'))) ||
+      (lowerProblem.includes('amplitude') && lowerProblem.includes('wavelength')) ||
+      wavesStr.includes('transversewave')) {
+    return 'transverse_wave';
+  }
+
+  // Check for energy conservation on ramp
+  if ((lowerProblem.includes('energy') && (lowerProblem.includes('conserv') || lowerProblem.includes('ramp') || lowerProblem.includes('incline'))) ||
+      (lowerProblem.includes('work-energy') || lowerProblem.includes('work energy')) ||
+      (lowerProblem.includes('kinetic energy') && lowerProblem.includes('potential energy')) ||
+      motionStr.includes('energyconservation')) {
+    return 'energy_ramp';
+  }
+
+  // Check for rolling on incline
+  if ((lowerProblem.includes('roll') && (lowerProblem.includes('incline') || lowerProblem.includes('ramp') || lowerProblem.includes('hill'))) ||
+      lowerProblem.includes('rolls without slipping') ||
+      (lowerProblem.includes('moment of inertia') && (lowerProblem.includes('incline') || lowerProblem.includes('ramp'))) ||
+      motionStr.includes('rollingmotion')) {
+    return 'rolling_incline';
+  }
+
+  // Check for buoyancy
+  if (lowerProblem.includes('buoyan') || lowerProblem.includes('float') ||
+      lowerProblem.includes('sink') || lowerProblem.includes('submerge') ||
+      lowerProblem.includes('archimedes') || lowerProblem.includes('fluid density')) {
+    return 'buoyancy';
+  }
+
+  // Check for angular momentum conservation
+  if ((lowerProblem.includes('angular momentum') && lowerProblem.includes('conserv')) ||
+      lowerProblem.includes('figure skater') ||
+      (lowerProblem.includes('spinning') && lowerProblem.includes('radius'))) {
+    return 'angular_momentum';
+  }
+
+  // Check for satellite orbit
+  if (lowerProblem.includes('satellite') || lowerProblem.includes('orbit') ||
+      (lowerProblem.includes('planet') && lowerProblem.includes('gravitational') && lowerProblem.includes('circular'))) {
+    return 'satellite_orbit';
+  }
 
   // Check for horizontal push with friction
   if (lowerProblem.includes('push') &&
@@ -653,6 +731,59 @@ const Third: React.FC = () => {
     const liftHeightMatch = problem.match(/(?:lift\s*(?:it)?|raise|height\s*(?:of)?)\s*(\d+(?:\.\d+)?)\s*m/i);
     if (liftHeightMatch) overrides.liftHeight = parseFloat(liftHeightMatch[1]);
 
+    // ===== NEW PARSING: Wave parameters =====
+    // Wave amplitude (e.g., "amplitude 0.5 m", "A = 3 cm")
+    const amplitudeMatch = problem.match(/amplitude\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*(m|cm|mm)/i);
+    if (amplitudeMatch) {
+      let amp = parseFloat(amplitudeMatch[1]);
+      if (amplitudeMatch[2] === 'cm') amp /= 100;
+      if (amplitudeMatch[2] === 'mm') amp /= 1000;
+      overrides.waveAmplitude = amp;
+    }
+
+    // Wave frequency (e.g., "frequency 5 Hz", "f = 440 Hz")
+    const freqMatch = problem.match(/(?:frequency|freq)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*Hz/i);
+    if (freqMatch) {
+      overrides.waveFrequency = parseFloat(freqMatch[1]);
+      overrides.sourceFrequency = parseFloat(freqMatch[1]);
+    }
+
+    // Wavelength (e.g., "wavelength 2 m", "λ = 0.5 m")
+    const wavelengthMatch = problem.match(/(?:wavelength|λ)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i);
+    if (wavelengthMatch) overrides.wavelength = parseFloat(wavelengthMatch[1]);
+
+    // Harmonic number (e.g., "3rd harmonic", "n = 2")
+    const harmonicMatch = problem.match(/(\d+)(?:st|nd|rd|th)?\s*harmonic/i) || problem.match(/n\s*=\s*(\d+)/i);
+    if (harmonicMatch) overrides.harmonicNumber = parseInt(harmonicMatch[1]);
+
+    // Wave speed (e.g., "wave speed 340 m/s", "v = 10 m/s")
+    const waveSpeedMatch = problem.match(/(?:wave\s*speed|speed\s*of\s*(?:the\s*)?wave)\s*(?:is|=)?\s*(\d+(?:\.\d+)?)\s*m\/s/i);
+    if (waveSpeedMatch) overrides.waveSpeed = parseFloat(waveSpeedMatch[1]);
+
+    // Ramp/incline height (e.g., "height 5 m", "5 m height")
+    const rampHeightMatch = problem.match(/(?:height|h)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*m/i);
+    if (rampHeightMatch && (lowerProblem.includes('ramp') || lowerProblem.includes('incline') || lowerProblem.includes('slide') || lowerProblem.includes('roll'))) {
+      overrides.rampHeight = parseFloat(rampHeightMatch[1]);
+    }
+
+    // Object density (e.g., "density 800 kg/m³")
+    const densityMatch = problem.match(/(?:density)\s*(?:of|is|=)?\s*(\d+(?:\.\d+)?)\s*kg\/m/i);
+    if (densityMatch) overrides.objectDensity = parseFloat(densityMatch[1]);
+
+    // Fluid density (e.g., "water" -> 1000, "oil" -> 800, "mercury" -> 13600)
+    if (lowerProblem.includes('water')) overrides.fluidDensity = 1000;
+    if (lowerProblem.includes('oil')) overrides.fluidDensity = 800;
+    if (lowerProblem.includes('mercury')) overrides.fluidDensity = 13600;
+    if (lowerProblem.includes('seawater') || lowerProblem.includes('sea water')) overrides.fluidDensity = 1025;
+
+    // Source speed for Doppler (e.g., "source moving at 30 m/s")
+    const sourceSpeedMatch = problem.match(/(?:source|siren|car|train)\s*(?:moving|traveling|approaching)\s*(?:at)?\s*(\d+(?:\.\d+)?)\s*m\/s/i);
+    if (sourceSpeedMatch) overrides.sourceSpeed = parseFloat(sourceSpeedMatch[1]);
+
+    // Angular velocity (e.g., "spinning at 2 rad/s", "ω = 5 rad/s")
+    const omegaMatch = problem.match(/(?:spinning\s*(?:at)?|ω\s*=)\s*(\d+(?:\.\d+)?)\s*rad\/s/i);
+    if (omegaMatch) overrides.initialAngularVelocity = parseFloat(omegaMatch[1]);
+
     return { overrides, hasCliff, cliffHeight, isHorizontalThrow, isBankedCurve, isLinearKinematics };
   }, [problem]);
 
@@ -895,6 +1026,84 @@ const Third: React.FC = () => {
       return {
         position: [12, h / 2 + 3, 14] as [number, number, number],
         target: [0, h / 2, 0] as [number, number, number]
+      };
+    }
+
+    // Energy ramp camera
+    if (sceneType === 'energy_ramp') {
+      const h = initialParams.rampHeight || 5;
+      return {
+        position: [8, h + 2, 12] as [number, number, number],
+        target: [0, h / 2, 0] as [number, number, number]
+      };
+    }
+
+    // Rolling incline camera
+    if (sceneType === 'rolling_incline') {
+      const h = initialParams.rampHeight || 5;
+      return {
+        position: [8, h + 2, 12] as [number, number, number],
+        target: [0, h / 2, 0] as [number, number, number]
+      };
+    }
+
+    // Transverse wave camera
+    if (sceneType === 'transverse_wave') {
+      const len = initialParams.waveStringLength || 10;
+      return {
+        position: [0, 4, len * 0.8] as [number, number, number],
+        target: [0, 2, 0] as [number, number, number]
+      };
+    }
+
+    // Standing wave camera
+    if (sceneType === 'standing_wave') {
+      const len = initialParams.waveStringLength || 10;
+      return {
+        position: [0, 4, len * 0.8] as [number, number, number],
+        target: [0, 2, 0] as [number, number, number]
+      };
+    }
+
+    // Buoyancy camera
+    if (sceneType === 'buoyancy') {
+      return {
+        position: [8, 4, 8] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Doppler camera - top-down-ish view
+    if (sceneType === 'doppler') {
+      return {
+        position: [0, 20, 10] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Angular momentum camera
+    if (sceneType === 'angular_momentum') {
+      return {
+        position: [5, 5, 5] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Satellite orbit camera
+    if (sceneType === 'satellite_orbit') {
+      const r = initialParams.orbitRadius || 5;
+      return {
+        position: [0, r * 2, r * 1.5] as [number, number, number],
+        target: [0, 0, 0] as [number, number, number]
+      };
+    }
+
+    // Wave superposition camera
+    if (sceneType === 'wave_superposition') {
+      const len = initialParams.waveStringLength || 10;
+      return {
+        position: [0, 2, len * 0.9] as [number, number, number],
+        target: [0, 2, 0] as [number, number, number]
       };
     }
 
@@ -1419,6 +1628,174 @@ const Third: React.FC = () => {
               />
             )}
 
+            {/* Energy Ramp */}
+            {sceneType === 'energy_ramp' && (
+              <EnergyRamp
+                mass={params.mass}
+                rampAngle={params.rampAngle}
+                rampHeight={params.rampHeight}
+                frictionCoeff={params.kineticFrictionCoeff}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Rolling Incline */}
+            {sceneType === 'rolling_incline' && (
+              <RollingIncline
+                mass={params.mass}
+                objectRadius={params.objectRadius}
+                rampAngle={params.rampAngle}
+                rampHeight={params.rampHeight}
+                rollingShape={params.rollingShape}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Transverse Wave */}
+            {sceneType === 'transverse_wave' && (
+              <TransverseWave
+                amplitude={params.waveAmplitude}
+                frequency={params.waveFrequency}
+                wavelength={params.wavelength}
+                stringLength={params.waveStringLength}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Standing Wave */}
+            {sceneType === 'standing_wave' && (
+              <StandingWave
+                harmonicNumber={params.harmonicNumber}
+                stringLength={params.waveStringLength}
+                waveSpeed={params.waveSpeed}
+                amplitude={params.waveAmplitude}
+                boundaryType={params.boundaryType}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Buoyancy Demo */}
+            {sceneType === 'buoyancy' && (
+              <BuoyancyDemo
+                objectDensity={params.objectDensity}
+                fluidDensity={params.fluidDensity}
+                objectVolume={params.objectVolume}
+                gravity={params.gravity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Doppler Effect */}
+            {sceneType === 'doppler' && (
+              <DopplerEffect
+                sourceFrequency={params.sourceFrequency}
+                sourceSpeed={params.sourceSpeed}
+                soundSpeed={params.soundSpeed}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Angular Momentum */}
+            {sceneType === 'angular_momentum' && (
+              <AngularMomentumDemo
+                diskMass={params.diskMass}
+                diskRadius={1}
+                initialRadius={params.initialRadius}
+                finalRadius={params.finalRadius}
+                armMass={params.armMass}
+                initialAngularVelocity={params.initialAngularVelocity}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Satellite Orbit */}
+            {sceneType === 'satellite_orbit' && (
+              <SatelliteOrbit
+                planetMass={params.planetMass}
+                orbitRadius={params.orbitRadius}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
+            {/* Wave Superposition */}
+            {sceneType === 'wave_superposition' && (
+              <WaveSuperposition
+                amplitude1={params.waveAmplitude}
+                frequency1={params.waveFrequency}
+                amplitude2={params.wave2Amplitude}
+                frequency2={params.wave2Frequency}
+                wavelength={params.wavelength}
+                phaseOffset={params.phaseOffset}
+                stringLength={params.waveStringLength}
+                resetTrigger={resetTrigger}
+                timeScale={activeTimeScale}
+                isPaused={isPaused}
+                onUpdate={(data) => handleObjectUpdate({
+                  position: data.position,
+                  velocity: data.velocity,
+                  time: data.time
+                })}
+              />
+            )}
+
             {/* Default/freefall scene */}
             {(sceneType === 'default' || sceneType === 'rotation') && (
               <PhysicsBox
@@ -1658,6 +2035,169 @@ const Third: React.FC = () => {
                   <div style={{ marginTop: '2px', color: '#44ff44' }}>
                     Speed = P/(mg) = {v.toFixed(2)} m/s
                   </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'energy_ramp' && (() => {
+              const m = params.mass || 1;
+              const h = params.rampHeight || 5;
+              const g = params.gravity || 9.81;
+              const theta = params.rampAngle || 30;
+              const uk = params.kineticFrictionCoeff || 0;
+              const thetaRad = (theta * Math.PI) / 180;
+              const accel = g * Math.sin(thetaRad) - uk * g * Math.cos(thetaRad);
+              const vBottom = Math.sqrt(Math.max(0, 2 * accel * h / Math.sin(thetaRad)));
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>m = {m.toFixed(1)} kg | h = {h.toFixed(1)} m | θ = {theta}° | μk = {uk.toFixed(2)}</div>
+                  <div style={{ marginTop: '4px', color: '#ff8844' }}>
+                    PE_top = mgh = {(m * g * h).toFixed(1)} J
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#44ff44' }}>
+                    v_bottom = {vBottom.toFixed(2)} m/s
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'rolling_incline' && (() => {
+              const m = params.mass || 1;
+              const h = params.rampHeight || 5;
+              const g = params.gravity || 9.81;
+              const theta = params.rampAngle || 30;
+              const shapeFactors: Record<string, number> = { solid_sphere: 2/5, hollow_sphere: 2/3, solid_cylinder: 1/2, hollow_cylinder: 1, hoop: 1 };
+              const c = shapeFactors[params.rollingShape] || 2/5;
+              const accel = (g * Math.sin(theta * Math.PI / 180)) / (1 + c);
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>{params.rollingShape.replace('_', ' ')} | c = {c.toFixed(2)} | θ = {theta}°</div>
+                  <div style={{ marginTop: '4px', color: '#44aaff' }}>
+                    a = g·sinθ/(1+c) = {accel.toFixed(2)} m/s²
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#ff8844' }}>
+                    E = mgh = {(m * g * h).toFixed(1)} J
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'transverse_wave' && (() => {
+              const A = params.waveAmplitude || 0.5;
+              const f = params.waveFrequency || 2;
+              const lam = params.wavelength || 2;
+              const v = f * lam;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>A = {A.toFixed(2)} m | f = {f.toFixed(1)} Hz | λ = {lam.toFixed(2)} m</div>
+                  <div style={{ marginTop: '4px', color: '#44ff44' }}>
+                    v = fλ = {v.toFixed(2)} m/s
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'standing_wave' && (() => {
+              const n = params.harmonicNumber || 1;
+              const L = params.waveStringLength || 10;
+              const v = params.waveSpeed || 10;
+              const lambdaN = (2 * L) / n;
+              const fN = v / lambdaN;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>n = {n} | L = {L.toFixed(1)} m | v = {v.toFixed(1)} m/s</div>
+                  <div style={{ marginTop: '4px', color: '#44ff44' }}>
+                    f{n} = {fN.toFixed(2)} Hz | λ{n} = {lambdaN.toFixed(2)} m
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'buoyancy' && (() => {
+              const rhoObj = params.objectDensity || 500;
+              const rhoFluid = params.fluidDensity || 1000;
+              const V = params.objectVolume || 0.125;
+              const g = params.gravity || 9.81;
+              const Fb = rhoFluid * V * g;
+              const W = rhoObj * V * g;
+              const floats = rhoObj < rhoFluid;
+              const subFrac = floats ? rhoObj / rhoFluid : 1;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>ρ_obj = {rhoObj} | ρ_fluid = {rhoFluid} kg/m³</div>
+                  <div style={{ marginTop: '4px', color: '#44aaff' }}>
+                    Fb_max = {Fb.toFixed(1)} N | W = {W.toFixed(1)} N
+                  </div>
+                  <div style={{ marginTop: '2px', color: floats ? '#44ff44' : '#ff4444' }}>
+                    {floats ? `Floats (${(subFrac * 100).toFixed(0)}% submerged)` : 'Sinks'}
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'doppler' && (() => {
+              const f = params.sourceFrequency || 5;
+              const vs = params.sourceSpeed || 3;
+              const v = params.soundSpeed || 343;
+              const fFront = f * v / (v - vs);
+              const fBehind = f * v / (v + vs);
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>f₀ = {f.toFixed(0)} Hz | v_s = {vs.toFixed(1)} m/s | v = {v.toFixed(0)} m/s</div>
+                  <div style={{ marginTop: '4px', color: '#44ff44' }}>
+                    f_front = {fFront.toFixed(1)} Hz
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#ff8844' }}>
+                    f_behind = {fBehind.toFixed(1)} Hz
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'angular_momentum' && (() => {
+              const M = params.diskMass || 5;
+              const m = params.armMass || 1;
+              const r1 = params.initialRadius || 1.5;
+              const r2 = params.finalRadius || 0.3;
+              const w1 = params.initialAngularVelocity || 2;
+              const I1 = 0.5 * M * 1 + 2 * m * r1 * r1;
+              const I2 = 0.5 * M * 1 + 2 * m * r2 * r2;
+              const w2 = (I1 * w1) / I2;
+              const L = I1 * w1;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>L = Iω = {L.toFixed(2)} kg·m²/s (conserved)</div>
+                  <div style={{ marginTop: '4px', color: '#44aaff' }}>
+                    ω₁ = {w1.toFixed(1)} → ω₂ = {w2.toFixed(1)} rad/s
+                  </div>
+                  <div style={{ marginTop: '2px', color: '#ff8844' }}>
+                    I₁ = {I1.toFixed(2)} → I₂ = {I2.toFixed(2)} kg·m²
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'satellite_orbit' && (() => {
+              const r = params.orbitRadius || 5;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>Orbit radius = {r.toFixed(1)} units</div>
+                  <div style={{ marginTop: '4px', color: '#44ff44' }}>
+                    v = √(GM/r) | F = GMm/r²
+                  </div>
+                </div>
+              );
+            })()}
+            {sceneType === 'wave_superposition' && (() => {
+              const f1 = params.waveFrequency || 2;
+              const f2 = params.wave2Frequency || 2.5;
+              const fBeat = Math.abs(f1 - f2);
+              const phi = params.phaseOffset || 0;
+              return (
+                <div style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  <div>f₁ = {f1.toFixed(1)} Hz | f₂ = {f2.toFixed(1)} Hz</div>
+                  {fBeat > 0.01 && (
+                    <div style={{ marginTop: '4px', color: '#ffaa00' }}>
+                      f_beat = |f₁ - f₂| = {fBeat.toFixed(1)} Hz
+                    </div>
+                  )}
+                  {phi !== 0 && (
+                    <div style={{ marginTop: '2px', color: '#aaa' }}>
+                      Δφ = {(phi * 180 / Math.PI).toFixed(0)}°
+                    </div>
+                  )}
                 </div>
               );
             })()}

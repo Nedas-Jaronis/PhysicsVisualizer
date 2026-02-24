@@ -29,29 +29,32 @@ client<llm> CustomGPT4o {
 }
 
 client<llm> CustomGPT4oMini {
-  provider openai
+  provider openai-generic
   retry_policy Exponential
   options {
-    model "gpt-4o-mini"
-    api_key env.OPENAI_API_KEY
+    model "gpt-oss-120b"
+    base_url "https://api.ai.it.ufl.edu"
+    api_key env.OPENAI_KEY
   }
 }
 
 client<llm> CustomSonnet {
-  provider anthropic
+  provider openai-generic
   options {
-    model "claude-sonnet-4-20250514"
-    api_key env.ANTHROPIC_API_KEY
+    model "gpt-oss-120b"
+    base_url "https://api.ai.it.ufl.edu"
+    api_key env.OPENAI_KEY
   }
 }
 
 
 client<llm> CustomHaiku {
-  provider anthropic
+  provider openai-generic
   retry_policy Constant
   options {
-    model "claude-3-haiku-20240307"
-    api_key env.ANTHROPIC_API_KEY
+    model "gpt-oss-120b"
+    base_url "https://api.ai.it.ufl.edu"
+    api_key env.OPENAI_KEY
   }
 }
 

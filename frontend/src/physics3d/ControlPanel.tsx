@@ -73,6 +73,38 @@ export interface PhysicsParams {
   // Powered lift
   power: number
   liftHeight: number
+  // Energy ramp
+  rampHeight: number
+  // Wave params
+  waveAmplitude: number
+  waveFrequency: number
+  wavelength: number
+  waveStringLength: number
+  // Standing wave
+  harmonicNumber: number
+  waveSpeed: number
+  boundaryType: 'fixed_fixed' | 'fixed_free'
+  // Buoyancy
+  objectDensity: number
+  fluidDensity: number
+  objectVolume: number
+  // Doppler
+  sourceFrequency: number
+  sourceSpeed: number
+  soundSpeed: number
+  // Angular momentum
+  initialRadius: number
+  finalRadius: number
+  initialAngularVelocity: number
+  diskMass: number
+  armMass: number
+  // Orbit
+  planetMass: number
+  orbitRadius: number
+  // Superposition
+  wave2Frequency: number
+  wave2Amplitude: number
+  phaseOffset: number
 }
 
 export const defaultParams: PhysicsParams = {
@@ -138,7 +170,39 @@ export const defaultParams: PhysicsParams = {
   objectRadius: 0.2,
   // Powered lift
   power: 500,
-  liftHeight: 10
+  liftHeight: 10,
+  // Energy ramp
+  rampHeight: 5,
+  // Wave params
+  waveAmplitude: 0.5,
+  waveFrequency: 2,
+  wavelength: 2,
+  waveStringLength: 10,
+  // Standing wave
+  harmonicNumber: 1,
+  waveSpeed: 10,
+  boundaryType: 'fixed_fixed' as const,
+  // Buoyancy
+  objectDensity: 500,
+  fluidDensity: 1000,
+  objectVolume: 0.125,
+  // Doppler
+  sourceFrequency: 5,
+  sourceSpeed: 3,
+  soundSpeed: 343,
+  // Angular momentum
+  initialRadius: 1.5,
+  finalRadius: 0.3,
+  initialAngularVelocity: 2,
+  diskMass: 5,
+  armMass: 1,
+  // Orbit
+  planetMass: 5.97e24,
+  orbitRadius: 5,
+  // Superposition
+  wave2Frequency: 2.5,
+  wave2Amplitude: 0.5,
+  phaseOffset: 0
 }
 
 // ============================================
@@ -953,6 +1017,325 @@ export function ControlPanel({
         />
         <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
           Equilibrium: m₁d₁ = m₂d₂
+        </p>
+      </Section>
+
+      {/* Energy Ramp Settings */}
+      <Section title="Energy Ramp" defaultOpen={false}>
+        <Slider
+          label="Ramp Height"
+          value={params.rampHeight}
+          min={1}
+          max={15}
+          step={0.5}
+          unit=" m"
+          onChange={(v) => update('rampHeight', v)}
+        />
+        <Slider
+          label="Ramp Angle"
+          value={params.rampAngle}
+          min={10}
+          max={60}
+          step={1}
+          unit="°"
+          onChange={(v) => update('rampAngle', v)}
+        />
+        <Slider
+          label="Friction μk"
+          value={params.kineticFrictionCoeff}
+          min={0}
+          max={0.8}
+          step={0.01}
+          onChange={(v) => update('kineticFrictionCoeff', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          KE + PE + W_friction = E_total
+        </p>
+      </Section>
+
+      {/* Rolling Settings */}
+      <Section title="Rolling" defaultOpen={false}>
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Shape</div>
+          <select
+            value={params.rollingShape}
+            onChange={(e) => onChange({ ...params, rollingShape: e.target.value as any })}
+            style={{
+              width: '100%', padding: '6px', background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px',
+              color: 'white', fontSize: '0.8rem'
+            }}
+          >
+            <option value="solid_sphere">Solid Sphere (c=2/5)</option>
+            <option value="hollow_sphere">Hollow Sphere (c=2/3)</option>
+            <option value="solid_cylinder">Solid Cylinder (c=1/2)</option>
+            <option value="hollow_cylinder">Hollow Cylinder (c=1)</option>
+            <option value="hoop">Hoop (c=1)</option>
+          </select>
+        </div>
+        <Slider
+          label="Object Radius"
+          value={params.objectRadius}
+          min={0.1}
+          max={0.8}
+          step={0.05}
+          unit=" m"
+          onChange={(v) => update('objectRadius', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          a = g·sin θ / (1 + c)
+        </p>
+      </Section>
+
+      {/* Wave Settings */}
+      <Section title="Wave" defaultOpen={false}>
+        <Slider
+          label="Amplitude"
+          value={params.waveAmplitude}
+          min={0.1}
+          max={2}
+          step={0.05}
+          unit=" m"
+          onChange={(v) => update('waveAmplitude', v)}
+        />
+        <Slider
+          label="Frequency"
+          value={params.waveFrequency}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" Hz"
+          onChange={(v) => update('waveFrequency', v)}
+        />
+        <Slider
+          label="Wavelength"
+          value={params.wavelength}
+          min={0.5}
+          max={8}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('wavelength', v)}
+        />
+        <Slider
+          label="String Length"
+          value={params.waveStringLength}
+          min={4}
+          max={20}
+          step={1}
+          unit=" m"
+          onChange={(v) => update('waveStringLength', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          v = fλ | k = 2π/λ
+        </p>
+      </Section>
+
+      {/* Standing Wave Settings */}
+      <Section title="Standing Wave" defaultOpen={false}>
+        <Slider
+          label="Harmonic (n)"
+          value={params.harmonicNumber}
+          min={1}
+          max={8}
+          step={1}
+          onChange={(v) => update('harmonicNumber', v)}
+        />
+        <Slider
+          label="Wave Speed"
+          value={params.waveSpeed}
+          min={1}
+          max={50}
+          step={1}
+          unit=" m/s"
+          onChange={(v) => update('waveSpeed', v)}
+        />
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Boundary</div>
+          <select
+            value={params.boundaryType}
+            onChange={(e) => onChange({ ...params, boundaryType: e.target.value as any })}
+            style={{
+              width: '100%', padding: '6px', background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)', borderRadius: '4px',
+              color: 'white', fontSize: '0.8rem'
+            }}
+          >
+            <option value="fixed_fixed">Fixed-Fixed</option>
+            <option value="fixed_free">Fixed-Free</option>
+          </select>
+        </div>
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          λn = 2L/n | fn = nv/(2L)
+        </p>
+      </Section>
+
+      {/* Buoyancy Settings */}
+      <Section title="Buoyancy" defaultOpen={false}>
+        <Slider
+          label="Object Density"
+          value={params.objectDensity}
+          min={100}
+          max={3000}
+          step={50}
+          unit=" kg/m³"
+          onChange={(v) => update('objectDensity', v)}
+        />
+        <Slider
+          label="Fluid Density"
+          value={params.fluidDensity}
+          min={500}
+          max={13600}
+          step={100}
+          unit=" kg/m³"
+          onChange={(v) => update('fluidDensity', v)}
+        />
+        <Slider
+          label="Object Volume"
+          value={params.objectVolume}
+          min={0.01}
+          max={1}
+          step={0.01}
+          unit=" m³"
+          onChange={(v) => update('objectVolume', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          Fb = ρ_fluid · V_sub · g
+        </p>
+      </Section>
+
+      {/* Doppler Settings */}
+      <Section title="Doppler" defaultOpen={false}>
+        <Slider
+          label="Source Frequency"
+          value={params.sourceFrequency}
+          min={1}
+          max={20}
+          step={0.5}
+          unit=" Hz"
+          onChange={(v) => update('sourceFrequency', v)}
+        />
+        <Slider
+          label="Source Speed"
+          value={params.sourceSpeed}
+          min={0}
+          max={20}
+          step={0.5}
+          unit=" m/s"
+          onChange={(v) => update('sourceSpeed', v)}
+        />
+        <Slider
+          label="Sound Speed"
+          value={params.soundSpeed}
+          min={100}
+          max={600}
+          step={10}
+          unit=" m/s"
+          onChange={(v) => update('soundSpeed', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          f' = f·v/(v∓v_s)
+        </p>
+      </Section>
+
+      {/* Angular Momentum Settings */}
+      <Section title="Angular Momentum" defaultOpen={false}>
+        <Slider
+          label="Disk Mass"
+          value={params.diskMass}
+          min={1}
+          max={20}
+          step={0.5}
+          unit=" kg"
+          onChange={(v) => update('diskMass', v)}
+        />
+        <Slider
+          label="Arm Mass (each)"
+          value={params.armMass}
+          min={0.5}
+          max={5}
+          step={0.1}
+          unit=" kg"
+          onChange={(v) => update('armMass', v)}
+        />
+        <Slider
+          label="Initial Radius"
+          value={params.initialRadius}
+          min={0.3}
+          max={3}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('initialRadius', v)}
+        />
+        <Slider
+          label="Final Radius"
+          value={params.finalRadius}
+          min={0.1}
+          max={2}
+          step={0.1}
+          unit=" m"
+          onChange={(v) => update('finalRadius', v)}
+        />
+        <Slider
+          label="Initial ω"
+          value={params.initialAngularVelocity}
+          min={0.5}
+          max={10}
+          step={0.5}
+          unit=" rad/s"
+          onChange={(v) => update('initialAngularVelocity', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          L = Iω = constant
+        </p>
+      </Section>
+
+      {/* Orbit Settings */}
+      <Section title="Orbit" defaultOpen={false}>
+        <Slider
+          label="Orbit Radius"
+          value={params.orbitRadius}
+          min={2}
+          max={10}
+          step={0.5}
+          unit=" units"
+          onChange={(v) => update('orbitRadius', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          v = √(GM/r) | T = 2πr/v
+        </p>
+      </Section>
+
+      {/* Superposition Settings */}
+      <Section title="Superposition" defaultOpen={false}>
+        <Slider
+          label="Wave 2 Freq"
+          value={params.wave2Frequency}
+          min={0.5}
+          max={10}
+          step={0.1}
+          unit=" Hz"
+          onChange={(v) => update('wave2Frequency', v)}
+        />
+        <Slider
+          label="Wave 2 Amp"
+          value={params.wave2Amplitude}
+          min={0.1}
+          max={2}
+          step={0.05}
+          unit=" m"
+          onChange={(v) => update('wave2Amplitude', v)}
+        />
+        <Slider
+          label="Phase Offset"
+          value={params.phaseOffset}
+          min={0}
+          max={6.28}
+          step={0.1}
+          unit=" rad"
+          onChange={(v) => update('phaseOffset', v)}
+        />
+        <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '8px 0 0 0', lineHeight: 1.4 }}>
+          y = y₁ + y₂ | f_beat = |f₁ - f₂|
         </p>
       </Section>
     </div>
